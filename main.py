@@ -1,3 +1,4 @@
+```python
 from flask import Flask, request, jsonify
 import requests
 import os
@@ -6,7 +7,8 @@ app = Flask(__name__)
 
 @app.route('/decode-vin', methods=['POST'])
 def decode_vin():
-    GHL_API_KEY = os.environ.get('GHL_API_KEY')
+    print("Webhook received:", request.json)
+    GHL_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6IjhvaFozbzR6Y2xhZ0tQaFpWMjFrIiwidmVyc2lvbiI6MSwiaWF0IjoxNzI4ODQ4NzE0Nzg4LCJzdWIiOiJSdW1ZWDNCRXBQT0VkRERPSTA2ViJ9.iJhME3wcuxqEZcJPJzzW3de1ylwtTG_Egf595_lCcZY'
     
     data = request.json
     vin = data['contact']['vin_of_trade']
@@ -33,3 +35,4 @@ def decode_vin():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
+```
