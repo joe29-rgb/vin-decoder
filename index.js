@@ -8,24 +8,56 @@ const GHL_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6Ij
 const GHL_BASE_URL = 'https://rest.gohighlevel.com/v1';
 
 app.use((req, res, next) => {
-    console.log(`Received request: ${JSON.stringify(req.body)}`);
+    console.log(`Received request body: ${JSON.stringify(req.body)}`);
     next();
 });
 
 app.post('/decode-vin', async (req, res) => {
     try {
-        const { contact_id, vin_of_trade } = req.body.contact;
+        // Enhanced error checking and logging
+        if (!req.body || !req.body.contact) {
+            console.error('Invalid request: Missing contact information');
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Invalid request: Missing contact information' 
+            });
+        }
+
+        const { id: contact_id, vin_of_trade } = req.body.contact;
+        
+        // Validate contact_id and VIN
+        if (!contact_id) {
+            console.error('Invalid contact ID');
+            return res.status(422).json({ 
+                success: false, 
+                error: 'Invalid contact ID' 
+            });
+        }
+
+        if (!vin_of_trade) {
+            console.error('No VIN provided');
+            return res.status(400).json({ 
+                success: false, 
+                error: 'No VIN provided' 
+            });
+        }
         
         console.log(`Decoding VIN: ${vin_of_trade} for contact: ${contact_id}`);
         
         const vinData = await decodeVIN(vin_of_trade);
-        await updateGHLContact(contact_id, vinData);
+        const updateResult = await updateGHLContact(contact_id, vinData);
         
         console.log(`Successfully processed VIN for contact ${contact_id}`);
         
-        res.json({ success: true, data: vinData });
+        res.json({ 
+            success: true, 
+            data: vinData,
+            updateResult: updateResult
+        });
     } catch (error) {
-        console.error(`Error processing VIN: ${error.message}`);
+        console.error(`Comprehensive error processing VIN: ${error.message}`);
+        console.error('Full error:', error);
+        
         res.status(500).json({ 
             success: false, 
             error: error.message,
