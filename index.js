@@ -1,17 +1,13 @@
 const express = require('express');
 const axios = require('axios');
 const app = express();
-
 app.use(express.json());
-
 const GHL_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6IjhvaFozbzR6Y2xhZ0tQaFpWMjFrIiwidmVyc2lvbiI6MSwiaWF0IjoxNzI4ODQ4NzE0Nzg4LCJzdWIiOiJSdW1ZWDNCRXBQT0VkRERPSTA2ViJ9.iJhME3wcuxqEZcJPJzzW3de1ylwtTG_Egf595_lCcZY';
 const GHL_BASE_URL = 'https://rest.gohighlevel.com/v1';
-
 app.use((req, res, next) => {
    console.log(`Received request body: ${JSON.stringify(req.body)}`);
    next();
 });
-
 app.post('/decode-vin', async (req, res) => {
    try {
        if (!req.body || !req.body.contact) {
@@ -21,7 +17,6 @@ app.post('/decode-vin', async (req, res) => {
                error: 'Invalid request: Missing contact information' 
            });
        }
-
        const { id: contact_id, vin_of_trade } = req.body.contact;
        
        if (!contact_id) {
@@ -31,7 +26,6 @@ app.post('/decode-vin', async (req, res) => {
                error: 'Invalid contact ID' 
            });
        }
-
        if (!vin_of_trade) {
            console.error('No VIN provided');
            return res.status(400).json({ 
@@ -63,7 +57,6 @@ app.post('/decode-vin', async (req, res) => {
        });
    }
 });
-
 async function decodeVIN(vin) {
    try {
        const response = await axios.get(`https://vpic.nhtsa.dot.gov/api/vehicles/decodevin/${vin}?format=json`);
@@ -80,12 +73,18 @@ async function decodeVIN(vin) {
        throw error;
    }
 }
-
 async function updateGHLContact(contactId, vehicleData) {
    try {
        const response = await axios.put(
            `${GHL_BASE_URL}/contacts/${contactId}`,
-           { customField: vehicleData },
+           { 
+               customField: {
+                   'contact.year_of_trade': vehicleData.year_of_trade,
+                   'contact.make_of_trade': vehicleData.make_of_trade,
+                   'contact.model_of_trade': vehicleData.model_of_trade,
+                   'contact.trade_in_trim': vehicleData.trade_in_trim
+               }
+           },
            { 
                headers: { 
                    'Authorization': `Bearer ${GHL_API_KEY}`,
@@ -99,7 +98,6 @@ async function updateGHLContact(contactId, vehicleData) {
        throw error;
    }
 }
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
    console.log(`Server running on port ${PORT}`);
