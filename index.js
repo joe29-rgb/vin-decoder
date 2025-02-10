@@ -10,14 +10,14 @@ app.use((req, res, next) => {
 });
 app.post('/decode-vin', async (req, res) => {
    try {
-       if (!req.body) {
-           console.error('Invalid request: Missing body');
+       if (!req.body || !req.body.contact) {
+           console.error('Invalid request: Missing contact information');
            return res.status(400).json({ 
                success: false, 
-               error: 'Invalid request: Missing body' 
+               error: 'Invalid request: Missing contact information' 
            });
        }
-       const { id: contact_id, vin_of_trade } = req.body;
+       const { id: contact_id, vin_of_trade } = req.body.contact;
        
        if (!contact_id) {
            console.error('Invalid contact ID');
@@ -66,11 +66,10 @@ async function decodeVIN(vin) {
            results.find(item => item.Variable === variableName)?.Value || null;
 
        return {
-           'contact.vin_of_trade': vin,
-           'contact.year_of_trade': extractResult('Model Year'),
-           'contact.make_of_trade': extractResult('Make'),
-           'contact.model_of_trade': extractResult('Model'),
-           'contact.trade_in_trim': extractResult('Trim')
+           'year_of_trade': extractResult('Model Year'),
+           'make_of_trade': extractResult('Make'),
+           'model_of_trade': extractResult('Model'),
+           'trade_in_trim': extractResult('Trim')
        };
    } catch (error) {
        console.error('NHTSA VIN Decode Error:', error);
@@ -95,7 +94,7 @@ async function updateGHLContact(contactId, vehicleData) {
        throw error;
    }
 }
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
    console.log(`Server running on port ${PORT}`);
 });
