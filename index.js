@@ -6,13 +6,13 @@ async function decodeVIN(vin) {
        // Enhanced logging for debugging
        console.log('Full VIN Decode Results:', JSON.stringify(results, null, 2));
 
-       // Original logic with added logging
+       
        const year = results.find(item => item.Variable === 'Model Year')?.Value || null;
        const make = results.find(item => item.Variable === 'Make')?.Value || null;
        const model = results.find(item => item.Variable === 'Model')?.Value || null;
        const trim = results.find(item => item.Variable === 'Trim')?.Value || null;
 
-       // Log each extracted value
+    
        console.log('Extracted Values:', {
            year: year,
            make: make,
