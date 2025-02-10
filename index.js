@@ -66,10 +66,11 @@ async function decodeVIN(vin) {
            results.find(item => item.Variable === variableName)?.Value || null;
 
        return {
-           'year_of_trade': extractResult('Model Year'),
-           'make_of_trade': extractResult('Make'),
-           'model_of_trade': extractResult('Model'),
-           'trade_in_trim': extractResult('Trim')
+           'contact.vin_of_trade': vin,
+           'contact.year_of_trade': extractResult('Model Year'),
+           'contact.make_of_trade': extractResult('Make'),
+           'contact.model_of_trade': extractResult('Model'),
+           'contact.trade_in_trim': extractResult('Trim')
        };
    } catch (error) {
        console.error('NHTSA VIN Decode Error:', error);
@@ -94,7 +95,7 @@ async function updateGHLContact(contactId, vehicleData) {
        throw error;
    }
 }
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
    console.log(`Server running on port ${PORT}`);
 });
