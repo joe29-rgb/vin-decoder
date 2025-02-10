@@ -10,14 +10,14 @@ app.use((req, res, next) => {
 });
 app.post('/decode-vin', async (req, res) => {
    try {
-       if (!req.body || !req.body.contact) {
-           console.error('Invalid request: Missing contact information');
+       if (!req.body) {
+           console.error('Invalid request: Missing body');
            return res.status(400).json({ 
                success: false, 
-               error: 'Invalid request: Missing contact information' 
+               error: 'Invalid request: Missing body' 
            });
        }
-       const { id: contact_id, vin_of_trade } = req.body.contact;
+       const { id: contact_id, vin_of_trade } = req.body;
        
        if (!contact_id) {
            console.error('Invalid contact ID');
