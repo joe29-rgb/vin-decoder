@@ -18,11 +18,18 @@ app.use(express.json());
 
 app.use('/api', router);
 
+// Redirect root to dashboard so visiting the base domain shows the UI
+app.get('/', (_req, res) => {
+  res.redirect('/dashboard');
+});
+
 app.get('/health', (req, res) => {
   res.json({ status: 'Finance-in-a-Box API is running' });
 });
 
 app.get('/dashboard', (_req, res) => {
+  // Set a permissive-but-safe CSP so external fonts are blocked but images from HTTPS are allowed
+  res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data:");
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(`<!doctype html>
 <html>
