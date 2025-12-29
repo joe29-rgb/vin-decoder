@@ -30,6 +30,9 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 
 let inventory: Vehicle[] = [];
 let mirroredInventory: Vehicle[] = [];
 let lastApproval: { contactId: string; locationId: string; approval: ApprovalSpec; trade: TradeInfo } | null = null;
+// In-memory image store for uploaded vehicle photos
+const imageStoreByVin = new Map<string, { mime: string; buf: Buffer }>();
+const imageStoreById = new Map<string, { mime: string; buf: Buffer }>();
 
 router.post('/deals/find', (req: Request, res: Response) => {
   try {
@@ -76,6 +79,32 @@ router.post('/inventory/upload-file', upload.single('file'), async (req: Request
     parsed = await enrichWithVinAuditValuations(parsed);
     inventory = parsed;
     res.json({ success: true, message: `Loaded ${inventory.length} vehicles` });
+  } catch (e) {
+    res.status(400).json({ success: false, error: (e as Error).message });
+  }
+});
+
+router.post('/inventory/upload-image', upload.single('file'), async (req: Request, res: Response) => {
+  try {
+    const file = (req as any).file as Express.Multer.File | undefined;
+    const fields = (req as any).body || {};
+    if (!file) return res.status(400).json({ success: false, error: 'No file provided' });
+    const keyVin = fields.vin ? String(fields.vin).trim() : '';
+    const keyId = fields.id ? String(fields.id).trim() : '';
+    const entry = { mime: (file as any).mimetype || 'image/jpeg', buf: file.buffer };
+    if (keyVin) imageStoreByVin.set(keyVin, entry);
+    if (keyId) imageStoreById.set(keyId, entry);
+    if (keyVin) {
+      const url = `/api/inventory/image-by-vin/${encodeURIComponent(keyVin)}`;
+      for (let i = 0; i < inventory.length; i++) if (inventory[i].vin === keyVin) inventory[i] = { ...inventory[i], imageUrl: url };
+      for (let i = 0; i < mirroredInventory.length; i++) if (mirroredInventory[i].vin === keyVin) mirroredInventory[i] = { ...mirroredInventory[i], imageUrl: url };
+    }
+    if (keyId) {
+      const url2 = `/api/inventory/image/${encodeURIComponent(keyId)}`;
+      for (let i = 0; i < inventory.length; i++) if (String(inventory[i].id) === keyId) inventory[i] = { ...inventory[i], imageUrl: url2 };
+      for (let i = 0; i < mirroredInventory.length; i++) if (String(mirroredInventory[i].id) === keyId) mirroredInventory[i] = { ...mirroredInventory[i], imageUrl: url2 };
+    }
+    res.json({ success: true, message: 'Image uploaded', byVin: !!keyVin, byId: !!keyId });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
   }
@@ -139,6 +168,24 @@ router.post('/inventory/parse-pdf', upload.single('file'), async (req: Request, 
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
   }
+});
+
+router.get('/inventory/image-by-vin/:vin', (req: Request, res: Response) => {
+  const vin = String(req.params.vin || '');
+  const entry = imageStoreByVin.get(vin);
+  if (!entry) return res.status(404).end();
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Content-Type', entry.mime);
+  res.send(entry.buf);
+});
+
+router.get('/inventory/image/:id', (req: Request, res: Response) => {
+  const id = String(req.params.id || '');
+  const entry = imageStoreById.get(id);
+  if (!entry) return res.status(404).end();
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Content-Type', entry.mime);
+  res.send(entry.buf);
 });
 
 router.post('/ghl/push-selected', async (req: Request, res: Response) => {

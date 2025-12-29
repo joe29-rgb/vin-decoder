@@ -271,6 +271,33 @@ app.get('/dashboard.js', (_req, res) => {
           toast(jj.success ? 'Pushed to GHL' : ('Push failed: ' + (jj.error || 'unknown')));
         };})(row);
         body.appendChild(btn);
+        var upBtn = document.createElement('button');
+        upBtn.className = 'btn';
+        upBtn.textContent = 'Upload Photo';
+        upBtn.style.marginLeft = '8px';
+        upBtn.onclick = (function(r, imgEl){ return function(){
+          var input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/*';
+          input.onchange = async function(){
+            if (!input.files || !input.files[0]) { return; }
+            var fd = new FormData();
+            fd.append('file', input.files[0]);
+            if (r.vin) fd.append('vin', r.vin);
+            if (r.vehicleId) fd.append('id', String(r.vehicleId));
+            var resp = await fetch('/api/inventory/upload-image', { method:'POST', body: fd });
+            var jr = await resp.json();
+            if (jr && jr.success) {
+              var nextSrc = r.vin ? ('/api/inventory/image-by-vin/' + encodeURIComponent(r.vin)) : (r.vehicleId ? ('/api/inventory/image/' + encodeURIComponent(String(r.vehicleId))) : '');
+              if (nextSrc) { imgEl.src = nextSrc + '?t=' + Date.now(); }
+              toast('Photo uploaded');
+            } else {
+              toast('Photo upload failed: ' + (jr && jr.error || 'unknown'));
+            }
+          };
+          input.click();
+        };})(row, img);
+        body.appendChild(upBtn);
         card.appendChild(body);
         grid.appendChild(card);
       }
