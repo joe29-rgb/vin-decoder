@@ -30,6 +30,7 @@ app.get('/health', (req, res) => {
 app.get('/dashboard', (_req, res) => {
   // Set a permissive-but-safe CSP so external fonts and images from HTTPS are allowed
   res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data: https:");
+  res.setHeader('Cache-Control', 'no-store');
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(`<!doctype html>
 <html>
@@ -123,13 +124,16 @@ app.get('/dashboard', (_req, res) => {
       <div class="modal-backdrop"></div>
       <div class="modal-body">
         <h3 style="margin:0">Inventory Upload</h3>
-        <p style="margin:0;color:var(--muted)">Upload a .csv file or paste CSV content. Columns supported: stock, vin, year, make, model, trim, mileage, color, engine, transmission, your_cost, suggested_price, in_stock, image_url, cbb_wholesale, cbb_retail.</p>
+        <p style="margin:0;color:var(--muted)">Upload a .csv file or paste CSV content. Columns supported: stock, vin, year, make, model, trim, mileage, color, engine, transmission, your_cost, suggested_price, in_stock, image_url, black_book_value, cbb_wholesale, cbb_retail. You can also parse a PDF to extract text.</p>
         <div class="uploader">
           <input type="file" id="inventoryFile" accept=".csv,text/csv" />
+          <input type="file" id="inventoryPdf" accept="application/pdf" />
+          <button class="btn" id="parseInventoryPdf">Parse PDF</button>
         </div>
         <textarea id="inventoryText" class="textarea" placeholder="stock,vin,year,make,model,your_cost,suggested_price,image_url\nSTK001,2HGFC2F59MH000001,2021,Honda,Civic,18000,21995,https://.../civic.jpg"></textarea>
         <div class="modal-actions">
           <button class="btn" id="closeInventory">Cancel</button>
+          <button class="btn" id="saveInventoryFile">Upload File</button>
           <button class="btn primary" id="saveInventory">Upload</button>
         </div>
       </div>
@@ -139,7 +143,11 @@ app.get('/dashboard', (_req, res) => {
       <div class="modal-backdrop"></div>
       <div class="modal-body">
         <h3 style="margin:0">Approval Upload</h3>
-        <p style="margin:0;color:var(--muted)">Paste approval JSON matching the /api/approvals/ingest schema.</p>
+        <p style="margin:0;color:var(--muted)">Paste approval JSON matching the /api/approvals/ingest schema or parse from a PDF.</p>
+        <div class="uploader">
+          <input type="file" id="approvalPdf" accept="application/pdf" />
+          <button class="btn" id="parseApprovalPdf">Parse PDF</button>
+        </div>
         <textarea id="approvalText" class="textarea" placeholder='{
   "contactId": "CONTACT_ID",
   "locationId": "LOCATION_ID",
@@ -157,9 +165,11 @@ app.get('/dashboard', (_req, res) => {
       <div class="modal-backdrop"></div>
       <div class="modal-body">
         <h3 style="margin:0">Lender Rules</h3>
-        <p style="margin:0;color:var(--muted)">Paste JSON array or upload a .json file.</p>
+        <p style="margin:0;color:var(--muted)">Paste JSON array, upload a .json file, or parse a PDF to extract text.</p>
         <div class="uploader">
           <input type="file" id="rulesFile" accept="application/json" />
+          <input type="file" id="rulesPdf" accept="application/pdf" />
+          <button class="btn" id="parseRulesPdf">Parse PDF</button>
           <button class="btn" id="loadSample">Load Sample</button>
         </div>
         <textarea id="rulesInput" class="textarea" placeholder="[ {\n  \"bank\": \"EdenPark\",\n  \"program\": \"Ride 5\"\n} ]"></textarea>
@@ -180,6 +190,7 @@ app.get('/favicon.ico', (_req, res) => { res.status(204).end(); });
 // Externalized dashboard JS to avoid inline parse issues
 app.get('/dashboard.js', (_req, res) => {
   res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store');
   res.send(`(function(){
     'use strict';
     var meta = document.getElementById('meta');
@@ -188,11 +199,18 @@ app.get('/dashboard.js', (_req, res) => {
     var rulesModal = document.getElementById('rulesModal');
     var rulesInput = document.getElementById('rulesInput');
     var rulesFile = document.getElementById('rulesFile');
+    var rulesPdf = document.getElementById('rulesPdf');
+    var parseRulesPdf = document.getElementById('parseRulesPdf');
     var inventoryModal = document.getElementById('inventoryModal');
     var inventoryFile = document.getElementById('inventoryFile');
     var inventoryText = document.getElementById('inventoryText');
+    var inventoryPdf = document.getElementById('inventoryPdf');
+    var parseInventoryPdf = document.getElementById('parseInventoryPdf');
+    var saveInventoryFile = document.getElementById('saveInventoryFile');
     var approvalModal = document.getElementById('approvalModal');
     var approvalText = document.getElementById('approvalText');
+    var approvalPdf = document.getElementById('approvalPdf');
+    var parseApprovalPdf = document.getElementById('parseApprovalPdf');
     var sortBy = document.getElementById('sortBy');
     var search = document.getElementById('search');
     var lastApproval = null;
@@ -322,6 +340,14 @@ app.get('/dashboard.js', (_req, res) => {
       reader.onload = function(){ fileTextCache = String(reader.result||''); rulesInput.value = fileTextCache; };
       reader.readAsText(f);
     };
+    if (parseRulesPdf) parseRulesPdf.onclick = async function(){
+      if (!rulesPdf || !rulesPdf.files || !rulesPdf.files[0]) { toast('Select a rules PDF'); return; }
+      var fd = new FormData(); fd.append('file', rulesPdf.files[0]);
+      var resp = await fetch('/api/rules/parse-pdf', { method:'POST', body: fd });
+      var jr = await resp.json();
+      if (jr.success) { rulesInput.value = jr.text || ''; toast('Parsed rules PDF'); }
+      else { toast('Failed: ' + (jr.error||'unknown')); }
+    };
 
     document.getElementById('saveInventory').onclick = async function(){
       var txt = (inventoryText.value||'').trim();
@@ -338,6 +364,22 @@ app.get('/dashboard.js', (_req, res) => {
       reader.onload = function(){ invFileTextCache = String(reader.result||''); inventoryText.value = invFileTextCache; };
       reader.readAsText(f);
     };
+    if (saveInventoryFile) saveInventoryFile.onclick = async function(){
+      if (!inventoryFile || !inventoryFile.files || !inventoryFile.files[0]) { toast('Select a CSV file'); return; }
+      var fd = new FormData(); fd.append('file', inventoryFile.files[0]);
+      var resp = await fetch('/api/inventory/upload-file', { method:'POST', body: fd });
+      var jr = await resp.json();
+      if (jr.success) { toast(jr.message || 'Inventory uploaded'); closeInventory(); await refreshMeta(); }
+      else { toast('Failed: ' + (jr.error||'unknown')); }
+    };
+    if (parseInventoryPdf) parseInventoryPdf.onclick = async function(){
+      if (!inventoryPdf || !inventoryPdf.files || !inventoryPdf.files[0]) { toast('Select a PDF'); return; }
+      var fd = new FormData(); fd.append('file', inventoryPdf.files[0]);
+      var resp = await fetch('/api/inventory/parse-pdf', { method:'POST', body: fd });
+      var jr = await resp.json();
+      if (jr.success) { inventoryText.value = jr.text || ''; toast('Parsed inventory PDF'); }
+      else { toast('Failed: ' + (jr.error||'unknown')); }
+    };
     document.getElementById('saveApproval').onclick = async function(){
       var txt = (approvalText.value||'').trim();
       if (!txt) { toast('Provide approval JSON'); return; }
@@ -347,6 +389,17 @@ app.get('/dashboard.js', (_req, res) => {
       var jr = await resp.json();
       if (jr.success) { toast('Approval ingested'); closeApproval(); await loadApproval(); }
       else { toast('Failed: ' + (jr.error||'unknown')); }
+    };
+    if (parseApprovalPdf) parseApprovalPdf.onclick = async function(){
+      if (!approvalPdf || !approvalPdf.files || !approvalPdf.files[0]) { toast('Select an approval PDF'); return; }
+      var fd = new FormData(); fd.append('file', approvalPdf.files[0]);
+      var resp = await fetch('/api/approvals/parse-pdf', { method:'POST', body: fd });
+      var jr = await resp.json();
+      if (jr.success) {
+        if (jr.suggestion) { try { approvalText.value = JSON.stringify(jr.suggestion, null, 2); } catch(_e) { approvalText.value = String(jr.text||''); } }
+        else { approvalText.value = String(jr.text||''); }
+        toast('Parsed approval PDF');
+      } else { toast('Failed: ' + (jr.error||'unknown')); }
     };
     sortBy.onchange = renderRows; search.oninput = function(){ renderRows(); };
 

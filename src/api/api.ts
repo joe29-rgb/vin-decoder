@@ -4,6 +4,7 @@
  */
 
 import express, { Request, Response } from 'express';
+import multer from 'multer';
 import { findOptimalDeals } from '../modules/deal-maximizer';
 import { getAllLenderPrograms } from '../modules/lender-programs';
 import { saveDealToGHL } from '../modules/ghl-integration';
@@ -20,10 +21,12 @@ import {
   LenderRuleSet,
 } from '../types/types';
 import axios from 'axios';
+import pdf from 'pdf-parse';
 import { scoreInventory } from '../modules/approvals-engine';
 import { listRules, setRules, addRules } from '../modules/rules-library';
 
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 let inventory: Vehicle[] = [];
 let mirroredInventory: Vehicle[] = [];
 let lastApproval: { contactId: string; locationId: string; approval: ApprovalSpec; trade: TradeInfo } | null = null;
@@ -61,6 +64,80 @@ router.post('/deals/find', (req: Request, res: Response) => {
       success: false,
       error: (error as Error).message,
     });
+  }
+});
+
+router.post('/inventory/upload-file', upload.single('file'), async (req: Request, res: Response) => {
+  try {
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (!file) return res.status(400).json({ success: false, error: 'No file provided' });
+    const text = file.buffer.toString('utf8');
+    let parsed = loadInventoryFromCSV(text);
+    parsed = await enrichWithVinAuditValuations(parsed);
+    inventory = parsed;
+    res.json({ success: true, message: `Loaded ${inventory.length} vehicles` });
+  } catch (e) {
+    res.status(400).json({ success: false, error: (e as Error).message });
+  }
+});
+
+router.post('/rules/parse-pdf', upload.single('file'), async (req: Request, res: Response) => {
+  try {
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (!file) return res.status(400).json({ success: false, error: 'No file provided' });
+    const data = await pdf(file.buffer);
+    res.json({ success: true, text: data.text || '' });
+  } catch (e) {
+    res.status(400).json({ success: false, error: (e as Error).message });
+  }
+});
+
+router.post('/approvals/parse-pdf', upload.single('file'), async (req: Request, res: Response) => {
+  try {
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (!file) return res.status(400).json({ success: false, error: 'No file provided' });
+    const data = await pdf(file.buffer);
+    const text = data.text || '';
+    const suggestion: any = {
+      contactId: 'CONTACT_ID',
+      locationId: 'LOCATION_ID',
+      approval: {
+        bank: '',
+        program: '',
+        apr: undefined,
+        termMonths: undefined,
+        paymentMin: undefined,
+        paymentMax: undefined,
+        province: 'AB',
+        downPayment: 0,
+      },
+      trade: { allowance: 0, acv: 0, lienBalance: 0 },
+    };
+    const bankMatch = text.match(/(?:Bank|Lender)\s*[:\-]\s*([A-Za-z0-9 &\-]+)/i);
+    if (bankMatch) suggestion.approval.bank = bankMatch[1].trim();
+    const programMatch = text.match(/Program\s*[:\-]\s*([^\n]+)/i);
+    if (programMatch) suggestion.approval.program = programMatch[1].trim();
+    const aprMatch = text.match(/APR[^\d]*(\d{1,2}(?:\.\d{1,2})?)/i);
+    if (aprMatch) suggestion.approval.apr = Number(aprMatch[1]);
+    const termMatch = text.match(/(?:Term|Months)[^\d]*(\d{2,3})/i);
+    if (termMatch) suggestion.approval.termMonths = Number(termMatch[1]);
+    const payRange = text.match(/Payment[^\d]*(\d{2,4})(?:[^\d]+|\s*to\s*)(\d{2,4})/i);
+    if (payRange) { suggestion.approval.paymentMin = Number(payRange[1]); suggestion.approval.paymentMax = Number(payRange[2]); }
+    res.json({ success: true, text, suggestion });
+  } catch (e) {
+    res.status(400).json({ success: false, error: (e as Error).message });
+  }
+});
+
+router.post('/inventory/parse-pdf', upload.single('file'), async (req: Request, res: Response) => {
+  try {
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (!file) return res.status(400).json({ success: false, error: 'No file provided' });
+    const data = await pdf(file.buffer);
+    const text = data.text || '';
+    res.json({ success: true, text });
+  } catch (e) {
+    res.status(400).json({ success: false, error: (e as Error).message });
   }
 });
 
