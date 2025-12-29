@@ -40,6 +40,8 @@ export function loadInventoryFromCSV(csvContent: string): Vehicle[] {
         yourCost: parseFloat(vehicleData.your_cost) || parseFloat(vehicleData.yourcost) || 0,
         suggestedPrice: parseFloat(vehicleData.suggested_price) || parseFloat(vehicleData.suggestedprice) || 0,
         inStock: vehicleData.in_stock !== 'false' && vehicleData.instock !== 'false',
+        imageUrl: vehicleData.image_url || vehicleData.image || vehicleData.photo_url || vehicleData.photoUrl || undefined,
+        blackBookValue: vehicleData.black_book_value ? parseFloat(vehicleData.black_book_value) : undefined,
       };
 
       vehicles.push(vehicle);
