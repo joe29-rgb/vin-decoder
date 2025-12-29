@@ -5,6 +5,7 @@
     "main": "dist/api/main.js",
     "scripts": {
         "build": "tsc",
+        "postinstall": "npm run build",
         "start": "node dist/api/main.js",
         "dev": "ts-node src/api/main.ts",
         "test": "jest",
