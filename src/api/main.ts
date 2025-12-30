@@ -136,11 +136,12 @@ app.get('/dashboard', (_req, res) => {
       <div class="modal-backdrop"></div>
       <div class="modal-body">
         <h3 style="margin:0">Inventory Upload</h3>
-        <p style="margin:0;color:var(--muted)">Upload a .csv file or paste CSV content. Columns supported: stock, vin, year, make, model, trim, mileage, color, engine, transmission, your_cost, suggested_price, in_stock, image_url, black_book_value, cbb_wholesale, cbb_retail. You can also parse a PDF to extract text.</p>
+        <p style="margin:0;color:var(--muted)">Upload a .csv file or paste CSV content. Columns supported: stock, vin, year, make, model, trim, mileage, color, engine, transmission, your_cost, suggested_price, in_stock, image_url, black_book_value, cbb_wholesale, cbb_retail. Common aliases are also accepted (e.g. cost/price/kms/bb_wholesale/bb_retail). You can also parse a PDF to extract text.</p>
         <div class="uploader">
           <input type="file" id="inventoryFile" accept=".csv,text/csv" />
           <input type="file" id="inventoryPdf" accept="application/pdf" />
           <button class="btn" id="parseInventoryPdf">Parse PDF</button>
+          <a class="btn" href="/public/inventory-template.csv" download target="_blank">Download CSV Template</a>
         </div>
         <textarea id="inventoryText" class="textarea" placeholder="stock,vin,year,make,model,your_cost,suggested_price,image_url\nSTK001,2HGFC2F59MH000001,2021,Honda,Civic,18000,21995,https://.../civic.jpg"></textarea>
         <div class="modal-actions">
@@ -228,6 +229,20 @@ app.get('/dashboard.js', (_req, res) => {
   res.sendFile(path.resolve(p), { headers: { 'Content-Type': 'application/javascript; charset=utf-8' } }, (err) => {
     if (err) {
       res.status(500).send("console.error('Failed to load dashboard.js');");
+    }
+  });
+});
+
+// CSV template fallback route (served from dist/public or src/public)
+app.get('/public/inventory-template.csv', (_req, res) => {
+  const distPath = path.join(process.cwd(), 'dist', 'public', 'inventory-template.csv');
+  const srcPath = path.join(process.cwd(), 'src', 'public', 'inventory-template.csv');
+  const p = fs.existsSync(distPath) ? distPath : srcPath;
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.sendFile(path.resolve(p), { headers: { 'Content-Type': 'text/csv; charset=utf-8' } }, (err) => {
+    if (err) {
+      res.status(404).send('CSV template not found');
     }
   });
 });

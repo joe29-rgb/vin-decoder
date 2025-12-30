@@ -20,28 +20,48 @@ export function loadInventoryFromCSV(csvContent: string): Vehicle[] {
       vehicleData[col] = row[idx];
     });
 
+    // Helpers for flexible header mapping
+    const pick = (...keys: string[]) => {
+      for (const k of keys) {
+        if (vehicleData[k] !== undefined && vehicleData[k] !== '') return vehicleData[k];
+      }
+      return undefined;
+    };
+
     try {
-      const vin = vehicleData.vin || '';
+      const vin = (pick('vin') || '') as string;
       const vinData = vin.length === 17 ? decodeVIN(vin) : null;
 
       const vehicle: Vehicle = {
-        id: vehicleData.stock || `STOCK-${i}`,
+        id: (pick('stock','stock_number','stocknum','stockno','id','vehicleid','vehicle_id') as string) || `STOCK-${i}`,
         vin,
-        year: vinData?.year || parseInt(vehicleData.year),
-        make: vinData?.make || vehicleData.make || 'Unknown',
-        model: vinData?.model || vehicleData.model || 'Unknown',
-        trim: vehicleData.trim || '',
-        mileage: parseInt(vehicleData.mileage) || 0,
-        color: vehicleData.color || '',
-        engine: vinData?.engine || vehicleData.engine || 'Unknown',
-        transmission: vehicleData.transmission || 'Unknown',
-        cbbWholesale: parseFloat(vehicleData.cbb_wholesale) || parseFloat(vehicleData.cbbwholesale) || 0,
-        cbbRetail: parseFloat(vehicleData.cbb_retail) || parseFloat(vehicleData.cbbretail) || 0,
-        yourCost: parseFloat(vehicleData.your_cost) || parseFloat(vehicleData.yourcost) || 0,
-        suggestedPrice: parseFloat(vehicleData.suggested_price) || parseFloat(vehicleData.suggestedprice) || 0,
-        inStock: vehicleData.in_stock !== 'false' && vehicleData.instock !== 'false',
-        imageUrl: vehicleData.image_url || vehicleData.image || vehicleData.photo_url || vehicleData.photoUrl || undefined,
-        blackBookValue: vehicleData.black_book_value ? parseFloat(vehicleData.black_book_value) : undefined,
+        year: vinData?.year || parseInt((pick('year','vehicle_year') as string) || '0'),
+        make: vinData?.make || (pick('make','vehicle_make') as string) || 'Unknown',
+        model: vinData?.model || (pick('model','vehicle_model') as string) || 'Unknown',
+        trim: (pick('trim') as string) || '',
+        mileage: parseInt((pick('mileage','kms','km','kilometers','odometer') as string) || '0') || 0,
+        color: (pick('color','exterior_color') as string) || '',
+        engine: vinData?.engine || (pick('engine','motor') as string) || 'Unknown',
+        transmission: (pick('transmission','trans','gearbox') as string) || 'Unknown',
+        cbbWholesale:
+          parseFloat((pick('cbb_wholesale','cbbwholesale','bb_wholesale','bbwholesale','blackbook_wholesale','black_book_wholesale') as string) || '0') || 0,
+        cbbRetail:
+          parseFloat((pick('cbb_retail','cbbretail','bb_retail','bbretail','blackbook_retail','black_book_retail') as string) || '0') || 0,
+        yourCost:
+          parseFloat((pick('your_cost','yourcost','cost','purchase_cost','our_cost','acquisition_cost','base_cost','vehicle_cost') as string) || '0') || 0,
+        suggestedPrice:
+          parseFloat((pick('suggested_price','suggestedprice','price','retail_price','list_price','asking_price','sale_price','msrp') as string) || '0') || 0,
+        inStock: (function(){
+          const v = (pick('in_stock','instock','available','status') as string) || '';
+          const val = String(v).toLowerCase();
+          if (!val) return true;
+          return !(val === 'false' || val === 'no' || val === '0' || val === 'sold' || val === 'unavailable');
+        })(),
+        imageUrl: (pick('image_url','imageurl','image','photo_url','photourl','photo','picture_url','picture') as string) || undefined,
+        blackBookValue: (function(){
+          const b = pick('black_book_value','blackbook','bb','bb_value','black_book');
+          return b != null && b !== '' ? parseFloat(String(b)) : undefined;
+        })(),
       };
 
       vehicles.push(vehicle);
