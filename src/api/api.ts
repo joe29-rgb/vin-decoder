@@ -24,6 +24,7 @@ import axios from 'axios';
 import pdf from 'pdf-parse';
 import { scoreInventory } from '../modules/approvals-engine';
 import { listRules, setRules, addRules } from '../modules/rules-library';
+import { saveInventoryToSupabase, fetchInventoryFromSupabase } from '../modules/supabase';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
@@ -78,6 +79,7 @@ router.post('/inventory/upload-file', upload.single('file'), async (req: Request
     let parsed = loadInventoryFromCSV(text);
     parsed = await enrichWithVinAuditValuations(parsed);
     inventory = parsed;
+    try { await saveInventoryToSupabase(inventory); } catch(_e){}
     res.json({ success: true, message: `Loaded ${inventory.length} vehicles` });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
@@ -226,6 +228,7 @@ router.post('/inventory/upload', async (req: Request, res: Response) => {
     let parsed = loadInventoryFromCSV(csvContent);
     parsed = await enrichWithVinAuditValuations(parsed);
     inventory = parsed;
+    try { await saveInventoryToSupabase(inventory); } catch(_e){}
 
     res.json({
       success: true,
@@ -240,11 +243,15 @@ router.post('/inventory/upload', async (req: Request, res: Response) => {
 });
 
 router.get('/inventory', (req: Request, res: Response) => {
-  res.json({
-    success: true,
-    total: inventory.length,
-    vehicles: inventory,
-  });
+  (async () => {
+    try {
+      const rows = await fetchInventoryFromSupabase();
+      if (rows && rows.length > 0) {
+        inventory = rows;
+      }
+    } catch(_e){}
+    res.json({ success: true, total: inventory.length, vehicles: inventory });
+  })();
 });
 
 // Dynamic Lender Rules Library

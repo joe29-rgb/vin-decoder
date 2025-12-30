@@ -94,6 +94,12 @@ app.get('/dashboard', (_req, res) => {
       .textarea{ width:100%; min-height:220px; background:#0e1319; color:var(--text); border:1px solid var(--border); border-radius:10px; padding:10px; font-family: ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
       .uploader{ display:flex; gap:10px; align-items:center; }
       .modal-actions{ display:flex; justify-content:flex-end; gap:10px; }
+      /* Inventory table */
+      .panel{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px; }
+      .table{ width:100%; border-collapse: collapse; font-size:13px; }
+      .table th,.table td{ border-bottom:1px solid var(--border); padding:8px; text-align:left; }
+      .table th{ color:var(--muted); font-weight:600; }
+      .hidden{ display:none; }
     </style>
   </head>
   <body>
@@ -126,8 +132,35 @@ app.get('/dashboard', (_req, res) => {
           </select>
         </div>
         <input id="search" class="search" placeholder="Search VIN, Make, Model" />
+        <button class="btn" id="toggleInventory">View Inventory</button>
       </div>
       <div id="grid" class="grid"></div>
+      <div id="inventorySection" class="panel hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div style="font-weight:700;">Inventory</div>
+          <div style="color:var(--muted); font-size:12px;">Persisted via Supabase (if configured)</div>
+        </div>
+        <div style="overflow:auto;">
+          <table id="inventoryTable" class="table">
+            <thead>
+              <tr>
+                <th>Stock</th>
+                <th>VIN</th>
+                <th>Year</th>
+                <th>Make</th>
+                <th>Model</th>
+                <th>Cost</th>
+                <th>Price</th>
+                <th>BB</th>
+                <th>CBB W/R</th>
+                <th>Image</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <div id="toast" class="toast"></div>
@@ -148,6 +181,18 @@ app.get('/dashboard', (_req, res) => {
           <button class="btn" id="closeInventory">Cancel</button>
           <button class="btn" id="saveInventoryFile">Upload File</button>
           <button class="btn primary" id="saveInventory">Upload</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="detailsModal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="modal-body">
+        <h3 style="margin:0">Deal Details</h3>
+        <div id="detailsContent" class="textarea" style="min-height:140px;">
+        </div>
+        <div class="modal-actions">
+          <button class="btn" id="closeDetails">Close</button>
         </div>
       </div>
     </div>

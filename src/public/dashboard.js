@@ -7,6 +7,13 @@
   var meta = document.getElementById('meta');
   var grid = document.getElementById('grid');
   var toastEl = document.getElementById('toast');
+  var toggleInventoryBtn = document.getElementById('toggleInventory');
+  var inventorySection = document.getElementById('inventorySection');
+  var inventoryTable = document.getElementById('inventoryTable');
+
+  var detailsModal = document.getElementById('detailsModal');
+  var detailsContent = document.getElementById('detailsContent');
+  var closeDetails = document.getElementById('closeDetails');
 
   var rulesModal = document.getElementById('rulesModal');
   var rulesInput = document.getElementById('rulesInput');
@@ -31,6 +38,7 @@
 
   var lastApproval = null;
   var currentRows = [];
+  var currentInventory = [];
   var fileTextCache = '';
   var invFileTextCache = '';
 
@@ -91,6 +99,13 @@
       };})(row);
       body.appendChild(pushBtn);
 
+      var detBtn = document.createElement('button');
+      detBtn.className = 'btn';
+      detBtn.textContent = 'Details';
+      detBtn.style.marginLeft = '8px';
+      detBtn.onclick = (function(r){ return function(){ openDetails(r); };})(row);
+      body.appendChild(detBtn);
+
       var upBtn = document.createElement('button');
       upBtn.className = 'btn';
       upBtn.textContent = 'Upload Photo';
@@ -128,6 +143,7 @@
     try {
       var r = await fetch('/api/inventory');
       var j = await r.json();
+      currentInventory = Array.isArray(j.vehicles) ? j.vehicles : [];
       var inv = j && j.total != null ? j.total : 0;
       meta.textContent = '';
       var span = document.createElement('span');
@@ -261,6 +277,80 @@
   };
 
   sortBy.onchange = renderRows; search.oninput = function(){ renderRows(); };
+
+  function renderInventoryTable(){
+    try {
+      var tbody = inventoryTable.querySelector('tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      for (var i=0; i<currentInventory.length; i++){
+        var v = currentInventory[i];
+        var tr = document.createElement('tr');
+        function td(txt){ var d=document.createElement('td'); d.textContent = txt; return d; }
+        tr.appendChild(td(v.id||''));
+        tr.appendChild(td(v.vin||''));
+        tr.appendChild(td(String(v.year||'')));
+        tr.appendChild(td(v.make||''));
+        tr.appendChild(td(v.model||''));
+        tr.appendChild(td(fmt$(v.yourCost)));
+        tr.appendChild(td(fmt$(v.suggestedPrice)));
+        var bb = v.blackBookValue!=null? ('$'+Number(v.blackBookValue).toLocaleString()):''; tr.appendChild(td(bb));
+        tr.appendChild(td((v.cbbWholesale||0) + ' / ' + (v.cbbRetail||0)));
+        var imgTd = document.createElement('td');
+        var img = document.createElement('img'); img.style.width='48px'; img.style.height='32px'; img.style.objectFit='cover'; img.src = v.imageUrl || ''; img.alt='';
+        imgTd.appendChild(img); tr.appendChild(imgTd);
+        var act = document.createElement('td');
+        var b1 = document.createElement('button'); b1.className='btn'; b1.textContent='Details'; b1.onclick=(function(vv){ return function(){
+          // try find a scored row by vin/id for payment/gross
+          var r = currentRows.find(function(x){ return x.vin===vv.vin || String(x.vehicleId)===String(vv.id); });
+          if (r) openDetails(r); else {
+            // synthesize a minimal row-like object for details
+            openDetails({ vin: vv.vin, title: vv.year+' '+vv.make+' '+vv.model, salePrice: vv.suggestedPrice, monthlyPayment: 0, frontGross: 0, backGross: 0, totalGross: 0, flags: [], vehicleId: vv.id, imageUrl: vv.imageUrl });
+          }
+        };})(v);
+        act.appendChild(b1);
+        tr.appendChild(act);
+        tbody.appendChild(tr);
+      }
+    } catch(_e){}
+  }
+
+  function openDetails(row){
+    try {
+      var v = currentInventory.find(function(x){ return x.vin===row.vin || String(x.id)===String(row.vehicleId); }) || {};
+      var html = '';
+      html += '<div style="display:flex; gap:12px; align-items:flex-start;">';
+      html += '<img src="' + (row.imageUrl||v.imageUrl||'') + '" style="width:180px;height:120px;object-fit:cover;border:1px solid var(--border);border-radius:8px;" />';
+      html += '<div>';
+      html += '<div style="font-weight:700;font-size:16px;">' + (row.title|| (v.year+' '+(v.make||'')+' '+(v.model||''))) + '</div>';
+      html += '<div class="chip">' + (row.vin||v.vin||'') + '</div>';
+      html += '<div style="margin-top:8px;color:var(--muted)">Sale Price: ' + fmt$(row.salePrice) + ' • Payment: ' + fmt$(row.monthlyPayment) + '/mo</div>';
+      html += '<div style="margin-top:8px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;">';
+      html += '<div>Front Gross</div><div style="text-align:right;">' + fmt$(row.frontGross) + '</div>';
+      html += '<div>Back Gross</div><div style="text-align:right;">' + fmt$(row.backGross) + '</div>';
+      html += '<div>Total Gross</div><div style="text-align:right;font-weight:700;">' + fmt$(row.totalGross) + '</div>';
+      html += '<div>Your Cost</div><div style="text-align:right;">' + fmt$(v.yourCost) + '</div>';
+      html += '<div>Black Book</div><div style="text-align:right;">' + (v.blackBookValue!=null?fmt$(v.blackBookValue):'') + '</div>';
+      html += '<div>CBB Wholesale/Retail</div><div style="text-align:right;">' + (v.cbbWholesale||0) + ' / ' + (v.cbbRetail||0) + '</div>';
+      html += '</div>';
+      if (row.flags && row.flags.length){ html += '<div style="margin-top:8px;color:var(--danger)">' + row.flags.join(', ') + '</div>'; }
+      html += '</div>';
+      html += '</div>';
+      detailsContent.innerHTML = html;
+      detailsModal.classList.remove('hidden');
+    } catch(_e){}
+  }
+
+  if (closeDetails) closeDetails.onclick = function(){ try { detailsModal.classList.add('hidden'); } catch(_e){} };
+  if (toggleInventoryBtn) toggleInventoryBtn.onclick = async function(){
+    var showing = !inventorySection.classList.contains('hidden');
+    if (showing) { inventorySection.classList.add('hidden'); }
+    else {
+      if (!currentInventory || !currentInventory.length) { await refreshMeta(); }
+      renderInventoryTable();
+      inventorySection.classList.remove('hidden');
+    }
+  };
 
   refreshMeta();
   try { console.log('dashboard: init complete'); } catch(_e) {}
