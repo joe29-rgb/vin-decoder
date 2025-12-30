@@ -179,7 +179,17 @@ app.get('/dashboard', (_req, res) => {
         </div>
       </div>
     </div>
-    <script src="/dashboard.js"></script>
+    <script>
+      (function(){
+        try {
+          var s = document.createElement('script');
+          s.src = '/dashboard.js?ts=' + Date.now();
+          s.onload = function(){ try { console.log('dashboard: script injected'); } catch(_e){} };
+          s.onerror = function(){ try { console.error('dashboard: failed to load /dashboard.js'); } catch(_e){} };
+          document.body.appendChild(s);
+        } catch(_e) { try { console.error('dashboard: injection error', _e); } catch(__){} }
+      })();
+    </script>
   </body>
 </html>`);
 });
@@ -193,6 +203,9 @@ app.get('/dashboard.js', (_req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   res.send(`(function(){
     'use strict';
+    console.log('dashboard.js loaded');
+    try { window.fibReady = true; } catch(_e) {}
+    try { window.addEventListener('error', function(e){ try{ console.error('dashboard error', e.error || e.message || e); var t=document.getElementById('toast'); if(t){ t.textContent='Error: ' + (e.message || 'check console'); t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 3000);} }catch(_ee){} }); } catch(_e) {}
     var meta = document.getElementById('meta');
     var grid = document.getElementById('grid');
     var toastEl = document.getElementById('toast');
@@ -346,6 +359,7 @@ app.get('/dashboard.js', (_req, res) => {
     document.getElementById('closeRules').onclick = function(){ closeRules(); };
     document.getElementById('closeApproval').onclick = function(){ closeApproval(); };
     document.getElementById('closeInventory').onclick = function(){ closeInventory(); };
+    try { console.log('dashboard: handlers bound'); } catch(_e) {}
     document.getElementById('loadSample').onclick = function(){
       var sample = '[\n  {\n    "bank": "EdenPark",\n    "program": "Ride 5",\n    "frontCapFactor": 1.40,\n    "reserve": {\n      "fixedByFinancedAmount": [\n        { "minFinanced": 45001, "maxFinanced": 999999, "amount": 750 }\n      ]\n    },\n    "maxPayCall": 950\n  }\n]';
       rulesInput.value = sample;
@@ -432,6 +446,7 @@ app.get('/dashboard.js', (_req, res) => {
 
     // Initial load
     refreshMeta();
+    try { console.log('dashboard: init complete'); } catch(_e) {}
   })();`);
 });
 
