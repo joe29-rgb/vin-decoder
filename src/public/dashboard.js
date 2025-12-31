@@ -247,7 +247,7 @@
     if (!txt) { toast('Provide CSV via text or file'); return; }
     var resp = await fetch('/api/inventory/upload', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ csvContent: txt }) });
     var jr = await resp.json();
-    if (jr.success) { toast(jr.message || 'Inventory uploaded'); closeInventory(); await refreshMeta(); }
+    if (jr.success) { toast(jr.message || 'Inventory uploaded'); closeInventory(); await refreshMeta(); renderInventoryTable(); inventorySection.classList.remove('hidden'); }
     else { toast('Failed: ' + (jr.error||'unknown')); }
   };
 
@@ -263,7 +263,7 @@
     var fd = new FormData(); fd.append('file', inventoryFile.files[0]);
     var resp = await fetch('/api/inventory/upload-file', { method:'POST', body: fd });
     var jr = await resp.json();
-    if (jr.success) { toast(jr.message || 'Inventory uploaded'); closeInventory(); await refreshMeta(); }
+    if (jr.success) { toast(jr.message || 'Inventory uploaded'); closeInventory(); await refreshMeta(); renderInventoryTable(); inventorySection.classList.remove('hidden'); }
     else { toast('Failed: ' + (jr.error||'unknown')); }
   };
 
@@ -351,6 +351,29 @@
           }
         };})(v);
         act.appendChild(b1);
+        var b2 = document.createElement('button'); b2.className='btn'; b2.textContent='Upload Photo'; b2.style.marginLeft='8px'; b2.onclick=(function(vv, imgEl){ return function(){
+          var input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/*';
+          input.onchange = async function(){
+            if (!input.files || !input.files[0]) { return; }
+            var fd = new FormData();
+            fd.append('file', input.files[0]);
+            if (vv.vin) fd.append('vin', vv.vin);
+            if (vv.id) fd.append('id', String(vv.id));
+            var resp = await fetch('/api/inventory/upload-image', { method:'POST', body: fd });
+            var jr = await resp.json();
+            if (jr && jr.success) {
+              var nextSrc = vv.vin ? ('/api/inventory/image-by-vin/' + encodeURIComponent(vv.vin)) : (vv.id ? ('/api/inventory/image/' + encodeURIComponent(String(vv.id))) : '');
+              if (nextSrc) { imgEl.src = nextSrc + '?t=' + Date.now(); }
+              toast('Photo uploaded');
+            } else {
+              toast('Photo upload failed: ' + (jr && jr.error || 'unknown'));
+            }
+          };
+          input.click();
+        };})(v, img);
+        act.appendChild(b2);
         tr.appendChild(act);
         tbody.appendChild(tr);
       }
