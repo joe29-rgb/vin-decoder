@@ -209,14 +209,24 @@
     reader.readAsText(f);
   };
 
-  if (parseRulesPdf) parseRulesPdf.onclick = async function(){
+  async function parseRulesFromSelectedPdf(){
     if (!rulesPdf || !rulesPdf.files || !rulesPdf.files[0]) { toast('Select a rules PDF'); return; }
     var fd = new FormData(); fd.append('file', rulesPdf.files[0]);
     var resp = await fetch('/api/rules/parse-pdf', { method:'POST', body: fd });
     var jr = await resp.json();
-    if (jr.success) { rulesInput.value = jr.text || ''; toast('Parsed rules PDF'); }
-    else { toast('Failed: ' + (jr.error||'unknown')); }
-  };
+    if (jr.success) {
+      if (jr.suggestion && Array.isArray(jr.suggestion) && jr.suggestion.length) {
+        rulesInput.value = JSON.stringify({ rules: jr.suggestion, mode: 'append' }, null, 2);
+        toast('Parsed PDF → Rules suggestion ready. Click Upload.');
+      } else {
+        rulesInput.value = jr.text || '';
+        toast('Parsed rules PDF to text');
+      }
+    } else { toast('Failed: ' + (jr.error||'unknown')); }
+  }
+
+  if (rulesPdf) rulesPdf.onchange = function(){ parseRulesFromSelectedPdf(); };
+  if (parseRulesPdf) parseRulesPdf.onclick = parseRulesFromSelectedPdf;
 
   document.getElementById('saveInventory').onclick = async function(){
     var txt = (inventoryText.value||'').trim();

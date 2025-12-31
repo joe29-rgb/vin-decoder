@@ -35,6 +35,53 @@ let lastApproval: { contactId: string; locationId: string; approval: ApprovalSpe
 const imageStoreByVin = new Map<string, { mime: string; buf: Buffer }>();
 const imageStoreById = new Map<string, { mime: string; buf: Buffer }>();
 
+function buildRulesSuggestionFromText(text: string): LenderRuleSet[] | null {
+  const t = (text || '').replace(/\r/g, '');
+  let bank = '';
+  let program = '';
+  let frontCapFactor: number | undefined;
+  let backCap: { type: 'percent_of_bb' | 'percent_of_price'; percent: number } | undefined;
+  let maxPayCall: number | undefined;
+  const reserve: {
+    percentOfFinanced?: number;
+    fixedByFinancedAmount?: { minFinanced: number; maxFinanced: number; amount: number }[];
+    qualityBonusByFinancedAmount?: { minFinanced: number; maxFinanced: number; amount: number }[];
+    chargebackDays?: number;
+  } = {};
+
+  const bankMatch = t.match(/(?:Bank|Lender)\s*[:\-]\s*([A-Za-z0-9 &\-]+)/i);
+  if (bankMatch) bank = bankMatch[1].trim();
+  const programMatch = t.match(/Program\s*[:\-]\s*([^\n]+)/i);
+  if (programMatch) program = programMatch[1].trim();
+
+  const fcap = t.match(/front[^%\n]*?(\d{2,3}(?:\.\d{1,2})?)\s*%[^\n]*?(?:Black\s*Book|BB)/i);
+  if (fcap) frontCapFactor = Number(fcap[1]) / 100;
+
+  const bcapBB = t.match(/back[^%\n]*?(\d{1,2}(?:\.\d{1,2})?)\s*%[^\n]*?(?:BB|Black\s*Book)/i);
+  const bcapPrice = t.match(/back[^%\n]*?(\d{1,2}(?:\.\d{1,2})?)\s*%[^\n]*?(?:price|sale)/i);
+  if (bcapBB) backCap = { type: 'percent_of_bb', percent: Number(bcapBB[1]) / 100 };
+  else if (bcapPrice) backCap = { type: 'percent_of_price', percent: Number(bcapPrice[1]) / 100 };
+
+  const mpc = t.match(/max(?:imum)?\s*pay(?:ment)?\s*call[^\d]*(\d{2,5})/i);
+  if (mpc) maxPayCall = Number(mpc[1]);
+
+  const resP = t.match(/reserve[^\d%]*?(\d{1,2}(?:\.\d{1,2})?)\s*%[^\n]*?(?:amount\s*financed|financed)/i);
+  if (resP) reserve.percentOfFinanced = Number(resP[1]) / 100;
+
+  const fixed = t.match(/over\s*\$?([\d,]{4,7})[^\n]*?\$?([\d,]{2,6})/i);
+  if (fixed) {
+    const min = Number(fixed[1].replace(/,/g, ''));
+    const amt = Number(fixed[2].replace(/,/g, ''));
+    reserve.fixedByFinancedAmount = [{ minFinanced: Math.max(0, min + 1), maxFinanced: 999999, amount: amt }];
+  }
+
+  const s: LenderRuleSet = { bank: bank || 'Bank', program: program || 'Program' };
+  if (frontCapFactor != null) s.frontCapFactor = frontCapFactor;
+  if (backCap) s.backCap = backCap as any;
+  if (typeof maxPayCall === 'number') s.maxPayCall = maxPayCall;
+  if (Object.keys(reserve).length > 0) s.reserve = reserve as any;
+  return [s];
+}
 router.post('/deals/find', (req: Request, res: Response) => {
   try {
     const request: FindDealsRequest = req.body;
@@ -117,7 +164,9 @@ router.post('/rules/parse-pdf', upload.single('file'), async (req: Request, res:
     const file = (req as any).file as Express.Multer.File | undefined;
     if (!file) return res.status(400).json({ success: false, error: 'No file provided' });
     const data = await pdf(file.buffer);
-    res.json({ success: true, text: data.text || '' });
+    const text = data.text || '';
+    const suggestion = buildRulesSuggestionFromText(text);
+    res.json({ success: true, text, suggestion });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
   }
