@@ -110,17 +110,50 @@ app.get('/dashboard', (_req, res) => {
           <div class="title">Finance‑in‑a‑Box</div>
           <div class="subtitle">Deal Matrix</div>
         </div>
+    
+    <div id="helpModal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="modal-body">
+        <h3 style="margin:0">Help & Getting Started</h3>
+        <div style="color:var(--muted);font-size:14px;line-height:1.5;margin-top:6px;">
+          <ol style="margin:6px 0 0 18px;">
+            <li>Step 1: Upload your Inventory (CSV or paste)</li>
+            <li>Step 2: Upload your Lender Rules (PDF preferred)</li>
+            <li>Step 3: Upload an Approval (PDF or paste)</li>
+            <li>Step 4: Click Calculate Deals and open Details</li>
+          </ol>
+        </div>
+        <div class="modal-actions" style="justify-content:space-between;">
+          <div style="display:flex; gap:8px;">
+            <button class="btn" id="helpOpenInventory">Open Inventory Upload</button>
+            <button class="btn" id="helpOpenRules">Open Rules Upload</button>
+            <button class="btn" id="helpOpenApproval">Open Approval Upload</button>
+          </div>
+          <button class="btn" id="closeHelp">Close</button>
+        </div>
+      </div>
+    </div>
       </div>
       <div class="actions">
-        <button class="btn" id="uploadInventory">Upload Inventory CSV</button>
-        <button class="btn" id="uploadRules">Upload Rules</button>
-        <button class="btn" id="uploadApproval">Upload Approval</button>
-        <button class="btn" id="load">Load Approval</button>
-        <button class="btn primary" id="score" disabled>Calculate Matrix</button>
+        <button class="btn" id="uploadInventory">Step 1: Inventory</button>
+        <button class="btn" id="uploadRules">Step 2: Lender Rules</button>
+        <button class="btn" id="uploadApproval">Step 3: Approval</button>
+        <button class="btn" id="load">Reload Approval</button>
+        <button class="btn primary" id="score" disabled>Step 4: Calculate Deals</button>
+        <button class="btn" id="openHelp">Help</button>
       </div>
     </div>
     <div class="container">
       <div id="meta" class="meta"></div>
+      <div id="stepGuide" class="panel" style="margin-bottom:16px;">
+        <div style="font-weight:700;margin-bottom:6px;">Quick Start</div>
+        <ol style="margin:0;padding-left:18px;color:var(--muted)">
+          <li>Step 1: Upload your Inventory CSV or paste it.</li>
+          <li>Step 2: Upload your Lender Rules PDF (we parse and suggest).</li>
+          <li>Step 3: Upload Approval PDF or paste details.</li>
+          <li>Step 4: Click Calculate Deals, then open Details.</li>
+        </ol>
+      </div>
       <div class="toolbar">
         <div>
           <label for="sortBy" style="color:var(--muted); font-size:12px;">Sort</label>
@@ -175,6 +208,7 @@ app.get('/dashboard', (_req, res) => {
           <input type="file" id="inventoryPdf" accept="application/pdf" />
           <button class="btn" id="parseInventoryPdf">Parse PDF</button>
           <a class="btn" href="/public/inventory-template.csv" download target="_blank">Download CSV Template</a>
+          <button class="btn" id="loadSampleInventory">Load Sample</button>
         </div>
         <textarea id="inventoryText" class="textarea" placeholder="stock,vin,year,make,model,your_cost,suggested_price,image_url\nSTK001,2HGFC2F59MH000001,2021,Honda,Civic,18000,21995,https://.../civic.jpg"></textarea>
         <div class="modal-actions">
@@ -205,6 +239,7 @@ app.get('/dashboard', (_req, res) => {
         <div class="uploader">
           <input type="file" id="approvalPdf" accept="application/pdf" />
           <button class="btn" id="parseApprovalPdf">Parse PDF</button>
+          <button class="btn" id="loadSampleApproval">Load Sample</button>
         </div>
         <textarea id="approvalText" class="textarea" placeholder='{
   "contactId": "CONTACT_ID",
