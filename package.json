@@ -2,14 +2,12 @@
     "name": "finance-in-box",
     "version": "1.0.0",
     "description": "Complete TypeScript financial system for Canadian automotive dealerships",
-    "main": "dist/api/main.js",
+    "main": "dist/server.js",
     "scripts": {
         "build": "tsc",
         "postinstall": "npm run build",
-        "start": "node dist/api/main.js",
-        "dev": "ts-node src/api/main.ts",
-        "start:server": "node dist/server.js",
-        "dev:server": "set NEW_PORT=10001&& ts-node src/server.ts",
+        "start": "node dist/server.js",
+        "dev": "set NEW_PORT=10001&& ts-node src/server.ts",
         "test": "jest",
         "typecheck": "tsc --noEmit",
         "test:watch": "jest --watch"

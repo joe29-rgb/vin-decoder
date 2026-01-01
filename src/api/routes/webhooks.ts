@@ -53,21 +53,7 @@ router.post('/approvals/parse-pdf', upload.single('file'), async (req: Request, 
     if (!file) return res.status(400).json({ success: false, error: 'No file provided' });
     const data = await pdf(file.buffer);
     const text = data.text || '';
-    const suggestion: any = {
-      contactId: 'CONTACT_ID',
-      locationId: 'LOCATION_ID',
-      approval: {
-        bank: '',
-        program: '',
-        apr: undefined,
-        termMonths: undefined,
-        paymentMin: undefined,
-        paymentMax: undefined,
-        province: 'AB',
-        downPayment: 0,
-      },
-      trade: { allowance: 0, acv: 0, lienBalance: 0 },
-    };
+    const suggestion: any = { approval: {}, trade: {} };
     const bankMatch = text.match(/(?:Bank|Lender)\s*[:\-]\s*([A-Za-z0-9 &\-]+)/i);
     if (bankMatch) suggestion.approval.bank = bankMatch[1].trim();
     const programMatch = text.match(/Program\s*[:\-]\s*([^\n]+)/i);
