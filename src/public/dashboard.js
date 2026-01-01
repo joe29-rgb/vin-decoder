@@ -20,12 +20,6 @@
   var rulesFile = document.getElementById('rulesFile');
   var rulesPdf = document.getElementById('rulesPdf');
   var parseRulesPdf = document.getElementById('parseRulesPdf');
-  var openHelpBtn = document.getElementById('openHelp');
-  var helpModal = document.getElementById('helpModal');
-  var closeHelpBtn = document.getElementById('closeHelp');
-  var helpOpenInventory = document.getElementById('helpOpenInventory');
-  var helpOpenRules = document.getElementById('helpOpenRules');
-  var helpOpenApproval = document.getElementById('helpOpenApproval');
 
   var inventoryModal = document.getElementById('inventoryModal');
   var inventoryFile = document.getElementById('inventoryFile');
@@ -33,13 +27,11 @@
   var inventoryPdf = document.getElementById('inventoryPdf');
   var parseInventoryPdf = document.getElementById('parseInventoryPdf');
   var saveInventoryFile = document.getElementById('saveInventoryFile');
-  var loadSampleInventory = document.getElementById('loadSampleInventory');
 
   var approvalModal = document.getElementById('approvalModal');
   var approvalText = document.getElementById('approvalText');
   var approvalPdf = document.getElementById('approvalPdf');
   var parseApprovalPdf = document.getElementById('parseApprovalPdf');
-  var loadSampleApproval = document.getElementById('loadSampleApproval');
 
   var sortBy = document.getElementById('sortBy');
   var search = document.getElementById('search');
@@ -188,11 +180,6 @@
   document.getElementById('uploadInventory').onclick = function(){ openInventory(); };
   document.getElementById('uploadRules').onclick = function(){ openRules(); };
   document.getElementById('uploadApproval').onclick = function(){ openApproval(); };
-  if (openHelpBtn) openHelpBtn.onclick = function(){ if (helpModal) helpModal.classList.remove('hidden'); };
-  if (closeHelpBtn) closeHelpBtn.onclick = function(){ if (helpModal) helpModal.classList.add('hidden'); };
-  if (helpOpenInventory) helpOpenInventory.onclick = function(){ if (helpModal) helpModal.classList.add('hidden'); openInventory(); };
-  if (helpOpenRules) helpOpenRules.onclick = function(){ if (helpModal) helpModal.classList.add('hidden'); openRules(); };
-  if (helpOpenApproval) helpOpenApproval.onclick = function(){ if (helpModal) helpModal.classList.add('hidden'); openApproval(); };
   document.getElementById('closeRules').onclick = function(){ closeRules(); };
   document.getElementById('closeApproval').onclick = function(){ closeApproval(); };
   document.getElementById('closeInventory').onclick = function(){ closeInventory(); };
@@ -222,24 +209,14 @@
     reader.readAsText(f);
   };
 
-  async function parseRulesFromSelectedPdf(){
+  if (parseRulesPdf) parseRulesPdf.onclick = async function(){
     if (!rulesPdf || !rulesPdf.files || !rulesPdf.files[0]) { toast('Select a rules PDF'); return; }
     var fd = new FormData(); fd.append('file', rulesPdf.files[0]);
     var resp = await fetch('/api/rules/parse-pdf', { method:'POST', body: fd });
     var jr = await resp.json();
-    if (jr.success) {
-      if (jr.suggestion && Array.isArray(jr.suggestion) && jr.suggestion.length) {
-        rulesInput.value = JSON.stringify({ rules: jr.suggestion, mode: 'append' }, null, 2);
-        toast('Parsed PDF → Rules suggestion ready. Click Upload.');
-      } else {
-        rulesInput.value = jr.text || '';
-        toast('Parsed rules PDF to text');
-      }
-    } else { toast('Failed: ' + (jr.error||'unknown')); }
-  }
-
-  if (rulesPdf) rulesPdf.onchange = function(){ parseRulesFromSelectedPdf(); };
-  if (parseRulesPdf) parseRulesPdf.onclick = parseRulesFromSelectedPdf;
+    if (jr.success) { rulesInput.value = jr.text || ''; toast('Parsed rules PDF'); }
+    else { toast('Failed: ' + (jr.error||'unknown')); }
+  };
 
   document.getElementById('saveInventory').onclick = async function(){
     var txt = (inventoryText.value||'').trim();
@@ -276,14 +253,6 @@
     else { toast('Failed: ' + (jr.error||'unknown')); }
   };
 
-  if (loadSampleInventory) loadSampleInventory.onclick = function(){
-    var sample = 'stock,vin,year,make,model,your_cost,suggested_price,image_url,black_book_value,cbb_wholesale,cbb_retail\n'
-               + 'STK001,2HGFC2F59MH000001,2021,Honda,Civic,18000,21995,https://images.sample/civic.jpg,18500,16000,19000\n'
-               + 'STK002,1FAFP404X1F123456,2020,Ford,Mustang,26000,31995,https://images.sample/mustang.jpg,30000,27000,32000\n';
-    inventoryText.value = sample;
-    toast('Loaded sample inventory');
-  };
-
   document.getElementById('saveApproval').onclick = async function(){
     var txt = (approvalText.value||'').trim();
     if (!txt) { toast('Provide approval JSON'); return; }
@@ -305,17 +274,6 @@
       else { approvalText.value = String(jr.text||''); }
       toast('Parsed approval PDF');
     } else { toast('Failed: ' + (jr.error||'unknown')); }
-  };
-
-  if (loadSampleApproval) loadSampleApproval.onclick = function(){
-    var sample = {
-      contactId: 'CONTACT_ID',
-      locationId: 'LOCATION_ID',
-      approval: { bank: 'EdenPark', program: 'Ride 5', apr: 12.99, termMonths: 72, paymentMin: 350, paymentMax: 450, frontCapFactor: 1.4, province: 'AB', downPayment: 0 },
-      trade: { allowance: 5000, acv: 4500, lienBalance: 1000 }
-    };
-    approvalText.value = JSON.stringify(sample, null, 2);
-    toast('Loaded sample approval');
   };
 
   sortBy.onchange = renderRows; search.oninput = function(){ renderRows(); };

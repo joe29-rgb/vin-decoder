@@ -36,7 +36,7 @@ router.post('/find', (req: Request, res: Response) => {
             ? deals.reduce((sum, d) => sum + d.monthlyPayment, 0) / deals.length
             : 0,
       },
-    } as any;
+    };
 
     res.json(response);
   } catch (error) {

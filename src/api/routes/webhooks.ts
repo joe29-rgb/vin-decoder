@@ -108,7 +108,7 @@ router.post('/approvals/score', (req: Request, res: Response) => {
       state.mirroredInventory = state.inventory;
     }
     const rows = scoreInventory(state.mirroredInventory, approval, trade);
-    const response: ScoreResponse = { approval, rows } as any;
+    const response: ScoreResponse = { approval, rows };
     res.json({ success: true, ...response });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
