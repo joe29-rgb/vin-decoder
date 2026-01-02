@@ -332,6 +332,20 @@
           input.click();
         };})(v, img);
         act.appendChild(b2);
+        var b3 = document.createElement('button'); b3.className='btn'; b3.textContent='Set BB'; b3.style.marginLeft='8px'; b3.onclick=(function(vv){ return async function(){
+          try {
+            var val = prompt('Enter Black Book value for '+ (vv.vin||vv.id) + ' (numbers only, e.g. 45250):', vv.blackBookValue!=null? String(vv.blackBookValue):'');
+            if (val===null) return; // cancel
+            var clean = String(val).replace(/[$,\s]/g,'');
+            var num = parseFloat(clean);
+            if (isNaN(num)) { toast('Invalid number'); return; }
+            var resp = await fetch('/api/inventory/sync', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: vv.id, blackBookValue: num }) });
+            var jr = await resp.json();
+            if (jr.success) { vv.blackBookValue = num; renderInventoryTable(); toast('Black Book updated'); }
+            else { toast('Update failed: ' + (jr.error||'unknown')); }
+          } catch(e){ toast('Update failed'); }
+        };})(v);
+        act.appendChild(b3);
         tr.appendChild(act);
         tbody.appendChild(tr);
       }

@@ -115,31 +115,35 @@ router.get('/', (_req: Request, res: Response) => {
 router.post('/sync', (req: Request, res: Response) => {
   try {
     const b = req.body || {};
-    const v: Vehicle = {
-      id: String(b.id || b.stock || b.vehicleId || b.vehicle_id || b.vin || `WEB-${Date.now()}`),
-      vin: String(b.vin || ''),
-      year: Number(b.year || b.vehicle_year || 0),
-      make: String(b.make || b.vehicle_make || 'Unknown'),
-      model: String(b.model || b.vehicle_model || 'Unknown'),
-      trim: b.trim || '',
-      mileage: Number(b.mileage || 0),
-      color: b.color || '',
-      engine: b.engine || 'Unknown',
-      transmission: b.transmission || 'Unknown',
-      cbbWholesale: Number(b.cbbWholesale || 0),
-      cbbRetail: Number(b.cbbRetail || 0),
-      yourCost: Number(b.cost || b.yourCost || 0),
-      suggestedPrice: Number(b.suggestedPrice || b.price || 0),
-      inStock: b.inStock === undefined ? true : (String(b.inStock).toLowerCase() !== 'false'),
-      imageUrl: b.imageUrl || b.image_url || b.photoUrl || '',
-      blackBookValue: b.blackBookValue !== undefined ? Number(b.blackBookValue) : (b.black_book_value !== undefined ? Number(b.black_book_value) : undefined),
-    } as Vehicle;
+    const id = String(b.id || b.stock || b.vehicleId || b.vehicle_id || b.vin || `WEB-${Date.now()}`);
+    const updates: Partial<Vehicle> = {};
+    if (b.vin !== undefined) updates.vin = String(b.vin);
+    if (b.year !== undefined || b.vehicle_year !== undefined) updates.year = Number(b.year || b.vehicle_year);
+    if (b.make !== undefined || b.vehicle_make !== undefined) updates.make = String(b.make || b.vehicle_make);
+    if (b.model !== undefined || b.vehicle_model !== undefined) updates.model = String(b.model || b.vehicle_model);
+    if (b.trim !== undefined) updates.trim = b.trim;
+    if (b.mileage !== undefined) updates.mileage = Number(b.mileage);
+    if (b.color !== undefined) updates.color = b.color;
+    if (b.engine !== undefined) updates.engine = b.engine;
+    if (b.transmission !== undefined) updates.transmission = b.transmission;
+    if (b.cbbWholesale !== undefined) updates.cbbWholesale = Number(b.cbbWholesale);
+    if (b.cbbRetail !== undefined) updates.cbbRetail = Number(b.cbbRetail);
+    if (b.cost !== undefined || b.yourCost !== undefined) updates.yourCost = Number(b.cost || b.yourCost);
+    if (b.suggestedPrice !== undefined || b.price !== undefined) updates.suggestedPrice = Number(b.suggestedPrice || b.price);
+    if (b.inStock !== undefined) updates.inStock = String(b.inStock).toLowerCase() !== 'false';
+    if (b.imageUrl !== undefined || b.image_url !== undefined || b.photoUrl !== undefined) updates.imageUrl = b.imageUrl || b.image_url || b.photoUrl;
+    if (b.blackBookValue !== undefined || b.black_book_value !== undefined) updates.blackBookValue = Number(b.blackBookValue ?? b.black_book_value);
 
-    const idx = state.mirroredInventory.findIndex(x => x.id === v.id);
-    if (idx >= 0) state.mirroredInventory[idx] = { ...state.mirroredInventory[idx], ...v };
-    else state.mirroredInventory.push(v);
+    // Update mirrored inventory
+    const mi = state.mirroredInventory.findIndex(x => x.id === id);
+    if (mi >= 0) state.mirroredInventory[mi] = { ...state.mirroredInventory[mi], ...updates } as Vehicle;
+    else state.mirroredInventory.push({ id, ...(updates as any) } as Vehicle);
 
-    res.json({ success: true, message: 'Vehicle upserted', vehicleId: v.id });
+    // Also update primary inventory if present
+    const pi = state.inventory.findIndex(x => x.id === id);
+    if (pi >= 0) state.inventory[pi] = { ...state.inventory[pi], ...updates } as Vehicle;
+
+    res.json({ success: true, message: 'Vehicle upserted', vehicleId: id });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
   }
