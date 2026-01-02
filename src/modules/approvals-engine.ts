@@ -130,8 +130,10 @@ export function scoreInventory(
     // Payment call cap from lender rule (if lower than approval)
     const paymentMaxEff = Math.min(approval.paymentMax, rule?.maxPayCall ?? Number.POSITIVE_INFINITY);
 
-    const frontCap = frontCapFactorEff != null ? bbEff * frontCapFactorEff : Number.POSITIVE_INFINITY;
-    const minPrice = Math.max(costEff, 0);
+    // If BB is missing or 0, do NOT apply a front-cap based on BB
+    const frontCap = (frontCapFactorEff != null && bbEff > 0) ? (bbEff * frontCapFactorEff) : Number.POSITIVE_INFINITY;
+    // If cost is missing but suggestedPrice exists, use suggestedPrice for pricing (still flag missing_cost)
+    const minPrice = Math.max((costEff > 0 ? costEff : (Number((v as any).suggestedPrice ?? 0))), 0);
     const maxPrice = Math.max(minPrice, Math.min(frontCap, minPrice + 100000));
 
     const best = findMaxPriceWithinPayment(
@@ -187,7 +189,7 @@ export function scoreInventory(
     rows.push({
       vehicleId: v.id,
       vin: v.vin,
-      title: `${v.year} ${v.make} ${v.model}`,
+      title: `${v.year || ''} ${v.make || ''} ${v.model || ''}`.trim(),
       imageUrl: v.imageUrl,
       salePrice: Math.round(best.price),
       monthlyPayment: Math.round(best.payment),

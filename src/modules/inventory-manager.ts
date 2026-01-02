@@ -84,7 +84,9 @@ export function loadInventoryFromCSV(csvContent: string): Vehicle[] {
         blackBookValue: (function(){
           const b = pick('black_book_value','blackbook','bb','bb_value','black_book','bbv','black_book$','blackbook_value');
           const n = num(b, NaN);
-          return isNaN(n) ? undefined : n;
+          if (isNaN(n)) return undefined;
+          const clamped = Math.min(10000000, Math.max(1, n));
+          return clamped;
         })(),
       };
 

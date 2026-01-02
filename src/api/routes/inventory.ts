@@ -7,6 +7,19 @@ import { loadInventoryFromCSV, enrichWithVinAuditValuations } from '../../module
 import { saveInventoryToSupabase, fetchInventoryFromSupabase } from '../../modules/supabase';
 
 const router = Router();
+
+// Merge helper: unify by VIN if present, otherwise by ID; later values override
+function mergeVehicles(base: Vehicle[], incoming: Vehicle[]): Vehicle[] {
+  const map = new Map<string, Vehicle>();
+  const keyOf = (v: Partial<Vehicle>) => (v.vin && v.vin.length ? `VIN:${v.vin}` : `ID:${v.id}`);
+  for (const v of base) map.set(keyOf(v), v);
+  for (const v of incoming) {
+    const k = keyOf(v);
+    const prev = map.get(k) || ({} as Vehicle);
+    map.set(k, { ...prev, ...v } as Vehicle);
+  }
+  return Array.from(map.values());
+}
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 
 router.get('/ping', (_req: Request, res: Response) => {
@@ -20,9 +33,12 @@ router.post('/upload-file', upload.single('file'), async (req: Request, res: Res
     const text = file.buffer.toString('utf8');
     let parsed = loadInventoryFromCSV(text);
     parsed = await enrichWithVinAuditValuations(parsed);
-    state.inventory = parsed;
+    const mode = String((req.query.mode as any) || 'append').toLowerCase() === 'replace' ? 'replace' : 'append';
+    state.inventory = mode === 'append' ? mergeVehicles(state.inventory, parsed) : parsed;
+    // Keep mirrored in sync so scoring uses latest data
+    state.mirroredInventory = mergeVehicles(state.mirroredInventory, state.inventory);
     try { await saveInventoryToSupabase(state.inventory); } catch(_e){}
-    res.json({ success: true, message: `Loaded ${state.inventory.length} vehicles` });
+    res.json({ success: true, message: `Loaded ${parsed.length} vehicles (${mode})`, total: state.inventory.length });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
   }
@@ -86,15 +102,17 @@ router.get('/image/:id', (req: Request, res: Response) => {
 
 router.post('/upload', async (req: Request, res: Response) => {
   try {
-    const { csvContent } = req.body;
+    const { csvContent, mode: bodyMode } = req.body;
     if (!csvContent) {
       return res.status(400).json({ success: false, error: 'CSV content required' });
     }
     let parsed = loadInventoryFromCSV(csvContent);
     parsed = await enrichWithVinAuditValuations(parsed);
-    state.inventory = parsed;
+    const mode = String(bodyMode || 'append').toLowerCase() === 'replace' ? 'replace' : 'append';
+    state.inventory = mode === 'append' ? mergeVehicles(state.inventory, parsed) : parsed;
+    state.mirroredInventory = mergeVehicles(state.mirroredInventory, state.inventory);
     try { await saveInventoryToSupabase(state.inventory); } catch(_e){}
-    res.json({ success: true, message: `Loaded ${state.inventory.length} vehicles` });
+    res.json({ success: true, message: `Loaded ${parsed.length} vehicles (${mode})`, total: state.inventory.length });
   } catch (error) {
     res.status(400).json({ success: false, error: (error as Error).message });
   }
@@ -132,7 +150,12 @@ router.post('/sync', async (req: Request, res: Response) => {
     if (b.suggestedPrice !== undefined || b.price !== undefined) updates.suggestedPrice = Number(b.suggestedPrice || b.price);
     if (b.inStock !== undefined) updates.inStock = String(b.inStock).toLowerCase() !== 'false';
     if (b.imageUrl !== undefined || b.image_url !== undefined || b.photoUrl !== undefined) updates.imageUrl = b.imageUrl || b.image_url || b.photoUrl;
-    if (b.blackBookValue !== undefined || b.black_book_value !== undefined) updates.blackBookValue = Number(b.blackBookValue ?? b.black_book_value);
+    if (b.blackBookValue !== undefined || b.black_book_value !== undefined) {
+      const bbv = Number(b.blackBookValue ?? b.black_book_value);
+      if (!isNaN(bbv)) {
+        updates.blackBookValue = Math.min(10000000, Math.max(1, bbv));
+      }
+    }
 
     // Update mirrored inventory (always upsert)
     const mi = state.mirroredInventory.findIndex(x => x.id === id);
