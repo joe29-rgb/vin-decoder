@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import axios from 'axios';
+import { load as cheerioLoad } from 'cheerio';
 import { Vehicle } from '../../types/types';
 
 const router = express.Router();
@@ -133,6 +134,27 @@ async function fetchVehiclesFromListing(url: string, limit = 20): Promise<Vehicl
     }
   }
 
+  // 3) If we still have no URLs, fallback to DOM link discovery with Cheerio
+  if (urls.length === 0) {
+    try {
+      const $ = cheerioLoad(html);
+      const candidates = new Set<string>();
+      $('a[href]').each((_i: number, el: any) => {
+        const href = String($(el).attr('href') || '');
+        if (!href) return;
+        // Filter likely vehicle detail links
+        const h = href.toLowerCase();
+        if (h.includes('/used') || h.includes('/new') || h.includes('/vehicle') || h.includes('/inventory')) {
+          candidates.add(href);
+        }
+      });
+      const abs = Array.from(candidates)
+        .map((h) => (h.startsWith('http') ? h : new URL(h, url).href))
+        .filter((h) => h.includes('devonchrysler.com'));
+      urls.push(...Array.from(new Set(abs)));
+    } catch (_e) {}
+  }
+
   const unique = Array.from(new Set(urls)).slice(0, limit);
   for (let i = 0; i < unique.length; i++) {
     try {
@@ -143,10 +165,92 @@ async function fetchVehiclesFromListing(url: string, limit = 20): Promise<Vehicl
         const v = normalizeVehicleFromJsonLd(bs[j], j, u);
         if (v && (v.vin || v.make || v.model)) { out.push(v); break; }
       }
+      // If JSON-LD did not produce a vehicle, try DOM parsing heuristics
+      if (out.length < i + 1) {
+        const domVeh = normalizeVehicleFromDom(h, u, i);
+        if (domVeh) out.push(domVeh);
+      }
     } catch (_e) {}
   }
 
   return out.slice(0, limit);
+}
+
+function normalizeVehicleFromDom(html: string, pageUrl: string, idx: number): Vehicle | null {
+  try {
+    const $ = cheerioLoad(html);
+    // Name/year/make/model
+    const ogTitle = $('meta[property="og:title"]').attr('content') || '';
+    const title = ogTitle || $('title').text().trim();
+    const year = inferYearFromName(title) || 0;
+    // Image
+    let image = $('meta[property="og:image"]').attr('content') || $('img[src]').first().attr('src') || '';
+    try {
+      if (image && !/^https?:/i.test(image)) image = new URL(image, pageUrl).href;
+    } catch(_e) {}
+    // Price heuristics
+    let price: number | undefined;
+    const priceMeta = $('meta[itemprop="price"]').attr('content') || $('meta[property="product:price:amount"]').attr('content');
+    if (priceMeta) price = toNumber(priceMeta) as number | undefined;
+    if (price === undefined) {
+      // Find largest numeric under elements containing 'price'
+      const priceTexts: string[] = [];
+      $('[class*="price"], [id*="price"], .price, .final-price').each((_i: number, el: any) => {
+        const t = $(el).text(); if (t) priceTexts.push(t);
+      });
+      const nums = priceTexts.map((t) => toNumber(t)).filter((n) => typeof n === 'number') as number[];
+      if (nums.length) price = Math.max(...nums);
+    }
+    // VIN & Stock & Mileage heuristics
+    const whole = $('body').text();
+    let vin = '';
+    const mVin = whole.match(/\bVIN[:\s]*([A-HJ-NPR-Z0-9]{17})\b/i);
+    if (mVin) vin = mVin[1].toUpperCase();
+    let stock = '';
+    const mStk = whole.match(/\bStock[:#\s]*([A-Za-z0-9-]+)\b/i);
+    if (mStk) stock = mStk[1];
+    let mileage = 0;
+    const mMil = whole.match(/([0-9][0-9,\.]*)\s*(km|kms|kilometers|kilometres)\b/i);
+    if (mMil) {
+      const n = parseFloat(mMil[1].replace(/[,\.]/g, ''));
+      if (!isNaN(n)) mileage = n;
+    }
+    // Make/Model from title tokens if possible
+    let make = '';
+    let model = '';
+    if (title) {
+      const parts = title.split(/\s+/);
+      const yIdx = parts.findIndex((p: string) => /^(19|20)\d{2}$/.test(p));
+      const after = yIdx >= 0 ? parts.slice(yIdx + 1) : parts;
+      if (after.length) {
+        make = after[0];
+        model = after.slice(1).join(' ');
+      }
+    }
+    const id = stock || vin || `SCR-DOM-${Date.now()}-${idx}`;
+    const vehicle: Vehicle = {
+      id: id,
+      vin: vin,
+      year: year,
+      make: make || 'Unknown',
+      model: model || 'Unknown',
+      trim: '',
+      mileage: mileage,
+      color: undefined,
+      engine: 'Unknown',
+      transmission: 'Unknown',
+      cbbWholesale: 0,
+      cbbRetail: 0,
+      yourCost: 0,
+      suggestedPrice: price ?? 0,
+      inStock: true,
+      imageUrl: image || undefined,
+      blackBookValue: undefined,
+    };
+    return vehicle;
+  } catch(_e) {
+    return null;
+  }
 }
 
 router.get('/devon', async (req: Request, res: Response) => {
