@@ -177,6 +177,7 @@
 
   document.getElementById('load').onclick = loadApproval;
   document.getElementById('score').onclick = score;
+  try { document.getElementById('score').disabled = false; } catch(_e){}
   document.getElementById('uploadInventory').onclick = function(){ openInventory(); };
   document.getElementById('uploadRules').onclick = function(){ openRules(); };
   document.getElementById('uploadApproval').onclick = function(){ openApproval(); };
@@ -263,7 +264,11 @@
     var fd = new FormData(); fd.append('file', rulesPdf.files[0]);
     var resp = await fetch('/api/rules/parse-pdf', { method:'POST', body: fd });
     var jr = await resp.json();
-    if (jr.success) { rulesInput.value = jr.text || ''; toast('Parsed rules PDF'); }
+    if (jr.success) {
+      if (jr.suggestion) { try { rulesInput.value = JSON.stringify(jr.suggestion, null, 2); } catch(_e) { rulesInput.value = jr.text || ''; } }
+      else { rulesInput.value = jr.text || ''; }
+      toast('Parsed rules PDF');
+    }
     else { toast('Failed: ' + (jr.error||'unknown')); }
   };
 

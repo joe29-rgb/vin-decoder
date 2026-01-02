@@ -40,7 +40,11 @@ router.post('/rules/parse-pdf', upload.single('file'), async (req: Request, res:
     const file = (req as any).file as Express.Multer.File | undefined;
     if (!file) return res.status(400).json({ success: false, error: 'No file provided' });
     const data = await pdf(file.buffer);
-    res.json({ success: true, text: data.text || '' });
+    const text = data.text || '';
+    const bankMatch = text.match(/(?:Bank|Lender)\s*[:\-]\s*([A-Za-z0-9 &\-]+)/i);
+    const programMatch = text.match(/Program\s*[:\-]\s*([^\n]+)/i);
+    const suggestion = [ { bank: (bankMatch ? bankMatch[1].trim() : 'Generic'), program: (programMatch ? programMatch[1].trim() : 'Standard') } ];
+    res.json({ success: true, text, suggestion });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
   }
@@ -72,22 +76,35 @@ router.post('/approvals/parse-pdf', upload.single('file'), async (req: Request, 
 
 router.post('/approvals/ingest', (req: Request, res: Response) => {
   try {
-    const payload: ApprovalIngestPayload = req.body;
-    if (!payload?.contactId || !payload?.locationId || !payload?.approval || !payload?.trade) {
-      return res.status(400).json({ success: false, error: 'Missing contactId, locationId, approval, or trade' });
-    }
-    state.lastApproval = {
-      contactId: payload.contactId,
-      locationId: payload.locationId,
-      approval: payload.approval,
-      trade: payload.trade,
+    const body: any = req.body || {};
+    const contactId = body.contactId || '';
+    const locationId = body.locationId || (process.env.GHL_LOCATION_ID as string) || '';
+    const a = body.approval || {};
+    const t = body.trade || {};
+    const approval = {
+      bank: a.bank || 'Generic',
+      program: a.program || 'Standard',
+      apr: Number(a.apr ?? 12.99),
+      termMonths: Number(a.termMonths ?? 72),
+      paymentMin: Number(a.paymentMin ?? 200),
+      paymentMax: Number(a.paymentMax ?? 1200),
+      frontCapFactor: a.frontCapFactor != null ? Number(a.frontCapFactor) : undefined,
+      backCap: a.backCap,
+      province: a.province || 'AB',
+      downPayment: Number(a.downPayment ?? 0),
+    } as any;
+    const trade = {
+      allowance: Number(t.allowance ?? 0),
+      acv: Number(t.acv ?? 0),
+      lienBalance: Number(t.lienBalance ?? 0),
     };
-    if (payload.blackBook?.overrideVehicleId && payload.blackBook?.overrideValue != null) {
-      const id = payload.blackBook.overrideVehicleId;
+    state.lastApproval = { contactId, locationId, approval, trade };
+    if (body.blackBook?.overrideVehicleId && body.blackBook?.overrideValue != null) {
+      const id = body.blackBook.overrideVehicleId;
       const vi = state.mirroredInventory.findIndex(v => v.id === id);
-      if (vi >= 0) state.mirroredInventory[vi] = { ...state.mirroredInventory[vi], blackBookValue: Number(payload.blackBook.overrideValue) };
+      if (vi >= 0) state.mirroredInventory[vi] = { ...state.mirroredInventory[vi], blackBookValue: Number(body.blackBook.overrideValue) };
     }
-    res.json({ success: true });
+    res.json({ success: true, normalized: { contactId, locationId, approval, trade } });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
   }
@@ -101,9 +118,19 @@ router.get('/approvals/last', (_req: Request, res: Response) => {
 router.post('/approvals/score', (req: Request, res: Response) => {
   try {
     const body: ScoreRequest = req.body || {};
-    const approval = body.approval || state.lastApproval?.approval;
-    const trade = body.trade || state.lastApproval?.trade;
-    if (!approval || !trade) return res.status(400).json({ success: false, error: 'Missing approval or trade (ingest first or include in request)' });
+    const defaultApproval = {
+      bank: 'Generic',
+      program: 'Standard',
+      apr: 12.99,
+      termMonths: 72,
+      paymentMin: 200,
+      paymentMax: 1200,
+      province: 'AB',
+      downPayment: 0,
+    } as any;
+    const defaultTrade = { allowance: 0, acv: 0, lienBalance: 0 };
+    const approval = body.approval || state.lastApproval?.approval || defaultApproval;
+    const trade = body.trade || state.lastApproval?.trade || defaultTrade;
     if (state.mirroredInventory.length === 0 && state.inventory.length > 0) {
       state.mirroredInventory = state.inventory;
     }
