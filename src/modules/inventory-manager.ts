@@ -32,12 +32,15 @@ export function loadInventoryFromCSV(csvContent: string): Vehicle[] {
     const num = (val: any, dflt = 0): number => {
       if (val === undefined || val === null || val === '') return dflt;
       let s = String(val).trim();
-      // handle parentheses negatives and currency formatting
-      const neg = /^\(.*\)$/.test(s);
-      s = s.replace(/[,$]/g, '').replace(/^\(|\)$/g, '').replace(/\$/g, '');
+      const parenNeg = /^\(.*\)$/.test(s);
+      const minusNeg = /^\s*-/.test(s);
+      const isNeg = parenNeg || minusNeg;
+      s = s.replace(/[^0-9.()\-]/g, '');
+      s = s.replace(/[()]/g, '');
+      s = s.replace(/^\-/, '');
       const n = parseFloat(s);
       if (isNaN(n)) return dflt;
-      return neg ? -n : n;
+      return isNeg ? -n : n;
     };
 
     try {
@@ -54,7 +57,7 @@ export function loadInventoryFromCSV(csvContent: string): Vehicle[] {
         make: (csvMake || vinData?.make || 'Unknown'),
         model: (csvModel || vinData?.model || 'Unknown'),
         trim: (pick('trim') as string) || '',
-        mileage: parseInt((pick('mileage','kms','km','kilometers','odometer','odometer_km') as string) || '0') || 0,
+        mileage: num(pick('mileage','kms','km','kilometers','odometer','odometer_km'), 0) || 0,
         color: (pick('color','exterior_color') as string) || '',
         engine: vinData?.engine || (pick('engine','motor') as string) || 'Unknown',
         transmission: (pick('transmission','trans','gearbox') as string) || 'Unknown',
@@ -63,9 +66,12 @@ export function loadInventoryFromCSV(csvContent: string): Vehicle[] {
         cbbRetail:
           num(pick('cbb_retail','cbbretail','bb_retail','bbretail','blackbook_retail','black_book_retail','bbr','bb_rtl')),
         yourCost:
-          num(pick('your_cost','yourcost','cost','purchase_cost','our_cost','acquisition_cost','base_cost','vehicle_cost','your_cost_$','yourcost$','buy_cost','cost_$')),
+          num(pick(
+            'your_cost','yourcost','cost','purchase_cost','our_cost','acquisition_cost','base_cost','vehicle_cost','unit_cost','net_cost','cost_value',
+            'inventory_value','inventoryvalue','inventory','inv_value','invvalue','your_cost_$','yourcost$','buy_cost','cost_$'
+          )),
         suggestedPrice:
-          num(pick('suggested_price','suggestedprice','price','retail_price','list_price','asking_price','sale_price','msrp','retail','retail_$','sale_price_$','asking')),
+          num(pick('suggested_price','suggestedprice','price','retail_price','list_price','asking_price','sale_price','msrp','retail','retail_$','retail_value','sale_price_$','asking','retail$')),
         inStock: (function(){
           const v = (pick('in_stock','instock','available','status') as string) || '';
           const val = String(v).toLowerCase();

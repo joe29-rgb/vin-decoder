@@ -5,6 +5,18 @@ import { Vehicle } from '../../types/types';
 
 const router = express.Router();
 
+const http = axios.create({
+  timeout: 20000,
+  maxRedirects: 5,
+  headers: {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+    'Accept-Language': 'en-CA,en-US;q=0.9,en;q=0.8',
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache',
+  },
+});
+
 function extractJsonLd(html: string): any[] {
   const results: any[] = [];
   const re = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
@@ -106,7 +118,7 @@ function inferYearFromName(name?: string): number | undefined {
 
 async function fetchVehiclesFromListing(url: string, limit = 20): Promise<Vehicle[]> {
   const out: Vehicle[] = [];
-  const html = await axios.get(url, { timeout: 15000 }).then((r) => r.data as string);
+  const html = await http.get(url).then((r) => r.data as string);
   const blocks = extractJsonLd(html);
   // 1) try direct Vehicle objects in JSON-LD
   const direct: Vehicle[] = [];
@@ -159,7 +171,7 @@ async function fetchVehiclesFromListing(url: string, limit = 20): Promise<Vehicl
   for (let i = 0; i < unique.length; i++) {
     try {
       const u = unique[i].startsWith('http') ? unique[i] : new URL(unique[i], url).href;
-      const h = await axios.get(u, { timeout: 15000 }).then((r) => r.data as string);
+      const h = await http.get(u, { headers: { Referer: url } }).then((r) => r.data as string);
       const bs = extractJsonLd(h);
       for (let j = 0; j < bs.length; j++) {
         const v = normalizeVehicleFromJsonLd(bs[j], j, u);
@@ -262,7 +274,10 @@ router.get('/devon', async (req: Request, res: Response) => {
     const vehicles = await fetchVehiclesFromListing(url, limit);
     res.json({ success: true, total: vehicles.length, vehicles });
   } catch (e) {
-    res.status(500).json({ success: false, error: (e as Error).message });
+    const err: any = e;
+    const status = err?.response?.status;
+    const statusText = err?.response?.statusText;
+    res.status(500).json({ success: false, error: (err?.message || 'scrape failed'), status, statusText });
   }
 });
 
