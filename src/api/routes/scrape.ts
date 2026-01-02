@@ -17,6 +17,44 @@ const http = axios.create({
   },
 });
 
+async function fetchHtmlHeadless(url: string, referer?: string): Promise<string> {
+  let browser: any = null;
+  try {
+    const mod: any = await import('puppeteer');
+    const puppeteer = mod.default || mod;
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    });
+    const page = await browser.newPage();
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36');
+    const extra: Record<string,string> = { 'Accept-Language': 'en-CA,en-US;q=0.9,en;q=0.8' };
+    if (referer) extra['Referer'] = referer;
+    await page.setExtraHTTPHeaders(extra);
+    await page.setRequestInterception(true);
+    page.on('request', (req: any) => {
+      const rt = req.resourceType();
+      if (rt === 'image' || rt === 'font' || rt === 'media' || rt === 'stylesheet') return req.abort();
+      req.continue();
+    });
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
+    await page.waitForSelector('body', { timeout: 15000 });
+    return await page.content();
+  } finally {
+    if (browser) { try { await browser.close(); } catch(_e) {} }
+  }
+}
+
+async function fetchHtml(url: string, referer?: string): Promise<string> {
+  try {
+    const resp = await http.get(url, { headers: referer ? { Referer: referer } : undefined });
+    return resp.data as string;
+  } catch(_e) {
+    // Fallback to headless browser to bypass bot protection
+    return await fetchHtmlHeadless(url, referer);
+  }
+}
+
 function extractJsonLd(html: string): any[] {
   const results: any[] = [];
   const re = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
@@ -118,7 +156,7 @@ function inferYearFromName(name?: string): number | undefined {
 
 async function fetchVehiclesFromListing(url: string, limit = 20): Promise<Vehicle[]> {
   const out: Vehicle[] = [];
-  const html = await http.get(url).then((r) => r.data as string);
+  const html = await fetchHtml(url);
   const blocks = extractJsonLd(html);
   // 1) try direct Vehicle objects in JSON-LD
   const direct: Vehicle[] = [];
@@ -171,7 +209,7 @@ async function fetchVehiclesFromListing(url: string, limit = 20): Promise<Vehicl
   for (let i = 0; i < unique.length; i++) {
     try {
       const u = unique[i].startsWith('http') ? unique[i] : new URL(unique[i], url).href;
-      const h = await http.get(u, { headers: { Referer: url } }).then((r) => r.data as string);
+      const h = await fetchHtml(u, url);
       const bs = extractJsonLd(h);
       for (let j = 0; j < bs.length; j++) {
         const v = normalizeVehicleFromJsonLd(bs[j], j, u);

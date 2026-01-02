@@ -68,7 +68,9 @@ export function loadInventoryFromCSV(csvContent: string): Vehicle[] {
         yourCost:
           num(pick(
             'your_cost','yourcost','cost','purchase_cost','our_cost','acquisition_cost','base_cost','vehicle_cost','unit_cost','net_cost','cost_value',
-            'inventory_value','inventoryvalue','inventory','inv_value','invvalue','your_cost_$','yourcost$','buy_cost','cost_$'
+            'inventory_value','inventoryvalue','inventory','inv_value','invvalue','your_cost_$','yourcost$','your_cost$','cost_$',
+            'inventory_value_$','inventory_value$','inventory_$','inventory$','inv_value_$','invvalue_$','inv_$','inv$',
+            'buy_cost','buy_price','purchase_price','acquisition_price'
           )),
         suggestedPrice:
           num(pick('suggested_price','suggestedprice','price','retail_price','list_price','asking_price','sale_price','msrp','retail','retail_$','retail_value','sale_price_$','asking','retail$')),
