@@ -180,6 +180,43 @@
   document.getElementById('uploadInventory').onclick = function(){ openInventory(); };
   document.getElementById('uploadRules').onclick = function(){ openRules(); };
   document.getElementById('uploadApproval').onclick = function(){ openApproval(); };
+  var scrapeBtn = document.getElementById('scrapeDevon');
+  if (scrapeBtn) scrapeBtn.onclick = async function(){
+    try {
+      scrapeBtn.disabled = true;
+      meta.textContent = 'Scraping Devon Chrysler inventory...';
+      var r = await fetch('/api/scrape/devon?limit=150');
+      var j = await r.json();
+      if (!j.success) { toast('Scrape failed: ' + (j.error||'unknown')); scrapeBtn.disabled = false; return; }
+      var vehicles = j.vehicles || [];
+      var ok = 0;
+      for (var i=0;i<vehicles.length;i++){
+        var v = vehicles[i];
+        try {
+          var payload = {
+            id: v.id || v.stock_number || v.vin || ('SCR-' + i),
+            vin: v.vin,
+            year: v.year,
+            make: v.make,
+            model: v.model,
+            mileage: v.mileage,
+            price: v.suggestedPrice || v.price,
+            suggestedPrice: v.suggestedPrice || v.price,
+            imageUrl: v.imageUrl || v.image_url,
+            inStock: true
+          };
+          var rr = await fetch('/api/inventory/sync', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+          var jr = await rr.json();
+          if (jr && jr.success) ok++;
+        } catch(_e){}
+      }
+      await refreshMeta();
+      renderInventoryTable();
+      toast('Imported ' + ok + ' vehicles');
+      meta.textContent = '';
+    } catch(e){ toast('Scrape error'); }
+    finally { scrapeBtn.disabled = false; }
+  };
   document.getElementById('closeRules').onclick = function(){ closeRules(); };
   document.getElementById('closeApproval').onclick = function(){ closeApproval(); };
   document.getElementById('closeInventory').onclick = function(){ closeInventory(); };

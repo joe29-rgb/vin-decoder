@@ -9,6 +9,7 @@ import { requestLogger, errorHandler, healthCheck } from './api/middleware';
 import dealsRouter from './api/routes/deals';
 import inventoryRouter from './api/routes/inventory';
 import webhooksRouter from './api/routes/webhooks';
+import scrapeRouter from './api/routes/scrape';
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use(requestLogger);
 app.use('/api/deals', dealsRouter);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/webhooks', webhooksRouter);
+app.use('/api/scrape', scrapeRouter);
 // Backward-compatibility mounts for legacy paths
 app.use('/api', dealsRouter);      // provides /api/lenders, /api/deals/*
 app.use('/api', webhooksRouter);   // provides /api/rules/*, /api/approvals/*, /api/ghl/*
@@ -110,6 +112,7 @@ app.get('/dashboard', (_req, res) => {
         <button class="btn" id="uploadRules">Upload Rules</button>
         <button class="btn" id="uploadApproval">Upload Approval</button>
         <button class="btn" id="load">Load Approval</button>
+        <button class="btn" id="scrapeDevon">Scrape Devon</button>
         <button class="btn primary" id="score" disabled>Calculate Matrix</button>
       </div>
     </div>
