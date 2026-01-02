@@ -112,7 +112,7 @@ router.get('/', (_req: Request, res: Response) => {
   })();
 });
 
-router.post('/sync', (req: Request, res: Response) => {
+router.post('/sync', async (req: Request, res: Response) => {
   try {
     const b = req.body || {};
     const id = String(b.id || b.stock || b.vehicleId || b.vehicle_id || b.vin || `WEB-${Date.now()}`);
@@ -134,14 +134,22 @@ router.post('/sync', (req: Request, res: Response) => {
     if (b.imageUrl !== undefined || b.image_url !== undefined || b.photoUrl !== undefined) updates.imageUrl = b.imageUrl || b.image_url || b.photoUrl;
     if (b.blackBookValue !== undefined || b.black_book_value !== undefined) updates.blackBookValue = Number(b.blackBookValue ?? b.black_book_value);
 
-    // Update mirrored inventory
+    // Update mirrored inventory (always upsert)
     const mi = state.mirroredInventory.findIndex(x => x.id === id);
-    if (mi >= 0) state.mirroredInventory[mi] = { ...state.mirroredInventory[mi], ...updates } as Vehicle;
-    else state.mirroredInventory.push({ id, ...(updates as any) } as Vehicle);
+    const mirrored = mi >= 0
+      ? ({ ...state.mirroredInventory[mi], ...updates } as Vehicle)
+      : ({ id, ...(updates as any) } as Vehicle);
+    if (mi >= 0) state.mirroredInventory[mi] = mirrored; else state.mirroredInventory.push(mirrored);
 
-    // Also update primary inventory if present
+    // Also update primary inventory (always upsert to keep inventory visible on refresh)
     const pi = state.inventory.findIndex(x => x.id === id);
-    if (pi >= 0) state.inventory[pi] = { ...state.inventory[pi], ...updates } as Vehicle;
+    const primary = pi >= 0
+      ? ({ ...state.inventory[pi], ...updates } as Vehicle)
+      : ({ id, ...(updates as any) } as Vehicle);
+    if (pi >= 0) state.inventory[pi] = primary; else state.inventory.push(primary);
+
+    // Persist to Supabase if configured (best-effort, non-blocking for rest of system)
+    try { await saveInventoryToSupabase([primary]); } catch(_e){}
 
     res.json({ success: true, message: 'Vehicle upserted', vehicleId: id });
   } catch (e) {

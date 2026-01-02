@@ -21,7 +21,7 @@ function computeMonthlyPayment(
   const principal = salePrice - down - equity + DEFAULT_FEE + tax.totalTax;
 
   const { monthlyPayment } = getPaymentSummary(
-    Math.max(0, principal),
+    Math.max(1, principal),
     approval.apr,
     termOverride ?? approval.termMonths
   );
@@ -104,15 +104,11 @@ export function scoreInventory(
 
   for (const v of inventory) {
     const flags: string[] = [];
-    const bb = v.blackBookValue;
-    if (bb == null || isNaN(bb)) {
-      flags.push('missing_black_book');
-      continue;
-    }
-    if (v.yourCost == null || isNaN(v.yourCost)) {
-      flags.push('missing_cost');
-      continue;
-    }
+    // Be resilient: allow scoring even if BB or cost are missing; mark flags and use defaults
+    const bbRaw = v.blackBookValue as any;
+    const costRaw = v.yourCost as any;
+    const bbEff = (bbRaw == null || isNaN(bbRaw)) ? (flags.push('missing_black_book'), 0) : Number(bbRaw);
+    const costEff = (costRaw == null || isNaN(costRaw)) ? (flags.push('missing_cost'), 0) : Number(costRaw);
 
     // Load dynamic lender rule if available
     const rule = findRule(approval.bank, approval.program);
@@ -134,8 +130,8 @@ export function scoreInventory(
     // Payment call cap from lender rule (if lower than approval)
     const paymentMaxEff = Math.min(approval.paymentMax, rule?.maxPayCall ?? Number.POSITIVE_INFINITY);
 
-    const frontCap = frontCapFactorEff != null ? bb * frontCapFactorEff : Number.POSITIVE_INFINITY;
-    const minPrice = Math.max(v.yourCost, 0);
+    const frontCap = frontCapFactorEff != null ? bbEff * frontCapFactorEff : Number.POSITIVE_INFINITY;
+    const minPrice = Math.max(costEff, 0);
     const maxPrice = Math.max(minPrice, Math.min(frontCap, minPrice + 100000));
 
     const best = findMaxPriceWithinPayment(
@@ -151,7 +147,7 @@ export function scoreInventory(
 
     // Front gross
     const overAllowance = Math.max(0, trade.allowance - trade.acv);
-    const front = (best.price - v.yourCost) - overAllowance;
+    const front = (best.price - costEff) - overAllowance;
 
     // Compute amount financed (principal) for reserve calculations
     const province = approval.province || DEFAULT_PROVINCE;
@@ -176,7 +172,7 @@ export function scoreInventory(
     // Apply back-end cap if present
     if (backCapEff) {
       let capAmt = 0;
-      if (backCapEff.type === 'percent_of_bb') capAmt = backCapEff.percent * (bb ?? 0);
+      if (backCapEff.type === 'percent_of_bb') capAmt = backCapEff.percent * (bbEff ?? 0);
       else capAmt = backCapEff.percent * best.price;
       reserve = Math.min(reserve, capAmt);
     }

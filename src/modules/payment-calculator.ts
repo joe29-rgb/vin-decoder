@@ -11,7 +11,7 @@ import { PaymentCalculationResult, AmortizationEntry } from '../types/types';
  * Formula: M = P × [r(1+r)^n] / [(1+r)^n - 1]
  * where r = monthly interest rate (annual rate ÷ 12 ÷ 100)
  * 
- * @param principal - Loan amount in dollars ($7,500-$100,000)
+ * @param principal - Loan amount in dollars ($1-$10,000,000)
  * @param annualRate - Annual interest rate as percentage (5-35%)
  * @param numberOfMonths - Loan term in months (24-84)
  * @returns PaymentCalculationResult with monthly payment (rounded to nearest $5), total interest, and amortization schedule
@@ -88,19 +88,19 @@ function validatePaymentInputs(
       value: principal,
       message: "Principal must be a valid number",
     });
-  } else if (principal < 7500) {
+  } else if (principal < 1) {
     errors.push({
       field: "principal",
       value: principal,
-      min: 7500,
-      message: "Principal must be at least $7,500",
+      min: 1,
+      message: "Principal must be at least $1",
     });
-  } else if (principal > 100000) {
+  } else if (principal > 10000000) {
     errors.push({
       field: "principal",
       value: principal,
-      max: 100000,
-      message: "Principal cannot exceed $100,000",
+      max: 10000000,
+      message: "Principal cannot exceed $10,000,000",
     });
   }
 
