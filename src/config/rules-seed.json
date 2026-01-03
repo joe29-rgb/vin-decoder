@@ -1032,15 +1032,21 @@
     "bank": "General Bank of Canada",
     "program": "Standard",
     "reserve": {
-      "fixedByFinancedAmount": [
-        { "minFinanced": 15000, "maxFinanced": 24999, "amount": 400 },
-        { "minFinanced": 25000, "maxFinanced": 29999, "amount": 800 },
-        { "minFinanced": 30000, "maxFinanced": 39999, "amount": 1200 },
-        { "minFinanced": 40000, "maxFinanced": 49999, "amount": 1200 },
-        { "minFinanced": 50000, "maxFinanced": 1000000, "amount": 1300 }
-      ],
       "chargebackDays": 180
     },
+    "reserveByRateTable": [
+      {
+        "termMin": 0,
+        "termMax": 120,
+        "brackets": [
+          { "minFinanced": 15000, "maxFinanced": 24999, "amount": 400 },
+          { "minFinanced": 25000, "maxFinanced": 29999, "amount": 800 },
+          { "minFinanced": 30000, "maxFinanced": 39999, "amount": 1200 },
+          { "minFinanced": 40000, "maxFinanced": 49999, "amount": 1200 },
+          { "minFinanced": 50000, "maxFinanced": 1000000, "amount": 1300 }
+        ]
+      }
+    ],
     "termByModelYear": [
       { "yearFrom": 2017, "yearTo": 2026, "maxTermMonths": 96 }
     ]
@@ -1049,14 +1055,20 @@
     "bank": "General Bank of Canada",
     "program": "New & Nearly New Winter Special",
     "reserve": {
-      "fixedByFinancedAmount": [
-        { "minFinanced": 30000, "maxFinanced": 34999, "amount": 1200 },
-        { "minFinanced": 35000, "maxFinanced": 39999, "amount": 1200 },
-        { "minFinanced": 40000, "maxFinanced": 49999, "amount": 1200 },
-        { "minFinanced": 50000, "maxFinanced": 1000000, "amount": 1300 }
-      ],
       "chargebackDays": 180
     },
+    "reserveByRateTable": [
+      {
+        "termMin": 0,
+        "termMax": 120,
+        "brackets": [
+          { "minFinanced": 30000, "maxFinanced": 34999, "amount": 1200 },
+          { "minFinanced": 35000, "maxFinanced": 39999, "amount": 1200 },
+          { "minFinanced": 40000, "maxFinanced": 49999, "amount": 1200 },
+          { "minFinanced": 50000, "maxFinanced": 1000000, "amount": 1300 }
+        ]
+      }
+    ],
     "termByModelYear": [ { "yearFrom": 2021, "yearTo": 2026, "maxTermMonths": 96 } ]
   },
   {
