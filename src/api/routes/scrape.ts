@@ -156,73 +156,79 @@ function inferYearFromName(name?: string): number | undefined {
 
 async function fetchVehiclesFromListing(url: string, limit = 20): Promise<Vehicle[]> {
   const out: Vehicle[] = [];
-  const html = await fetchHtml(url);
-  const blocks = extractJsonLd(html);
-  // 1) try direct Vehicle objects in JSON-LD
-  const direct: Vehicle[] = [];
-  blocks.forEach((b, i) => {
-    const v = normalizeVehicleFromJsonLd(b, i, url);
-    if (v && (v.vin || v.make || v.model)) direct.push(v);
-  });
-  if (direct.length > 0) return direct.slice(0, limit);
-
-  // 2) find SearchResultsPage -> itemListElement -> url; fetch detail pages
-  const urls: string[] = [];
-  for (const b of blocks) {
-    const type = b['@type'];
-    if (!type) continue;
-    const t = Array.isArray(type) ? type.map(String) : [String(type)];
-    if (t.some((x) => x.toLowerCase().includes('searchresultspage'))) {
-      // Dealer sites vary: try a few shapes
-      const items = b.itemListElement || b.hasPart?.itemListElement || [];
-      if (Array.isArray(items)) {
-        for (const it of items) {
-          const u = it?.url || it?.item?.url || it?.mainEntityOfPage?.url;
-          if (u) urls.push(String(u));
+  const detailUrls: string[] = [];
+  const visitedListing = new Set<string>();
+  let pageUrl = url;
+  // Crawl listing pages until we collect enough detail URLs
+  while (detailUrls.length < limit && pageUrl && !visitedListing.has(pageUrl)) {
+    visitedListing.add(pageUrl);
+    const html = await fetchHtml(pageUrl);
+    const blocks = extractJsonLd(html);
+    // Prefer SearchResultsPage itemListElement URLs
+    for (const b of blocks) {
+      const type = b['@type'];
+      const t = type ? (Array.isArray(type) ? type.map(String) : [String(type)]) : [];
+      if (t.some((x: string) => x.toLowerCase().includes('searchresultspage'))) {
+        const items = (b as any).itemListElement || (b as any).hasPart?.itemListElement || [];
+        if (Array.isArray(items)) {
+          for (const it of items) {
+            const u = it?.url || it?.item?.url || it?.mainEntityOfPage?.url;
+            if (u) detailUrls.push(String(u));
+          }
         }
       }
     }
-  }
-
-  // 3) If we still have no URLs, fallback to DOM link discovery with Cheerio
-  if (urls.length === 0) {
+    // If JSON-LD didn’t expose results, use DOM to discover links
+    if (detailUrls.length === 0) {
+      try {
+        const $ = cheerioLoad(html);
+        $('a[href]').each((_i: number, el: any) => {
+          const href = String($(el).attr('href') || '');
+          if (!href) return;
+          const h = href.toLowerCase();
+          if (h.includes('/used') || h.includes('/new') || h.includes('/vehicle') || h.includes('/inventory')) {
+            const abs = href.startsWith('http') ? href : new URL(href, pageUrl).href;
+            if (abs.includes('devonchrysler.com')) detailUrls.push(abs);
+          }
+        });
+      } catch (_e) {}
+    }
+    // Find next page if available
     try {
       const $ = cheerioLoad(html);
-      const candidates = new Set<string>();
-      $('a[href]').each((_i: number, el: any) => {
-        const href = String($(el).attr('href') || '');
-        if (!href) return;
-        // Filter likely vehicle detail links
-        const h = href.toLowerCase();
-        if (h.includes('/used') || h.includes('/new') || h.includes('/vehicle') || h.includes('/inventory')) {
-          candidates.add(href);
+      let nextHref = $('a[rel="next"]').attr('href') || $('a:contains("Next")').attr('href') || '';
+      if (nextHref) {
+        pageUrl = nextHref.startsWith('http') ? nextHref : new URL(nextHref, pageUrl).href;
+      } else {
+        // Try page=N heuristic
+        const u = new URL(pageUrl);
+        const cur = Number(u.searchParams.get('page') || '1');
+        if (!isNaN(cur)) {
+          u.searchParams.set('page', String(cur + 1));
+          pageUrl = u.href;
+        } else {
+          pageUrl = '';
         }
-      });
-      const abs = Array.from(candidates)
-        .map((h) => (h.startsWith('http') ? h : new URL(h, url).href))
-        .filter((h) => h.includes('devonchrysler.com'));
-      urls.push(...Array.from(new Set(abs)));
-    } catch (_e) {}
+      }
+    } catch (_e) { pageUrl = ''; }
   }
-
-  const unique = Array.from(new Set(urls)).slice(0, limit);
+  const unique = Array.from(new Set(detailUrls)).slice(0, limit);
   for (let i = 0; i < unique.length; i++) {
     try {
       const u = unique[i].startsWith('http') ? unique[i] : new URL(unique[i], url).href;
       const h = await fetchHtml(u, url);
       const bs = extractJsonLd(h);
+      let pushed = false;
       for (let j = 0; j < bs.length; j++) {
         const v = normalizeVehicleFromJsonLd(bs[j], j, u);
-        if (v && (v.vin || v.make || v.model)) { out.push(v); break; }
+        if (v && (v.vin || v.make || v.model)) { out.push(v); pushed = true; break; }
       }
-      // If JSON-LD did not produce a vehicle, try DOM parsing heuristics
-      if (out.length < i + 1) {
+      if (!pushed) {
         const domVeh = normalizeVehicleFromDom(h, u, i);
         if (domVeh) out.push(domVeh);
       }
     } catch (_e) {}
   }
-
   return out.slice(0, limit);
 }
 

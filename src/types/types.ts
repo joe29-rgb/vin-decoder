@@ -238,6 +238,9 @@ export interface ApprovalSpec {
   backCap?: BackCapRule;   // optional cap for back-end as % of BB or price
   province?: Province;     // optional taxation province
   downPayment?: number;    // optional down payment
+  dealerAdminFee?: number; // optional dealer admin fee (default 805)
+  lenderAdminFee?: number; // optional lender admin fee (default 0)
+  paymentFrequency?: 'monthly' | 'biweekly' | 'semimonthly' | 'weekly';
 }
 
 export interface TradeInfo {
@@ -268,6 +271,15 @@ export interface ScoredVehicleRow {
   backGross: number;
   totalGross: number;
   flags: string[];
+  amountFinanced: number;
+  apr: number;
+  termMonths: number;
+  dealertrackCopy?: string;
+  // Lender context for UI
+  bank?: string;
+  program?: string;
+  contacts?: LenderContact[];
+  lenderAddress?: string;
 }
 
 export interface ScoreRequest {
@@ -300,10 +312,75 @@ export interface ReserveRule {
   chargebackDays?: number;
 }
 
+export interface ReserveGridBracket {
+  minFinanced: number;
+  maxFinanced: number;
+  percent?: number; // percent of financed
+  amount?: number;  // fixed amount
+}
+
+// Reserve grids driven by APR bands and term buckets (e.g., RBC/CIBC/General/Santander Prime)
+export interface ReserveGridBand {
+  // Either a single rate or a rate range
+  rate?: number;      // exact APR (e.g., 6.45)
+  rateMin?: number;   // inclusive
+  rateMax?: number;   // inclusive
+  termMin?: number;   // inclusive
+  termMax?: number;   // inclusive
+  brackets: ReserveGridBracket[];
+}
+
+// Reserve adders when rate is stepped up +1% or +2% over a program base
+export interface RateIncreaseReserve {
+  plus1?: {
+    percentOfFinanced?: number;
+    fixedByFinancedAmount?: ReserveBracket[];
+  };
+  plus2?: {
+    percentOfFinanced?: number;
+    fixedByFinancedAmount?: ReserveBracket[];
+  };
+}
+
+export type LtvBase = 'black_book' | 'sale_price' | 'msrp';
+
+export interface LtvBonusBracket {
+  base: LtvBase;
+  ltvMin?: number; // optional lower bound (inclusive)
+  ltvMax: number; // e.g., 1.30 for 130%
+  amount: number; // fixed bonus amount
+  minFinanced?: number;
+  maxFinanced?: number;
+}
+
 export interface TermByModelYearRule {
   yearFrom: number; // inclusive
   yearTo: number;   // inclusive
   maxTermMonths: number;
+}
+
+export interface TermByOdometerRule {
+  kmFrom: number;
+  kmTo: number;
+  maxTermMonths: number;
+}
+
+export interface TermByYearAndOdometerRule {
+  yearFrom: number;
+  yearTo: number;
+  kmFrom: number;
+  kmTo: number;
+  maxTermMonths: number;
+}
+
+export interface LenderContact {
+  role: string;      // e.g., 'Credit', 'Funding', 'Income', 'Dealer Support', 'Customer Service', 'General'
+  phone?: string;
+  email?: string;
+  fax?: string;
+  address?: string;
+  url?: string;
+  notes?: string;
 }
 
 export interface LenderRuleSet {
@@ -314,8 +391,26 @@ export interface LenderRuleSet {
   backCap?: BackCapRule;     // cap for back-end as % of BB or price
   // Reserves/Bonuses paid by lender
   reserve?: ReserveRule;
+  // Reserve tables keyed by APR and term ranges (percent/amount by AF brackets)
+  reserveByRateTable?: ReserveGridBand[];
+  // Reserve adders for +1%/+2% rate increase vs program base
+  reserveByRateIncrease?: RateIncreaseReserve;
+  // Optional base APR for program (used to detect +1%/+2% upsell)
+  baseApr?: number;
   // Lender-imposed max payment call (overrides approval.paymentMax if lower)
   maxPayCall?: number;
   // Eligibility constraints (optional, extend as needed)
   termByModelYear?: TermByModelYearRule[];
+  termByOdometer?: TermByOdometerRule[];
+  termByYearAndOdometer?: TermByYearAndOdometerRule[];
+  // Optional: contact directory and address for lender support visibility in UI
+  contacts?: LenderContact[];
+  lenderAddress?: string;
+  // Caps
+  maxFrontEndAdvance?: number;         // e.g., 1.40 (140%)
+  frontAdvanceBase?: LtvBase;          // default 'black_book'
+  maxAllInLTV?: number;                // e.g., 1.75 (175%)
+  ltvBase?: LtvBase;                   // default 'black_book'
+  // LTV bonuses (e.g., Santander Prime LTV bonus <130%)
+  ltvBonus?: LtvBonusBracket[];
 }

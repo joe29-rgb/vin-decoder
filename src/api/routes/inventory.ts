@@ -12,11 +12,30 @@ const router = Router();
 function mergeVehicles(base: Vehicle[], incoming: Vehicle[]): Vehicle[] {
   const map = new Map<string, Vehicle>();
   const keyOf = (v: Partial<Vehicle>) => (v.vin && v.vin.length ? `VIN:${v.vin}` : `ID:${v.id}`);
-  for (const v of base) map.set(keyOf(v), v);
+  for (const v of base) map.set(keyOf(v), { ...v });
   for (const v of incoming) {
     const k = keyOf(v);
     const prev = map.get(k) || ({} as Vehicle);
-    map.set(k, { ...prev, ...v } as Vehicle);
+    const next: any = { ...prev };
+    for (const key of Object.keys(v) as (keyof Vehicle)[]) {
+      const val: any = (v as any)[key];
+      if (val === undefined || val === null) continue;
+      const prevVal: any = (prev as any)[key];
+      if (typeof val === 'number') {
+        // Avoid overwriting meaningful numbers with zeros
+        if (val === 0 && typeof prevVal === 'number' && prevVal > 0) continue;
+        next[key] = val;
+      } else if (typeof val === 'string') {
+        const s = val.trim();
+        if (!s || s.toLowerCase() === 'unknown') {
+          if (typeof prevVal === 'string' && prevVal.trim()) continue;
+        }
+        next[key] = val;
+      } else {
+        next[key] = val;
+      }
+    }
+    map.set(k, next as Vehicle);
   }
   return Array.from(map.values());
 }
@@ -123,7 +142,8 @@ router.get('/', (_req: Request, res: Response) => {
     try {
       const rows = await fetchInventoryFromSupabase();
       if (rows && rows.length > 0) {
-        state.inventory = rows;
+        // Prefer existing in-memory values over Supabase when merging to avoid wiping fields (e.g., cost/BB) when DB schema is partial
+        state.inventory = mergeVehicles(rows, state.inventory);
       }
     } catch(_e){}
     res.json({ success: true, total: state.inventory.length, vehicles: state.inventory });
