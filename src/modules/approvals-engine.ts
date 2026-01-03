@@ -331,7 +331,9 @@ export function scoreInventory(
       for (const b of (rule!.ltvBonus!)) {
         const baseVal = computeBaseForLtv(b.base, best.price, v);
         const ltv = baseVal > 0 ? (principal / baseVal) : Number.POSITIVE_INFINITY;
-        if (ltv <= b.ltvMax) {
+        const lowerOk = (b.ltvMin == null) ? true : (ltv >= b.ltvMin);
+        const upperOk = (b.ltvMax == null) ? true : (ltv <= b.ltvMax);
+        if (lowerOk && upperOk) {
           if (b.minFinanced == null || principal >= b.minFinanced) {
             if (b.maxFinanced == null || principal <= b.maxFinanced) {
               reserve += b.amount;
