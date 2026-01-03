@@ -88,19 +88,19 @@ function validatePaymentInputs(
       value: principal,
       message: "Principal must be a valid number",
     });
-  } else if (principal < 1) {
+  } else if (principal < 7500) {
     errors.push({
       field: "principal",
       value: principal,
-      min: 1,
-      message: "Principal must be at least $1",
+      min: 7500,
+      message: "Principal must be at least $7,500",
     });
-  } else if (principal > 10000000) {
+  } else if (principal > 100000) {
     errors.push({
       field: "principal",
       value: principal,
-      max: 10000000,
-      message: "Principal cannot exceed $10,000,000",
+      max: 100000,
+      message: "Principal cannot exceed $100,000",
     });
   }
 
