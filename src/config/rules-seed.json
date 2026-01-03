@@ -971,8 +971,166 @@
 
   {
     "bank": "Santander Consumer",
-    "program": "Prime Program",
-    "reserve": { "chargebackDays": 180 },
+    "program": "Prime Program – Quality A",
+    "reserve": {
+      "qualityBonusByFinancedAmount": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "amount": 400 },
+        { "minFinanced": 20000, "maxFinanced": 29999,  "amount": 600 },
+        { "minFinanced": 30000, "maxFinanced": 39999,  "amount": 800 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "amount": 1000 },
+        { "minFinanced": 50000, "maxFinanced": 1000000, "amount": 1100 }
+      ],
+      "chargebackDays": 180
+    },
+    "reserveByRateTable": [
+      { "rateMin": 6.99, "rateMax": 7.98, "termMin": 0,  "termMax": 78, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 24999,  "percent": 0.0000 },
+        { "minFinanced": 25000, "maxFinanced": 29999,  "percent": 0.0000 },
+        { "minFinanced": 30000, "maxFinanced": 34999,  "percent": 0.0000 },
+        { "minFinanced": 35000, "maxFinanced": 39999,  "percent": 0.0000 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0000 },
+        { "minFinanced": 50000, "maxFinanced": 1000000, "percent": 0.0000 }
+      ]},
+      { "rateMin": 6.99, "rateMax": 7.98, "termMin": 79, "termMax": 84, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 24999,  "percent": 0.0000 },
+        { "minFinanced": 25000, "maxFinanced": 29999,  "percent": 0.0000 },
+        { "minFinanced": 30000, "maxFinanced": 34999,  "percent": 0.0000 },
+        { "minFinanced": 35000, "maxFinanced": 39999,  "percent": 0.0000 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0000 },
+        { "minFinanced": 50000, "maxFinanced": 1000000, "percent": 0.0000 }
+      ]},
+      { "rateMin": 6.99, "rateMax": 7.98, "termMin": 85, "termMax": 96, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 24999,  "percent": 0.0000 },
+        { "minFinanced": 25000, "maxFinanced": 29999,  "percent": 0.0000 },
+        { "minFinanced": 30000, "maxFinanced": 34999,  "percent": 0.0000 },
+        { "minFinanced": 35000, "maxFinanced": 39999,  "percent": 0.0000 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0000 },
+        { "minFinanced": 50000, "maxFinanced": 1000000, "percent": 0.0000 }
+      ]},
+
+      { "rateMin": 7.99, "rateMax": 8.98, "termMin": 0,  "termMax": 78, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 24999,  "percent": 0.0000 },
+        { "minFinanced": 25000, "maxFinanced": 29999,  "percent": 0.0050 },
+        { "minFinanced": 30000, "maxFinanced": 34999,  "percent": 0.0060 },
+        { "minFinanced": 35000, "maxFinanced": 39999,  "percent": 0.0070 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0090 },
+        { "minFinanced": 50000, "maxFinanced": 1000000, "percent": 0.0100 }
+      ]},
+      { "rateMin": 7.99, "rateMax": 8.98, "termMin": 79, "termMax": 84, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 24999,  "percent": 0.0000 },
+        { "minFinanced": 25000, "maxFinanced": 29999,  "percent": 0.0050 },
+        { "minFinanced": 30000, "maxFinanced": 34999,  "percent": 0.0060 },
+        { "minFinanced": 35000, "maxFinanced": 39999,  "percent": 0.0070 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0090 },
+        { "minFinanced": 50000, "maxFinanced": 1000000, "percent": 0.0100 }
+      ]},
+      { "rateMin": 7.99, "rateMax": 8.98, "termMin": 85, "termMax": 96, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 24999,  "percent": 0.0000 },
+        { "minFinanced": 25000, "maxFinanced": 29999,  "percent": 0.0050 },
+        { "minFinanced": 30000, "maxFinanced": 34999,  "percent": 0.0060 },
+        { "minFinanced": 35000, "maxFinanced": 39999,  "percent": 0.0070 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0090 },
+        { "minFinanced": 50000, "maxFinanced": 1000000, "percent": 0.0100 }
+      ]},
+
+      { "rateMin": 8.99, "rateMax": 9.98, "termMin": 0,  "termMax": 78, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 24999,  "percent": 0.0075 },
+        { "minFinanced": 25000, "maxFinanced": 29999,  "percent": 0.0075 },
+        { "minFinanced": 30000, "maxFinanced": 34999,  "percent": 0.0100 },
+        { "minFinanced": 35000, "maxFinanced": 39999,  "percent": 0.0115 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0150 },
+        { "minFinanced": 50000, "maxFinanced": 1000000, "percent": 0.0160 }
+      ]},
+      { "rateMin": 8.99, "rateMax": 9.98, "termMin": 79, "termMax": 84, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 24999,  "percent": 0.0075 },
+        { "minFinanced": 25000, "maxFinanced": 29999,  "percent": 0.0075 },
+        { "minFinanced": 30000, "maxFinanced": 34999,  "percent": 0.0100 },
+        { "minFinanced": 35000, "maxFinanced": 39999,  "percent": 0.0115 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0150 },
+        { "minFinanced": 50000, "maxFinanced": 1000000, "percent": 0.0160 }
+      ]},
+      { "rateMin": 8.99, "rateMax": 9.98, "termMin": 85, "termMax": 96, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 24999,  "percent": 0.0075 },
+        { "minFinanced": 25000, "maxFinanced": 29999,  "percent": 0.0075 },
+        { "minFinanced": 30000, "maxFinanced": 34999,  "percent": 0.0100 },
+        { "minFinanced": 35000, "maxFinanced": 39999,  "percent": 0.0115 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0150 },
+        { "minFinanced": 50000, "maxFinanced": 1000000, "percent": 0.0160 }
+      ]},
+
+      { "rateMin": 9.99, "rateMax": 10.99, "termMin": 0,  "termMax": 78, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 24999,  "percent": 0.0100 },
+        { "minFinanced": 25000, "maxFinanced": 29999,  "percent": 0.0110 },
+        { "minFinanced": 30000, "maxFinanced": 34999,  "percent": 0.0210 },
+        { "minFinanced": 35000, "maxFinanced": 39999,  "percent": 0.0220 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0225 },
+        { "minFinanced": 50000, "maxFinanced": 1000000, "percent": 0.0225 }
+      ]},
+      { "rateMin": 9.99, "rateMax": 10.99, "termMin": 79, "termMax": 84, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 24999,  "percent": 0.0100 },
+        { "minFinanced": 25000, "maxFinanced": 29999,  "percent": 0.0110 },
+        { "minFinanced": 30000, "maxFinanced": 34999,  "percent": 0.0210 },
+        { "minFinanced": 35000, "maxFinanced": 39999,  "percent": 0.0220 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0225 },
+        { "minFinanced": 50000, "maxFinanced": 1000000, "percent": 0.0225 }
+      ]},
+      { "rateMin": 9.99, "rateMax": 10.99, "termMin": 85, "termMax": 96, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 24999,  "percent": 0.0100 },
+        { "minFinanced": 25000, "maxFinanced": 29999,  "percent": 0.0110 },
+        { "minFinanced": 30000, "maxFinanced": 34999,  "percent": 0.0210 },
+        { "minFinanced": 35000, "maxFinanced": 39999,  "percent": 0.0220 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0225 },
+        { "minFinanced": 50000, "maxFinanced": 1000000, "percent": 0.0225 }
+      ]}
+    ],
+    "ltvBonus": [
+      { "base": "sale_price", "ltvMax": 1.20,    "minFinanced": 7500,  "maxFinanced": 19999,  "amount": 300 },
+      { "base": "sale_price", "ltvMax": 1.20,    "minFinanced": 20000, "maxFinanced": 29999,  "amount": 550 },
+      { "base": "sale_price", "ltvMax": 1.20,    "minFinanced": 30000, "maxFinanced": 39999,  "amount": 650 },
+      { "base": "sale_price", "ltvMax": 1.20,    "minFinanced": 40000, "maxFinanced": 49999,  "amount": 800 },
+      { "base": "sale_price", "ltvMax": 1.20,    "minFinanced": 50000, "maxFinanced": 1000000, "amount": 900 },
+      { "base": "sale_price", "ltvMin": 1.2001, "ltvMax": 1.30, "minFinanced": 7500,  "maxFinanced": 19999,  "amount": 250 },
+      { "base": "sale_price", "ltvMin": 1.2001, "ltvMax": 1.30, "minFinanced": 20000, "maxFinanced": 29999,  "amount": 250 },
+      { "base": "sale_price", "ltvMin": 1.2001, "ltvMax": 1.30, "minFinanced": 30000, "maxFinanced": 39999,  "amount": 300 },
+      { "base": "sale_price", "ltvMin": 1.2001, "ltvMax": 1.30, "minFinanced": 40000, "maxFinanced": 49999,  "amount": 500 },
+      { "base": "sale_price", "ltvMin": 1.2001, "ltvMax": 1.30, "minFinanced": 50000, "maxFinanced": 1000000, "amount": 500 }
+    ],
+    "termByModelYear": [
+      { "yearFrom": 2023, "yearTo": 2026, "maxTermMonths": 96 },
+      { "yearFrom": 2021, "yearTo": 2022, "maxTermMonths": 84 },
+      { "yearFrom": 2020, "yearTo": 2020, "maxTermMonths": 72 },
+      { "yearFrom": 2019, "yearTo": 2019, "maxTermMonths": 72 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 60 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 48 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 36 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 24 }
+    ]
+  },
+  {
+    "bank": "Santander Consumer",
+    "program": "Prime Program – Quality B",
+    "reserve": {
+      "qualityBonusByFinancedAmount": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "amount": 200 },
+        { "minFinanced": 20000, "maxFinanced": 29999,  "amount": 250 },
+        { "minFinanced": 30000, "maxFinanced": 39999,  "amount": 300 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "amount": 500 },
+        { "minFinanced": 50000, "maxFinanced": 1000000, "amount": 500 }
+      ],
+      "chargebackDays": 180
+    },
     "reserveByRateTable": [
       { "rateMin": 6.99, "rateMax": 7.98, "termMin": 0,  "termMax": 78, "brackets": [
         { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
