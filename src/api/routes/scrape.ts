@@ -447,4 +447,115 @@ router.get('/autotrader/pricing', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/cargurus', async (req: Request, res: Response) => {
+  try {
+    const { scrapeCarGurusCA, convertToVehicle } = await import('../../modules/scrapers/cargurus-ca');
+    
+    const params = {
+      make: req.query.make as string,
+      model: req.query.model as string,
+      yearMin: req.query.yearMin ? Number(req.query.yearMin) : undefined,
+      yearMax: req.query.yearMax ? Number(req.query.yearMax) : undefined,
+      priceMin: req.query.priceMin ? Number(req.query.priceMin) : undefined,
+      priceMax: req.query.priceMax ? Number(req.query.priceMax) : undefined,
+      mileageMax: req.query.mileageMax ? Number(req.query.mileageMax) : undefined,
+      postalCode: (req.query.postalCode as string) || 'T5J',
+      radius: req.query.radius ? Number(req.query.radius) : 250,
+      limit: Math.min(Math.max(Number(req.query.limit) || 20, 1), 100),
+    };
+    
+    const listings = await scrapeCarGurusCA(params);
+    const vehicles = listings.map(convertToVehicle);
+    
+    res.json({ 
+      success: true, 
+      total: listings.length, 
+      vehicles,
+      listings,
+      params 
+    });
+  } catch (e: any) {
+    res.status(500).json({ 
+      success: false, 
+      error: e.message || 'CarGurus scrape failed' 
+    });
+  }
+});
+
+router.get('/cargurus/market', async (req: Request, res: Response) => {
+  try {
+    const { searchMarketData } = await import('../../modules/scrapers/cargurus-ca');
+    
+    const year = Number(req.query.year);
+    const make = req.query.make as string;
+    const model = req.query.model as string;
+    const radius = req.query.radius ? Number(req.query.radius) : 250;
+    const postalCode = (req.query.postalCode as string) || 'T5J';
+    
+    if (!year || !make || !model) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required parameters: year, make, model'
+      });
+    }
+    
+    const result = await searchMarketData(year, make, model, radius, postalCode);
+    
+    res.json({
+      success: true,
+      year,
+      make,
+      model,
+      postalCode,
+      radius,
+      marketData: {
+        average: result.average,
+        min: result.min,
+        max: result.max,
+        count: result.count,
+        goodDeals: result.goodDeals,
+      },
+      listings: result.listings,
+    });
+  } catch (e: any) {
+    res.status(500).json({
+      success: false,
+      error: e.message || 'Market data search failed'
+    });
+  }
+});
+
+router.get('/cargurus/compare', async (req: Request, res: Response) => {
+  try {
+    const { compareWithMarket } = await import('../../modules/scrapers/cargurus-ca');
+    
+    const year = Number(req.query.year);
+    const make = req.query.make as string;
+    const model = req.query.model as string;
+    const yourPrice = Number(req.query.price);
+    const radius = req.query.radius ? Number(req.query.radius) : 250;
+    const postalCode = (req.query.postalCode as string) || 'T5J';
+    
+    if (!year || !make || !model || !yourPrice) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required parameters: year, make, model, price'
+      });
+    }
+    
+    const comparison = await compareWithMarket(year, make, model, yourPrice, radius, postalCode);
+    
+    res.json({
+      success: true,
+      vehicle: { year, make, model },
+      comparison,
+    });
+  } catch (e: any) {
+    res.status(500).json({
+      success: false,
+      error: e.message || 'Market comparison failed'
+    });
+  }
+});
+
 export default router;
