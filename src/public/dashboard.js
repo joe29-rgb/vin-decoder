@@ -315,11 +315,22 @@
   document.getElementById('saveApproval').onclick = async function(){
     var txt = (approvalText.value||'').trim();
     if (!txt) { toast('Provide approval JSON'); return; }
-    var body;
-    try { body = JSON.parse(txt); } catch(e) { toast('Invalid JSON'); return; }
-    var resp = await fetch('/api/approvals/ingest', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    var parsed;
+    try { parsed = JSON.parse(txt); } catch(e) { toast('Invalid JSON'); return; }
+    
+    var payload = {
+      contactId: parsed.contactId || parsed.customer?.applicationNumber || 'MANUAL-' + Date.now(),
+      locationId: parsed.locationId || 'DEFAULT-LOCATION',
+      approval: parsed.approval || {},
+      trade: parsed.trade || {}
+    };
+    
+    if (parsed.vehicle) payload.approval.vehicle = parsed.vehicle;
+    if (parsed.customer) payload.approval.customer = parsed.customer;
+    
+    var resp = await fetch('/api/approvals/ingest', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
     var jr = await resp.json();
-    if (jr.success) { toast('Approval ingested'); closeApproval(); await loadApproval(); }
+    if (jr.success) { toast('Approval ingested'); closeApproval(); }
     else { toast('Failed: ' + (jr.error||'unknown')); }
   };
 
