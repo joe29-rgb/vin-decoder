@@ -614,6 +614,11 @@
     "maxFrontEndAdvance": 1.30,
     "reserve": { "fixedByFinancedAmount": [ { "minFinanced": 0, "maxFinanced": 24999, "amount": 300 }, { "minFinanced": 25000, "maxFinanced": 1000000, "amount": 600 } ] },
     "termByYearAndOdometer": [
+      { "yearFrom": 2025, "yearTo": 2025, "kmFrom": 0, "kmTo": 45000, "maxTermMonths": 84 },
+      { "yearFrom": 2025, "yearTo": 2025, "kmFrom": 45001, "kmTo": 70000, "maxTermMonths": 84 },
+      { "yearFrom": 2025, "yearTo": 2025, "kmFrom": 70001, "kmTo": 100000, "maxTermMonths": 84 },
+      { "yearFrom": 2025, "yearTo": 2025, "kmFrom": 100001, "kmTo": 120000, "maxTermMonths": 84 },
+      { "yearFrom": 2025, "yearTo": 2025, "kmFrom": 120001, "kmTo": 300000, "maxTermMonths": 78 },
       { "yearFrom": 2024, "yearTo": 2024, "kmFrom": 0, "kmTo": 45000, "maxTermMonths": 84 },
       { "yearFrom": 2024, "yearTo": 2024, "kmFrom": 45001, "kmTo": 70000, "maxTermMonths": 84 },
       { "yearFrom": 2024, "yearTo": 2024, "kmFrom": 70001, "kmTo": 100000, "maxTermMonths": 84 },
@@ -1270,7 +1275,78 @@
   {
     "bank": "RBC",
     "program": "Auto Special – 30Oct25",
-    "reserve": {},
+    "reserve": {
+      "chargebackDays": 180,
+      "qualityBonusByFinancedAmount": [
+        { "minFinanced": 7500, "maxFinanced": 1000000, "amount": 1300 }
+      ]
+    },
+    "reserveByRateTable": [
+      { "rate": 6.45, "termMin": 60, "termMax": 96, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 29999,  "percent": 0.0000 },
+        { "minFinanced": 30000, "maxFinanced": 39999,  "percent": 0.0000 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0015 },
+        { "minFinanced": 50000, "maxFinanced": 99999,  "percent": 0.0000 },
+        { "minFinanced": 100000, "maxFinanced": 1000000, "percent": 0.0025 }
+      ]},
+      { "rate": 6.95, "termMin": 60, "termMax": 96, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0045 },
+        { "minFinanced": 20000, "maxFinanced": 29999,  "percent": 0.0045 },
+        { "minFinanced": 30000, "maxFinanced": 39999,  "percent": 0.0030 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0025 },
+        { "minFinanced": 50000, "maxFinanced": 99999,  "percent": 0.0000 },
+        { "minFinanced": 100000, "maxFinanced": 1000000, "percent": 0.0000 }
+      ]},
+      { "rate": 7.39, "termMin": 60, "termMax": 96, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0060 },
+        { "minFinanced": 20000, "maxFinanced": 29999,  "percent": 0.0055 },
+        { "minFinanced": 30000, "maxFinanced": 39999,  "percent": 0.0055 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0030 },
+        { "minFinanced": 50000, "maxFinanced": 99999,  "percent": 0.0000 },
+        { "minFinanced": 100000, "maxFinanced": 1000000, "percent": 0.0000 }
+      ]},
+      { "rate": 7.99, "termMin": 60, "termMax": 96, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0120 },
+        { "minFinanced": 20000, "maxFinanced": 29999,  "percent": 0.0120 },
+        { "minFinanced": 30000, "maxFinanced": 39999,  "percent": 0.0115 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0080 },
+        { "minFinanced": 50000, "maxFinanced": 99999,  "percent": 0.0025 },
+        { "minFinanced": 100000, "maxFinanced": 1000000, "percent": 0.0000 }
+      ]},
+      { "rate": 8.49, "termMin": 60, "termMax": 96, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0170 },
+        { "minFinanced": 20000, "maxFinanced": 29999,  "percent": 0.0170 },
+        { "minFinanced": 30000, "maxFinanced": 39999,  "percent": 0.0170 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0095 },
+        { "minFinanced": 50000, "maxFinanced": 99999,  "percent": 0.0055 },
+        { "minFinanced": 100000, "maxFinanced": 1000000, "percent": 0.0005 }
+      ]},
+      { "rate": 8.99, "termMin": 60, "termMax": 96, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 29999,  "percent": 0.0240 },
+        { "minFinanced": 30000, "maxFinanced": 39999,  "percent": 0.0235 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0185 },
+        { "minFinanced": 50000, "maxFinanced": 99999,  "percent": 0.0105 },
+        { "minFinanced": 100000, "maxFinanced": 1000000, "percent": 0.0050 }
+      ]},
+      { "rate": 9.49, "termMin": 60, "termMax": 96, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 29999,  "percent": 0.0295 },
+        { "minFinanced": 30000, "maxFinanced": 39999,  "percent": 0.0290 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0235 },
+        { "minFinanced": 50000, "maxFinanced": 99999,  "percent": 0.0150 },
+        { "minFinanced": 100000, "maxFinanced": 1000000, "percent": 0.0075 }
+      ]},
+      { "rate": 9.99, "termMin": 60, "termMax": 96, "brackets": [
+        { "minFinanced": 7500,  "maxFinanced": 19999,  "percent": 0.0000 },
+        { "minFinanced": 20000, "maxFinanced": 29999,  "percent": 0.0000 },
+        { "minFinanced": 30000, "maxFinanced": 39999,  "percent": 0.0295 },
+        { "minFinanced": 40000, "maxFinanced": 49999,  "percent": 0.0235 },
+        { "minFinanced": 50000, "maxFinanced": 99999,  "percent": 0.0165 },
+        { "minFinanced": 100000, "maxFinanced": 1000000, "percent": 0.0135 }
+      ]}
+    ],
     "termByModelYear": [
       { "yearFrom": 2024, "yearTo": 2026, "maxTermMonths": 96 },
       { "yearFrom": 2023, "yearTo": 2023, "maxTermMonths": 84 },
@@ -2502,6 +2578,183 @@
     ],
     "termByYearAndOdometer": [
       { "yearFrom": 2025, "yearTo": 2026, "kmFrom": 5001, "kmTo": 40000, "maxTermMonths": 84 }
+    ]
+  },
+  {
+    "bank": "Rifco",
+    "program": "All-Access Tier 1",
+    "frontAdvanceBase": "black_book",
+    "ltvBase": "black_book",
+    "maxFrontEndAdvance": 1.40,
+    "maxAllInLTV": 1.55,
+    "reserve": { "fixedByFinancedAmount": [ { "minFinanced": 0, "maxFinanced": 1000000, "amount": 1200 } ] },
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 96 },
+      { "yearFrom": 2021, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2020, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 66 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 48 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 36 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 24 }
+    ]
+  },
+  {
+    "bank": "Rifco",
+    "program": "All-Access Tier 2",
+    "frontAdvanceBase": "black_book",
+    "ltvBase": "black_book",
+    "maxFrontEndAdvance": 1.40,
+    "maxAllInLTV": 1.55,
+    "reserve": { "fixedByFinancedAmount": [ { "minFinanced": 0, "maxFinanced": 1000000, "amount": 1100 } ] },
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 96 },
+      { "yearFrom": 2021, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2020, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 66 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 48 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 36 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 24 }
+    ]
+  },
+  {
+    "bank": "Rifco",
+    "program": "All-Access Tier 3",
+    "frontAdvanceBase": "black_book",
+    "ltvBase": "black_book",
+    "maxFrontEndAdvance": 1.40,
+    "maxAllInLTV": 1.55,
+    "reserve": { "fixedByFinancedAmount": [ { "minFinanced": 0, "maxFinanced": 1000000, "amount": 1000 } ] },
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 96 },
+      { "yearFrom": 2021, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2020, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 66 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 48 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 36 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 24 }
+    ]
+  },
+  {
+    "bank": "Rifco",
+    "program": "All-Access Tier 4",
+    "frontAdvanceBase": "black_book",
+    "ltvBase": "black_book",
+    "maxFrontEndAdvance": 1.40,
+    "maxAllInLTV": 1.55,
+    "reserve": { "fixedByFinancedAmount": [ { "minFinanced": 0, "maxFinanced": 1000000, "amount": 900 } ] },
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 96 },
+      { "yearFrom": 2021, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2020, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 66 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 48 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 36 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 24 }
+    ]
+  },
+  {
+    "bank": "Rifco",
+    "program": "All-Access Tier 5",
+    "frontAdvanceBase": "black_book",
+    "ltvBase": "black_book",
+    "maxFrontEndAdvance": 1.40,
+    "maxAllInLTV": 1.55,
+    "reserve": { "fixedByFinancedAmount": [ { "minFinanced": 0, "maxFinanced": 1000000, "amount": 800 } ] },
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 96 },
+      { "yearFrom": 2021, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2020, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 66 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 48 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 36 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 24 }
+    ]
+  },
+  {
+    "bank": "Rifco",
+    "program": "All-Access Tier 6",
+    "frontAdvanceBase": "black_book",
+    "ltvBase": "black_book",
+    "maxFrontEndAdvance": 1.40,
+    "maxAllInLTV": 1.55,
+    "reserve": { "fixedByFinancedAmount": [ { "minFinanced": 0, "maxFinanced": 1000000, "amount": 700 } ] },
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 96 },
+      { "yearFrom": 2021, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2020, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 66 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 48 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 36 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 24 }
+    ]
+  },
+  {
+    "bank": "Rifco",
+    "program": "All-Access THIN",
+    "frontAdvanceBase": "black_book",
+    "ltvBase": "black_book",
+    "maxFrontEndAdvance": 1.30,
+    "maxAllInLTV": 1.55,
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 96 },
+      { "yearFrom": 2021, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2020, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 66 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 48 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 36 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 24 }
+    ]
+  },
+  {
+    "bank": "Rifco",
+    "program": "Standard Preferred",
+    "frontAdvanceBase": "black_book",
+    "ltvBase": "black_book",
+    "maxFrontEndAdvance": 1.30,
+    "maxAllInLTV": 1.55,
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 96 },
+      { "yearFrom": 2021, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2020, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 66 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 48 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 36 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 24 }
+    ]
+  },
+  {
+    "bank": "Rifco",
+    "program": "Standard",
+    "frontAdvanceBase": "black_book",
+    "ltvBase": "black_book",
+    "maxFrontEndAdvance": 1.30,
+    "maxAllInLTV": 1.55,
+    "maxPayCall": 3000,
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 96 },
+      { "yearFrom": 2021, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2020, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 66 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 48 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 36 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 24 }
+    ]
+  },
+  {
+    "bank": "Rifco",
+    "program": "Drive Plan",
+    "frontAdvanceBase": "black_book",
+    "ltvBase": "black_book",
+    "maxFrontEndAdvance": 1.30,
+    "maxAllInLTV": 1.55,
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 96 },
+      { "yearFrom": 2021, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2020, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 66 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 48 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 36 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 24 }
     ]
   }
   
