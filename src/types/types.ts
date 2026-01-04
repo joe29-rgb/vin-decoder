@@ -26,6 +26,7 @@ export interface Vehicle {
   suggestedPrice: number;
   inStock: boolean;
   imageUrl?: string;
+  imageUrls?: string[];
   blackBookValue?: number;
 }
 

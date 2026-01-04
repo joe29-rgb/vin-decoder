@@ -112,15 +112,22 @@ function normalizeVehicleFromJsonLd(obj: any, idx: number, baseUrl?: string): Ve
     const name = obj.name || '';
     const price = toNumber(obj.offers?.price ?? obj.price ?? obj.offers?.[0]?.price);
     const mileage = toNumber(obj.mileageFromOdometer?.value);
-    let image = Array.isArray(obj.image) ? obj.image[0] : obj.image;
-    const stock = obj.sku || obj.productID || obj.identifier || obj.serialNumber || vin || `SCR-${Date.now()}-${idx}`;
-
-    // Resolve relative image URL
-    try {
-      if (image && typeof image === 'string' && baseUrl && !/^https?:\/\//i.test(image)) {
-        image = new URL(String(image), baseUrl).href;
+    
+    const rawImages = Array.isArray(obj.image) ? obj.image : (obj.image ? [obj.image] : []);
+    const imageUrls: string[] = [];
+    for (const img of rawImages) {
+      let imgUrl = typeof img === 'string' ? img : (img?.url || img?.contentUrl || '');
+      if (imgUrl) {
+        try {
+          if (baseUrl && !/^https?:\/\//i.test(imgUrl)) {
+            imgUrl = new URL(String(imgUrl), baseUrl).href;
+          }
+          imageUrls.push(imgUrl);
+        } catch(_e) {}
       }
-    } catch(_e) {}
+    }
+    
+    const stock = obj.sku || obj.productID || obj.identifier || obj.serialNumber || vin || `SCR-${Date.now()}-${idx}`;
 
     const vehicle: Vehicle = {
       id: String(stock),
@@ -138,7 +145,8 @@ function normalizeVehicleFromJsonLd(obj: any, idx: number, baseUrl?: string): Ve
       yourCost: 0,
       suggestedPrice: price ?? 0,
       inStock: true,
-      imageUrl: image,
+      imageUrl: imageUrls[0] || undefined,
+      imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
       blackBookValue: undefined,
     };
 
@@ -233,11 +241,54 @@ function normalizeVehicleFromDom(html: string, pageUrl: string, idx: number): Ve
     const ogTitle = $('meta[property="og:title"]').attr('content') || '';
     const title = ogTitle || $('title').text().trim();
     const year = inferYearFromName(title) || 0;
-    // Image
-    let image = $('meta[property="og:image"]').attr('content') || $('img[src]').first().attr('src') || '';
-    try {
-      if (image && !/^https?:/i.test(image)) image = new URL(image, pageUrl).href;
-    } catch(_e) {}
+    
+    // Capture ALL images from gallery/carousel and fallback to og:image
+    const imageUrls: string[] = [];
+    const gallerySelectors = [
+      '.vehicle-gallery img[src]',
+      '.image-gallery img[src]',
+      '.carousel img[src]',
+      '.slider img[src]',
+      '[class*="gallery"] img[src]',
+      '[class*="photo"] img[src]',
+      '[id*="gallery"] img[src]',
+      '[data-gallery] img[src]'
+    ];
+    
+    for (const selector of gallerySelectors) {
+      $(selector).each((_i: number, el: any) => {
+        let src = $(el).attr('src') || $(el).attr('data-src') || $(el).attr('data-lazy');
+        if (src && !src.includes('placeholder') && !src.includes('loading')) {
+          try {
+            if (!/^https?:/i.test(src)) src = new URL(src, pageUrl).href;
+            if (!imageUrls.includes(src)) imageUrls.push(src);
+          } catch(_e) {}
+        }
+      });
+    }
+    
+    // Fallback to og:image and first img if no gallery found
+    if (imageUrls.length === 0) {
+      const ogImage = $('meta[property="og:image"]').attr('content');
+      if (ogImage) {
+        try {
+          const resolved = !/^https?:/i.test(ogImage) ? new URL(ogImage, pageUrl).href : ogImage;
+          imageUrls.push(resolved);
+        } catch(_e) {}
+      }
+      
+      $('img[src]').each((_i: number, el: any) => {
+        if (imageUrls.length >= 10) return false;
+        let src = $(el).attr('src');
+        if (src && !src.includes('logo') && !src.includes('icon') && !src.includes('placeholder')) {
+          try {
+            if (!/^https?:/i.test(src)) src = new URL(src, pageUrl).href;
+            if (!imageUrls.includes(src)) imageUrls.push(src);
+          } catch(_e) {}
+        }
+      });
+    }
+    
     // Price heuristics
     let price: number | undefined;
     const priceMeta = $('meta[itemprop="price"]').attr('content') || $('meta[property="product:price:amount"]').attr('content');
@@ -294,7 +345,8 @@ function normalizeVehicleFromDom(html: string, pageUrl: string, idx: number): Ve
       yourCost: 0,
       suggestedPrice: price ?? 0,
       inStock: true,
-      imageUrl: image || undefined,
+      imageUrl: imageUrls[0] || undefined,
+      imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
       blackBookValue: undefined,
     };
     return vehicle;
