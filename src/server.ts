@@ -14,6 +14,7 @@ import ghlRouter from './api/routes/ghl';
 import carfaxRouter from './api/routes/carfax';
 import geolocationRouter from './api/routes/geolocation';
 import inventorySyncRouter from './api/routes/inventory-sync';
+import reportsRouter from './api/routes/reports';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use('/api/ghl', ghlRouter);
 app.use('/api/carfax', carfaxRouter);
 app.use('/api/location', geolocationRouter);
 app.use('/api/sync', inventorySyncRouter);
+app.use('/api/reports', reportsRouter);
 // Backward-compatibility mounts for legacy paths
 app.use('/api', dealsRouter);      // provides /api/lenders, /api/deals/*
 app.use('/api', webhooksRouter);   // provides /api/rules/*, /api/approvals/*
