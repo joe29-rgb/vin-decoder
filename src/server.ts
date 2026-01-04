@@ -12,6 +12,7 @@ import webhooksRouter from './api/routes/webhooks';
 import scrapeRouter from './api/routes/scrape';
 import ghlRouter from './api/routes/ghl';
 import carfaxRouter from './api/routes/carfax';
+import geolocationRouter from './api/routes/geolocation';
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.use('/api/webhooks', webhooksRouter);
 app.use('/api/scrape', scrapeRouter);
 app.use('/api/ghl', ghlRouter);
 app.use('/api/carfax', carfaxRouter);
+app.use('/api/location', geolocationRouter);
 // Backward-compatibility mounts for legacy paths
 app.use('/api', dealsRouter);      // provides /api/lenders, /api/deals/*
 app.use('/api', webhooksRouter);   // provides /api/rules/*, /api/approvals/*
