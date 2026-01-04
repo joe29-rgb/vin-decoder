@@ -790,5 +790,304 @@
       { "yearFrom": 2022, "yearTo": 2026, "maxTermMonths": 84 },
       { "yearFrom": 2015, "yearTo": 2021, "maxTermMonths": 72 }
     ]
+  },
+  {
+    "bank": "CIBC Auto Finance",
+    "program": "2023-2026 Vehicle",
+    "reserve": {
+      "qualityBonusByFinancedAmount": [
+        { "minFinanced": 20000, "maxFinanced": 999999999, "amount": 1200 },
+        { "minFinanced": 0, "maxFinanced": 19999, "amount": 600 }
+      ],
+      "chargebackDays": 180
+    },
+    "termByModelYear": [
+      { "yearFrom": 2023, "yearTo": 2026, "maxTermMonths": 96 }
+    ]
+  },
+  {
+    "bank": "CIBC Auto Finance",
+    "program": "2018-2022 Vehicle",
+    "reserve": {
+      "qualityBonusByFinancedAmount": [
+        { "minFinanced": 20000, "maxFinanced": 999999999, "amount": 1200 },
+        { "minFinanced": 0, "maxFinanced": 19999, "amount": 600 }
+      ],
+      "chargebackDays": 180
+    },
+    "termByModelYear": [
+      { "yearFrom": 2021, "yearTo": 2022, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2020, "maxTermMonths": 72 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 60 }
+    ]
+  },
+  {
+    "bank": "CIBC Auto Finance",
+    "program": "2015-2017 Vehicle",
+    "reserve": {
+      "qualityBonusByFinancedAmount": [
+        { "minFinanced": 20000, "maxFinanced": 999999999, "amount": 1200 },
+        { "minFinanced": 0, "maxFinanced": 19999, "amount": 600 }
+      ],
+      "chargebackDays": 180
+    },
+    "termByModelYear": [
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 48 },
+      { "yearFrom": 2015, "yearTo": 2016, "maxTermMonths": 36 }
+    ]
+  },
+  {
+    "bank": "CIBC Auto Finance",
+    "program": "Green Vehicle Special",
+    "reserve": {
+      "qualityBonusByFinancedAmount": [
+        { "minFinanced": 20000, "maxFinanced": 999999999, "amount": 1200 }
+      ],
+      "percentOfFinanced": 0.0025,
+      "chargebackDays": 180
+    },
+    "termByModelYear": [
+      { "yearFrom": 2023, "yearTo": 2026, "maxTermMonths": 96 }
+    ]
+  },
+  {
+    "bank": "CIBC Auto Finance",
+    "program": "10-Year Anniversary Franchise",
+    "reserve": {
+      "qualityBonusByFinancedAmount": [
+        { "minFinanced": 20000, "maxFinanced": 999999999, "amount": 1200 }
+      ],
+      "chargebackDays": 180
+    },
+    "termByModelYear": [
+      { "yearFrom": 2023, "yearTo": 2026, "maxTermMonths": 96 },
+      { "yearFrom": 2022, "yearTo": 2022, "maxTermMonths": 84 }
+    ]
+  },
+  {
+    "bank": "General Bank of Canada",
+    "program": "Standard 2017-2026",
+    "reserve": {
+      "qualityBonusByFinancedAmount": [
+        { "minFinanced": 50000, "maxFinanced": 999999999, "amount": 1300 },
+        { "minFinanced": 40000, "maxFinanced": 49999, "amount": 1200 },
+        { "minFinanced": 30000, "maxFinanced": 39999, "amount": 1200 },
+        { "minFinanced": 25000, "maxFinanced": 29999, "amount": 800 },
+        { "minFinanced": 15000, "maxFinanced": 24999, "amount": 400 }
+      ],
+      "chargebackDays": 180
+    },
+    "termByModelYear": [
+      { "yearFrom": 2017, "yearTo": 2026, "maxTermMonths": 96 }
+    ]
+  },
+  {
+    "bank": "General Bank of Canada",
+    "program": "New & Nearly New Winter Special",
+    "reserve": {
+      "qualityBonusByFinancedAmount": [
+        { "minFinanced": 60000, "maxFinanced": 999999999, "amount": 1300 },
+        { "minFinanced": 50000, "maxFinanced": 59999, "amount": 1300 },
+        { "minFinanced": 40000, "maxFinanced": 49999, "amount": 1200 },
+        { "minFinanced": 35000, "maxFinanced": 39999, "amount": 1200 },
+        { "minFinanced": 30000, "maxFinanced": 34999, "amount": 1200 }
+      ],
+      "chargebackDays": 180
+    },
+    "termByModelYear": [
+      { "yearFrom": 2021, "yearTo": 2026, "maxTermMonths": 96 }
+    ]
+  },
+  {
+    "bank": "IA Auto Finance",
+    "program": "6 Gear",
+    "frontCapFactor": 1.40,
+    "maxPayCall": 1000,
+    "reserve": {
+      "fixedByFinancedAmount": [
+        { "minFinanced": 50000, "maxFinanced": 999999999, "amount": 1000 },
+        { "minFinanced": 45001, "maxFinanced": 50000, "amount": 750 },
+        { "minFinanced": 35001, "maxFinanced": 45000, "amount": 600 },
+        { "minFinanced": 20001, "maxFinanced": 35000, "amount": 500 },
+        { "minFinanced": 15001, "maxFinanced": 20000, "amount": 450 },
+        { "minFinanced": 10001, "maxFinanced": 15000, "amount": 300 },
+        { "minFinanced": 0, "maxFinanced": 10000, "amount": 100 }
+      ]
+    },
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 84 },
+      { "yearFrom": 2024, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2023, "yearTo": 2023, "maxTermMonths": 84 },
+      { "yearFrom": 2022, "yearTo": 2022, "maxTermMonths": 84 },
+      { "yearFrom": 2021, "yearTo": 2021, "maxTermMonths": 84 },
+      { "yearFrom": 2020, "yearTo": 2020, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2019, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 78 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 60 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 48 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 48 }
+    ]
+  },
+  {
+    "bank": "IA Auto Finance",
+    "program": "5 Gear",
+    "frontCapFactor": 1.40,
+    "reserve": {
+      "fixedByFinancedAmount": [
+        { "minFinanced": 50000, "maxFinanced": 999999999, "amount": 1000 },
+        { "minFinanced": 45001, "maxFinanced": 50000, "amount": 750 },
+        { "minFinanced": 35001, "maxFinanced": 45000, "amount": 600 },
+        { "minFinanced": 20001, "maxFinanced": 35000, "amount": 500 },
+        { "minFinanced": 15001, "maxFinanced": 20000, "amount": 450 },
+        { "minFinanced": 10001, "maxFinanced": 15000, "amount": 300 },
+        { "minFinanced": 0, "maxFinanced": 10000, "amount": 100 }
+      ]
+    },
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 84 },
+      { "yearFrom": 2024, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2023, "yearTo": 2023, "maxTermMonths": 84 },
+      { "yearFrom": 2022, "yearTo": 2022, "maxTermMonths": 84 },
+      { "yearFrom": 2021, "yearTo": 2021, "maxTermMonths": 84 },
+      { "yearFrom": 2020, "yearTo": 2020, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2019, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 78 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 60 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 48 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 48 }
+    ]
+  },
+  {
+    "bank": "IA Auto Finance",
+    "program": "4 Gear",
+    "frontCapFactor": 1.35,
+    "reserve": {
+      "fixedByFinancedAmount": [
+        { "minFinanced": 50000, "maxFinanced": 999999999, "amount": 1000 },
+        { "minFinanced": 45001, "maxFinanced": 50000, "amount": 750 },
+        { "minFinanced": 35001, "maxFinanced": 45000, "amount": 600 },
+        { "minFinanced": 20001, "maxFinanced": 35000, "amount": 500 },
+        { "minFinanced": 15001, "maxFinanced": 20000, "amount": 450 },
+        { "minFinanced": 10001, "maxFinanced": 15000, "amount": 300 },
+        { "minFinanced": 0, "maxFinanced": 10000, "amount": 100 }
+      ]
+    },
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 84 },
+      { "yearFrom": 2024, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2023, "yearTo": 2023, "maxTermMonths": 84 },
+      { "yearFrom": 2022, "yearTo": 2022, "maxTermMonths": 84 },
+      { "yearFrom": 2021, "yearTo": 2021, "maxTermMonths": 84 },
+      { "yearFrom": 2020, "yearTo": 2020, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2019, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 78 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 60 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 48 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 48 }
+    ]
+  },
+  {
+    "bank": "IA Auto Finance",
+    "program": "3 Gear",
+    "frontCapFactor": 1.25,
+    "reserve": {
+      "fixedByFinancedAmount": [
+        { "minFinanced": 50000, "maxFinanced": 999999999, "amount": 1000 },
+        { "minFinanced": 45001, "maxFinanced": 50000, "amount": 750 },
+        { "minFinanced": 35001, "maxFinanced": 45000, "amount": 600 },
+        { "minFinanced": 20001, "maxFinanced": 35000, "amount": 500 },
+        { "minFinanced": 15001, "maxFinanced": 20000, "amount": 450 },
+        { "minFinanced": 10001, "maxFinanced": 15000, "amount": 300 },
+        { "minFinanced": 0, "maxFinanced": 10000, "amount": 100 }
+      ]
+    },
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 84 },
+      { "yearFrom": 2024, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2023, "yearTo": 2023, "maxTermMonths": 84 },
+      { "yearFrom": 2022, "yearTo": 2022, "maxTermMonths": 84 },
+      { "yearFrom": 2021, "yearTo": 2021, "maxTermMonths": 84 },
+      { "yearFrom": 2020, "yearTo": 2020, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2019, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 78 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 60 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 48 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 48 }
+    ]
+  },
+  {
+    "bank": "IA Auto Finance",
+    "program": "2 Gear",
+    "frontCapFactor": 1.25,
+    "reserve": {
+      "fixedByFinancedAmount": [
+        { "minFinanced": 50000, "maxFinanced": 999999999, "amount": 1000 },
+        { "minFinanced": 45001, "maxFinanced": 50000, "amount": 750 },
+        { "minFinanced": 35001, "maxFinanced": 45000, "amount": 600 },
+        { "minFinanced": 20001, "maxFinanced": 35000, "amount": 500 },
+        { "minFinanced": 15001, "maxFinanced": 20000, "amount": 450 },
+        { "minFinanced": 10001, "maxFinanced": 15000, "amount": 300 },
+        { "minFinanced": 0, "maxFinanced": 10000, "amount": 100 }
+      ]
+    },
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 84 },
+      { "yearFrom": 2024, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2023, "yearTo": 2023, "maxTermMonths": 84 },
+      { "yearFrom": 2022, "yearTo": 2022, "maxTermMonths": 84 },
+      { "yearFrom": 2021, "yearTo": 2021, "maxTermMonths": 84 },
+      { "yearFrom": 2020, "yearTo": 2020, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2019, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 78 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 60 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 48 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 48 }
+    ]
+  },
+  {
+    "bank": "IA Auto Finance",
+    "program": "1 Gear",
+    "frontCapFactor": 1.10,
+    "reserve": {
+      "fixedByFinancedAmount": [
+        { "minFinanced": 50000, "maxFinanced": 999999999, "amount": 1000 },
+        { "minFinanced": 45001, "maxFinanced": 50000, "amount": 750 },
+        { "minFinanced": 35001, "maxFinanced": 45000, "amount": 600 },
+        { "minFinanced": 20001, "maxFinanced": 35000, "amount": 500 },
+        { "minFinanced": 15001, "maxFinanced": 20000, "amount": 450 },
+        { "minFinanced": 10001, "maxFinanced": 15000, "amount": 300 },
+        { "minFinanced": 0, "maxFinanced": 10000, "amount": 100 }
+      ]
+    },
+    "termByModelYear": [
+      { "yearFrom": 2025, "yearTo": 2026, "maxTermMonths": 84 },
+      { "yearFrom": 2024, "yearTo": 2024, "maxTermMonths": 84 },
+      { "yearFrom": 2023, "yearTo": 2023, "maxTermMonths": 84 },
+      { "yearFrom": 2022, "yearTo": 2022, "maxTermMonths": 84 },
+      { "yearFrom": 2021, "yearTo": 2021, "maxTermMonths": 84 },
+      { "yearFrom": 2020, "yearTo": 2020, "maxTermMonths": 84 },
+      { "yearFrom": 2019, "yearTo": 2019, "maxTermMonths": 78 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 78 },
+      { "yearFrom": 2017, "yearTo": 2017, "maxTermMonths": 60 },
+      { "yearFrom": 2016, "yearTo": 2016, "maxTermMonths": 48 },
+      { "yearFrom": 2015, "yearTo": 2015, "maxTermMonths": 48 }
+    ]
+  },
+  {
+    "bank": "Lendcare",
+    "program": "All-Access Preferred",
+    "frontCapFactor": 1.40,
+    "reserve": {
+      "fixedByFinancedAmount": [
+        { "minFinanced": 0, "maxFinanced": 999999999, "amount": 300 }
+      ]
+    },
+    "termByModelYear": [
+      { "yearFrom": 2022, "yearTo": 2026, "maxTermMonths": 84 },
+      { "yearFrom": 2021, "yearTo": 2021, "maxTermMonths": 78 },
+      { "yearFrom": 2020, "yearTo": 2020, "maxTermMonths": 72 },
+      { "yearFrom": 2019, "yearTo": 2019, "maxTermMonths": 66 },
+      { "yearFrom": 2018, "yearTo": 2018, "maxTermMonths": 60 }
+    ]
   }
 ]

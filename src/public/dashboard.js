@@ -177,7 +177,6 @@
 
   document.getElementById('load').onclick = loadApproval;
   document.getElementById('score').onclick = score;
-  try { document.getElementById('score').disabled = false; } catch(_e){}
   document.getElementById('uploadInventory').onclick = function(){ openInventory(); };
   document.getElementById('uploadRules').onclick = function(){ openRules(); };
   document.getElementById('uploadApproval').onclick = function(){ openApproval(); };
@@ -244,13 +243,8 @@
     var txt = (rulesInput.value||'').trim();
     if (!txt && fileTextCache) txt = fileTextCache;
     if (!txt) { toast('Provide JSON via text or file'); return; }
-    var parsed;
-    try { parsed = JSON.parse(txt); } catch(e) { toast('Invalid JSON'); return; }
-    var body = (function(p){
-      if (Array.isArray(p)) return { rules: p, mode: 'append' };
-      if (p && Array.isArray(p.rules)) return { rules: p.rules, mode: p.mode||'append' };
-      return { rules: [p], mode: 'append' };
-    })(parsed);
+    var body;
+    try { body = JSON.parse(txt); } catch(e) { toast('Invalid JSON'); return; }
     var resp = await fetch('/api/rules/upload', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
     var jr = await resp.json();
     if (jr.success) { toast('Rules loaded: ' + jr.total); closeRules(); }
@@ -269,11 +263,7 @@
     var fd = new FormData(); fd.append('file', rulesPdf.files[0]);
     var resp = await fetch('/api/rules/parse-pdf', { method:'POST', body: fd });
     var jr = await resp.json();
-    if (jr.success) {
-      if (jr.suggestion) { try { rulesInput.value = JSON.stringify(jr.suggestion, null, 2); } catch(_e) { rulesInput.value = jr.text || ''; } }
-      else { rulesInput.value = jr.text || ''; }
-      toast('Parsed rules PDF');
-    }
+    if (jr.success) { rulesInput.value = jr.text || ''; toast('Parsed rules PDF'); }
     else { toast('Failed: ' + (jr.error||'unknown')); }
   };
 
@@ -405,20 +395,6 @@
           } catch(e){ toast('Update failed'); }
         };})(v);
         act.appendChild(b3);
-        var b4 = document.createElement('button'); b4.className='btn'; b4.textContent='Set Cost'; b4.style.marginLeft='8px'; b4.onclick=(function(vv){ return async function(){
-          try {
-            var val = prompt('Enter Your Cost for '+ (vv.vin||vv.id) + ' (numbers only, e.g. 21500):', vv.yourCost!=null? String(vv.yourCost):'');
-            if (val===null) return; // cancel
-            var clean = String(val).replace(/[$,\s]/g,'');
-            var num = parseFloat(clean);
-            if (isNaN(num)) { toast('Invalid number'); return; }
-            var resp = await fetch('/api/inventory/sync', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: vv.id, yourCost: num }) });
-            var jr = await resp.json();
-            if (jr.success) { vv.yourCost = num; renderInventoryTable(); toast('Cost updated'); }
-            else { toast('Update failed: ' + (jr.error||'unknown')); }
-          } catch(e){ toast('Update failed'); }
-        };})(v);
-        act.appendChild(b4);
         tr.appendChild(act);
         tbody.appendChild(tr);
       }
@@ -435,9 +411,6 @@
       html += '<div style="font-weight:700;font-size:16px;">' + (row.title|| (v.year+' '+(v.make||'')+' '+(v.model||''))) + '</div>';
       html += '<div class="chip">' + (row.vin||v.vin||'') + '</div>';
       html += '<div style="margin-top:8px;color:var(--muted)">Sale Price: ' + fmt$(row.salePrice) + ' • Payment: ' + fmt$(row.monthlyPayment) + '/mo</div>';
-      if (row.bank || row.program) {
-        html += '<div style="margin-top:6px;">Bank: <b>' + (row.bank||'') + '</b>' + (row.program? (' • Program: <b>'+row.program+'</b>'):'') + '</div>';
-      }
       html += '<div style="margin-top:8px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;">';
       html += '<div>Front Gross</div><div style="text-align:right;">' + fmt$(row.frontGross) + '</div>';
       html += '<div>Back Gross</div><div style="text-align:right;">' + fmt$(row.backGross) + '</div>';
@@ -447,44 +420,10 @@
       html += '<div>CBB Wholesale/Retail</div><div style="text-align:right;">' + (v.cbbWholesale||0) + ' / ' + (v.cbbRetail||0) + '</div>';
       html += '</div>';
       if (row.flags && row.flags.length){ html += '<div style="margin-top:8px;color:var(--danger)">' + row.flags.join(', ') + '</div>'; }
-      if (row.dealertrackCopy) {
-        html += '<div style="margin-top:10px;">';
-        html += '<div style="font-weight:600;margin-bottom:4px;">Dealertrack Copy</div>';
-        html += '<pre style="white-space:pre-wrap;max-height:200px;overflow:auto;border:1px solid var(--border);padding:8px;border-radius:6px;background:#fafafa;">' + (row.dealertrackCopy||'') + '</pre>';
-        html += '<button id="copyDealBtn" class="btn" style="margin-top:6px;">Copy Deal</button>';
-        html += '</div>';
-      }
-      if (row.contacts && row.contacts.length) {
-        html += '<div style="margin-top:12px;">';
-        html += '<div style="font-weight:600;margin-bottom:4px;">Lender Contacts</div>';
-        if (row.lenderAddress) html += '<div style="margin-bottom:4px;color:var(--muted)">' + row.lenderAddress + '</div>';
-        html += '<div style="display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:4px;">';
-        for (var i=0;i<row.contacts.length;i++){
-          var c = row.contacts[i];
-          var line = '<div style="display:flex;justify-content:space-between;gap:8px;">' +
-            '<div>' + (c.role||'') + '</div>' +
-            '<div style="text-align:right;">' +
-            (c.phone ? ('<span style="margin-left:6px;">'+c.phone+'</span>') : '') +
-            (c.email ? ('<span style="margin-left:6px;">'+c.email+'</span>') : '') +
-            (c.fax ? ('<span style="margin-left:6px;">Fax: '+c.fax+'</span>') : '') +
-            '</div></div>';
-          html += line;
-        }
-        html += '</div>';
-        html += '</div>';
-      }
       html += '</div>';
       html += '</div>';
       detailsContent.innerHTML = html;
       detailsModal.classList.remove('hidden');
-      try {
-        var copyBtn = document.getElementById('copyDealBtn');
-        if (copyBtn && row.dealertrackCopy) {
-          copyBtn.onclick = async function(){
-            try { await navigator.clipboard.writeText(row.dealertrackCopy); toast('Copied'); } catch(_e){ toast('Copy failed'); }
-          };
-        }
-      } catch(_ee){}
     } catch(_e){}
   }
 

@@ -7,38 +7,6 @@ import { loadInventoryFromCSV, enrichWithVinAuditValuations } from '../../module
 import { saveInventoryToSupabase, fetchInventoryFromSupabase } from '../../modules/supabase';
 
 const router = Router();
-
-// Merge helper: unify by VIN if present, otherwise by ID; later values override
-function mergeVehicles(base: Vehicle[], incoming: Vehicle[]): Vehicle[] {
-  const map = new Map<string, Vehicle>();
-  const keyOf = (v: Partial<Vehicle>) => (v.vin && v.vin.length ? `VIN:${v.vin}` : `ID:${v.id}`);
-  for (const v of base) map.set(keyOf(v), { ...v });
-  for (const v of incoming) {
-    const k = keyOf(v);
-    const prev = map.get(k) || ({} as Vehicle);
-    const next: any = { ...prev };
-    for (const key of Object.keys(v) as (keyof Vehicle)[]) {
-      const val: any = (v as any)[key];
-      if (val === undefined || val === null) continue;
-      const prevVal: any = (prev as any)[key];
-      if (typeof val === 'number') {
-        // Avoid overwriting meaningful numbers with zeros
-        if (val === 0 && typeof prevVal === 'number' && prevVal > 0) continue;
-        next[key] = val;
-      } else if (typeof val === 'string') {
-        const s = val.trim();
-        if (!s || s.toLowerCase() === 'unknown') {
-          if (typeof prevVal === 'string' && prevVal.trim()) continue;
-        }
-        next[key] = val;
-      } else {
-        next[key] = val;
-      }
-    }
-    map.set(k, next as Vehicle);
-  }
-  return Array.from(map.values());
-}
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 
 router.get('/ping', (_req: Request, res: Response) => {
@@ -52,12 +20,9 @@ router.post('/upload-file', upload.single('file'), async (req: Request, res: Res
     const text = file.buffer.toString('utf8');
     let parsed = loadInventoryFromCSV(text);
     parsed = await enrichWithVinAuditValuations(parsed);
-    const mode = String((req.query.mode as any) || 'append').toLowerCase() === 'replace' ? 'replace' : 'append';
-    state.inventory = mode === 'append' ? mergeVehicles(state.inventory, parsed) : parsed;
-    // Keep mirrored in sync so scoring uses latest data
-    state.mirroredInventory = mergeVehicles(state.mirroredInventory, state.inventory);
+    state.inventory = parsed;
     try { await saveInventoryToSupabase(state.inventory); } catch(_e){}
-    res.json({ success: true, message: `Loaded ${parsed.length} vehicles (${mode})`, total: state.inventory.length });
+    res.json({ success: true, message: `Loaded ${state.inventory.length} vehicles` });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
   }
@@ -121,17 +86,15 @@ router.get('/image/:id', (req: Request, res: Response) => {
 
 router.post('/upload', async (req: Request, res: Response) => {
   try {
-    const { csvContent, mode: bodyMode } = req.body;
+    const { csvContent } = req.body;
     if (!csvContent) {
       return res.status(400).json({ success: false, error: 'CSV content required' });
     }
     let parsed = loadInventoryFromCSV(csvContent);
     parsed = await enrichWithVinAuditValuations(parsed);
-    const mode = String(bodyMode || 'append').toLowerCase() === 'replace' ? 'replace' : 'append';
-    state.inventory = mode === 'append' ? mergeVehicles(state.inventory, parsed) : parsed;
-    state.mirroredInventory = mergeVehicles(state.mirroredInventory, state.inventory);
+    state.inventory = parsed;
     try { await saveInventoryToSupabase(state.inventory); } catch(_e){}
-    res.json({ success: true, message: `Loaded ${parsed.length} vehicles (${mode})`, total: state.inventory.length });
+    res.json({ success: true, message: `Loaded ${state.inventory.length} vehicles` });
   } catch (error) {
     res.status(400).json({ success: false, error: (error as Error).message });
   }
@@ -142,15 +105,14 @@ router.get('/', (_req: Request, res: Response) => {
     try {
       const rows = await fetchInventoryFromSupabase();
       if (rows && rows.length > 0) {
-        // Prefer existing in-memory values over Supabase when merging to avoid wiping fields (e.g., cost/BB) when DB schema is partial
-        state.inventory = mergeVehicles(rows, state.inventory);
+        state.inventory = rows;
       }
     } catch(_e){}
     res.json({ success: true, total: state.inventory.length, vehicles: state.inventory });
   })();
 });
 
-router.post('/sync', async (req: Request, res: Response) => {
+router.post('/sync', (req: Request, res: Response) => {
   try {
     const b = req.body || {};
     const id = String(b.id || b.stock || b.vehicleId || b.vehicle_id || b.vin || `WEB-${Date.now()}`);
@@ -170,29 +132,16 @@ router.post('/sync', async (req: Request, res: Response) => {
     if (b.suggestedPrice !== undefined || b.price !== undefined) updates.suggestedPrice = Number(b.suggestedPrice || b.price);
     if (b.inStock !== undefined) updates.inStock = String(b.inStock).toLowerCase() !== 'false';
     if (b.imageUrl !== undefined || b.image_url !== undefined || b.photoUrl !== undefined) updates.imageUrl = b.imageUrl || b.image_url || b.photoUrl;
-    if (b.blackBookValue !== undefined || b.black_book_value !== undefined) {
-      const bbv = Number(b.blackBookValue ?? b.black_book_value);
-      if (!isNaN(bbv)) {
-        updates.blackBookValue = Math.min(10000000, Math.max(1, bbv));
-      }
-    }
+    if (b.blackBookValue !== undefined || b.black_book_value !== undefined) updates.blackBookValue = Number(b.blackBookValue ?? b.black_book_value);
 
-    // Update mirrored inventory (always upsert)
+    // Update mirrored inventory
     const mi = state.mirroredInventory.findIndex(x => x.id === id);
-    const mirrored = mi >= 0
-      ? ({ ...state.mirroredInventory[mi], ...updates } as Vehicle)
-      : ({ id, ...(updates as any) } as Vehicle);
-    if (mi >= 0) state.mirroredInventory[mi] = mirrored; else state.mirroredInventory.push(mirrored);
+    if (mi >= 0) state.mirroredInventory[mi] = { ...state.mirroredInventory[mi], ...updates } as Vehicle;
+    else state.mirroredInventory.push({ id, ...(updates as any) } as Vehicle);
 
-    // Also update primary inventory (always upsert to keep inventory visible on refresh)
+    // Also update primary inventory if present
     const pi = state.inventory.findIndex(x => x.id === id);
-    const primary = pi >= 0
-      ? ({ ...state.inventory[pi], ...updates } as Vehicle)
-      : ({ id, ...(updates as any) } as Vehicle);
-    if (pi >= 0) state.inventory[pi] = primary; else state.inventory.push(primary);
-
-    // Persist to Supabase if configured (best-effort, non-blocking for rest of system)
-    try { await saveInventoryToSupabase([primary]); } catch(_e){}
+    if (pi >= 0) state.inventory[pi] = { ...state.inventory[pi], ...updates } as Vehicle;
 
     res.json({ success: true, message: 'Vehicle upserted', vehicleId: id });
   } catch (e) {
