@@ -10,6 +10,7 @@ import dealsRouter from './api/routes/deals';
 import inventoryRouter from './api/routes/inventory';
 import webhooksRouter from './api/routes/webhooks';
 import scrapeRouter from './api/routes/scrape';
+import ghlRouter from './api/routes/ghl';
 
 dotenv.config();
 
@@ -26,9 +27,10 @@ app.use('/api/deals', dealsRouter);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/webhooks', webhooksRouter);
 app.use('/api/scrape', scrapeRouter);
+app.use('/api/ghl', ghlRouter);
 // Backward-compatibility mounts for legacy paths
 app.use('/api', dealsRouter);      // provides /api/lenders, /api/deals/*
-app.use('/api', webhooksRouter);   // provides /api/rules/*, /api/approvals/*, /api/ghl/*
+app.use('/api', webhooksRouter);   // provides /api/rules/*, /api/approvals/*
 
 // Health
 app.get('/health', healthCheck);
