@@ -165,12 +165,17 @@ router.post('/approvals/score', (req: Request, res: Response) => {
     const approval = body.approval || state.lastApproval?.approval;
     const trade = body.trade || state.lastApproval?.trade;
     if (!approval || !trade) return res.status(400).json({ success: false, error: 'Missing approval or trade (ingest first or include in request)' });
-    if (state.mirroredInventory.length === 0 && state.inventory.length > 0) {
-      state.mirroredInventory = state.inventory;
+    
+    // Always use latest inventory from state.inventory
+    const inventoryToScore = state.inventory.length > 0 ? state.inventory : state.mirroredInventory;
+    
+    if (inventoryToScore.length === 0) {
+      return res.status(400).json({ success: false, error: 'No inventory loaded. Please upload inventory first.' });
     }
-    const rows = scoreInventory(state.mirroredInventory, approval, trade);
+    
+    const rows = scoreInventory(inventoryToScore, approval, trade);
     const response: ScoreResponse = { approval, rows };
-    res.json({ success: true, ...response });
+    res.json({ success: true, ...response, inventoryCount: inventoryToScore.length });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
   }

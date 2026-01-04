@@ -36,6 +36,7 @@
 
   var sortBy = document.getElementById('sortBy');
   var search = document.getElementById('search');
+  var sourceFilter = document.getElementById('sourceFilter');
 
   var lastApproval = null;
   var currentRows = [];
@@ -227,33 +228,41 @@
         }
         
         try { console.log('Unique vehicles after dedup:', vehicles.length); } catch(_e){}
-        toast('Scraped ' + vehicles.length + ' vehicles, importing...');
+        toast('Scraped ' + vehicles.length + ' vehicles, converting to CSV...');
         
-        var ok = 0;
+        var csvLines = ['stock,vin,year,make,model,mileage,suggested_price,image_url,in_stock'];
         for (var i2=0;i2<vehicles.length;i2++){
           var v = vehicles[i2];
-          try {
-            var payload = {
-              id: v.id || v.stock_number || v.vin || ('SCR-' + i2),
-              vin: v.vin,
-              year: v.year,
-              make: v.make,
-              model: v.model,
-              mileage: v.mileage,
-              price: v.suggestedPrice || v.price,
-              suggestedPrice: v.suggestedPrice || v.price,
-              imageUrl: v.imageUrl || v.image_url,
-              inStock: true
-            };
-            var rr = await fetch('/api/inventory/sync', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-            var jr = await rr.json();
-            if (jr && jr.success) ok++;
-          } catch(_e){ try { console.error('Failed to sync vehicle:', _e); } catch(__e){} }
+          var line = [
+            v.id || v.stock_number || v.vin || ('SCR-' + i2),
+            v.vin || '',
+            v.year || '',
+            v.make || '',
+            v.model || '',
+            v.mileage || '',
+            v.suggestedPrice || v.price || '',
+            v.imageUrl || v.image_url || '',
+            'true'
+          ].join(',');
+          csvLines.push(line);
         }
+        
+        var csvContent = csvLines.join('\n');
+        try { console.log('Uploading scraped inventory as CSV...'); } catch(_e){}
+        var uploadResp = await fetch('/api/inventory/upload', { 
+          method:'POST', 
+          headers:{'Content-Type':'application/json'}, 
+          body: JSON.stringify({ csvContent: csvContent, source: 'devon-scraper' }) 
+        });
+        var uploadResult = await uploadResp.json();
         
         await refreshMeta();
         renderInventoryTable();
-        toast('Imported ' + ok + ' vehicles');
+        if (uploadResult.success) {
+          toast(uploadResult.message || 'Scraped vehicles imported');
+        } else {
+          toast('Import failed: ' + (uploadResult.error || 'unknown'));
+        }
         if (meta && meta.textContent !== undefined) meta.textContent = '';
       } catch(e){ 
         try { console.error('Scrape error:', e); } catch(_e){}
@@ -378,15 +387,24 @@
     } else { toast('Failed: ' + (jr.error||'unknown')); }
   };
 
-  sortBy.onchange = renderRows; search.oninput = function(){ renderRows(); };
+  sortBy.onchange = renderRows; 
+  search.oninput = function(){ renderRows(); };
+  if (sourceFilter) sourceFilter.onchange = function(){ renderInventoryTable(); };
 
   function renderInventoryTable(){
     try {
       var tbody = inventoryTable.querySelector('tbody');
       if (!tbody) return;
       tbody.innerHTML = '';
-      for (var i=0; i<currentInventory.length; i++){
-        var v = currentInventory[i];
+      
+      var selectedSource = sourceFilter ? sourceFilter.value : 'all';
+      var filtered = currentInventory;
+      if (selectedSource && selectedSource !== 'all') {
+        filtered = currentInventory.filter(function(v){ return v.source === selectedSource; });
+      }
+      
+      for (var i=0; i<filtered.length; i++){
+        var v = filtered[i];
         var tr = document.createElement('tr');
         function td(txt){ var d=document.createElement('td'); d.textContent = txt; return d; }
         tr.appendChild(td(v.id||''));
