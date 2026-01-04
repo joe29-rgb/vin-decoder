@@ -1,5 +1,4 @@
 import { LenderRuleSet } from '../types/types';
-import { getContactsForBank } from './lender-contacts';
 import { getAllLenderPrograms } from './lender-programs';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -53,20 +52,7 @@ export function addRules(rules: LenderRuleSet[]) {
 }
 
 export function listRules(): LenderRuleSet[] {
-  // Return a copy, enriching with default contacts when missing
-  return RULES.map((r) => {
-    if (!r.contacts || !r.contacts.length || !r.lenderAddress) {
-      const info = getContactsForBank(r.bank);
-      if (info) {
-        return {
-          ...r,
-          contacts: (r.contacts && r.contacts.length ? r.contacts : info.contacts),
-          lenderAddress: r.lenderAddress || info.address,
-        } as LenderRuleSet;
-      }
-    }
-    return { ...r } as LenderRuleSet;
-  });
+  return RULES.map((r) => ({ ...r }));
 }
 
 export function findRule(bank: string, program: string): LenderRuleSet | undefined {

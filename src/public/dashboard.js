@@ -46,14 +46,37 @@
     try{ toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(function(){ toastEl.classList.remove('show'); }, 2200); }catch(_e){}
   }
 
-  function openRules(){ rulesModal.classList.remove('hidden'); }
-  function closeRules(){ rulesModal.classList.add('hidden'); }
-  function openInventory(){ inventoryModal.classList.remove('hidden'); }
-  function closeInventory(){ inventoryModal.classList.add('hidden'); }
-  function openApproval(){ approvalModal.classList.remove('hidden'); }
-  function closeApproval(){ approvalModal.classList.add('hidden'); }
+  function openRules(){ rulesModal.classList.add('show'); }
+  function closeRules(){ rulesModal.classList.remove('show'); }
+  function openInventory(){ inventoryModal.classList.add('show'); }
+  function closeInventory(){ inventoryModal.classList.remove('show'); }
+  function openApproval(){ approvalModal.classList.add('show'); }
+  function closeApproval(){ approvalModal.classList.remove('show'); }
 
   function fmt$(n){ try{ return '$' + Number(n||0).toLocaleString(); }catch(e){ return '$' + n; } }
+
+  function updateStats(){
+    if (!currentRows || currentRows.length === 0) {
+      document.getElementById('statVehicles').textContent = '0';
+      document.getElementById('statAvgPayment').textContent = '$0';
+      document.getElementById('statTotalGross').textContent = '$0';
+      document.getElementById('statBestDeal').textContent = '$0';
+      return;
+    }
+    var totalPayment = 0;
+    var totalGross = 0;
+    var bestDeal = 0;
+    for (var i=0; i<currentRows.length; i++){
+      totalPayment += (currentRows[i].monthlyPayment || 0);
+      totalGross += (currentRows[i].totalGross || 0);
+      if ((currentRows[i].totalGross || 0) > bestDeal) bestDeal = currentRows[i].totalGross || 0;
+    }
+    var avgPayment = currentRows.length > 0 ? totalPayment / currentRows.length : 0;
+    document.getElementById('statVehicles').textContent = currentRows.length;
+    document.getElementById('statAvgPayment').textContent = fmt$(avgPayment);
+    document.getElementById('statTotalGross').textContent = fmt$(totalGross);
+    document.getElementById('statBestDeal').textContent = fmt$(bestDeal);
+  }
 
   function renderRows(){
     var q = (search.value||'').trim().toLowerCase();
@@ -66,73 +89,61 @@
       if (key==='payment') return (a.monthlyPayment||0) - (b.monthlyPayment||0);
       return (b.totalGross||0) - (a.totalGross||0);
     });
+    updateStats();
     grid.innerHTML = '';
+    if (arr.length === 0) {
+      grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🚗</div><div class="empty-state-title">No Vehicles Found</div><div class="empty-state-description">Upload inventory or run a scrape to get started</div></div>';
+      return;
+    }
     for (var i=0;i<arr.length;i++){
       var row = arr[i];
       var card = document.createElement('div');
-      card.className = 'card';
+      card.className = 'vehicle-card';
 
       var img = document.createElement('img');
+      img.className = 'vehicle-image';
       img.src = row.imageUrl || '';
       img.alt = row.title || '';
       card.appendChild(img);
 
       var body = document.createElement('div');
-      body.className = 'body';
+      body.className = 'vehicle-body';
       body.innerHTML =
-        '<div class="row"><div>' + (row.title||'') + '</div><div class="chip">' + (row.vin||'') + '</div></div>' +
-        '<div class="row"><div>Sale Price</div><div>' + fmt$(row.salePrice) + '</div></div>' +
-        '<div class="row"><div>Payment</div><div>' + fmt$(row.monthlyPayment) + '/mo</div></div>' +
-        '<div class="row"><div>Front</div><div>' + fmt$(row.frontGross) + '</div></div>' +
-        '<div class="row"><div>Back</div><div>' + fmt$(row.backGross) + '</div></div>' +
-        '<div class="row gross"><div>Total Gross</div><div>' + fmt$(row.totalGross) + '</div></div>' +
-        '<div class="flags">' + ((row.flags||[]).join(', ')) + '</div>';
+        '<div class="vehicle-header"><div class="vehicle-title">' + (row.title||'Unknown Vehicle') + '</div><div class="chip">' + (row.vin||'No VIN') + '</div></div>' +
+        '<div class="vehicle-details">' +
+        '<div class="detail-row"><span class="detail-label">Sale Price</span><span class="detail-value">' + fmt$(row.salePrice) + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Payment</span><span class="detail-value highlight">' + fmt$(row.monthlyPayment) + '/mo</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Front Gross</span><span class="detail-value">' + fmt$(row.frontGross) + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Back Gross</span><span class="detail-value">' + fmt$(row.backGross) + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Total Gross</span><span class="detail-value highlight">' + fmt$(row.totalGross) + '</span></div>' +
+        '</div>';
+      
+      if (row.flags && row.flags.length > 0) {
+        body.innerHTML += '<div class="vehicle-flags">' + row.flags.join(', ') + '</div>';
+      }
 
+      var actions = document.createElement('div');
+      actions.className = 'vehicle-actions';
+      
       var pushBtn = document.createElement('button');
-      pushBtn.className = 'btn primary';
-      pushBtn.textContent = 'Push to GHL';
+      pushBtn.className = 'btn btn-primary btn-sm';
+      pushBtn.innerHTML = '<span>✓</span> Push to GHL';
       pushBtn.onclick = (function(r){ return async function(){
         var payload = { contactId: (lastApproval && lastApproval.contactId) || '', selected: r };
         var resp = await fetch('/api/ghl/push-selected', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         var jj = await resp.json();
         toast(jj.success ? 'Pushed to GHL' : ('Push failed: ' + (jj.error || 'unknown')));
       };})(row);
-      body.appendChild(pushBtn);
+      actions.appendChild(pushBtn);
 
       var detBtn = document.createElement('button');
-      detBtn.className = 'btn';
-      detBtn.textContent = 'Details';
-      detBtn.style.marginLeft = '8px';
+      detBtn.className = 'btn btn-sm';
+      detBtn.innerHTML = '<span>📋</span> Details';
       detBtn.onclick = (function(r){ return function(){ openDetails(r); };})(row);
-      body.appendChild(detBtn);
+      actions.appendChild(detBtn);
+      
+      body.appendChild(actions);
 
-      var upBtn = document.createElement('button');
-      upBtn.className = 'btn';
-      upBtn.textContent = 'Upload Photo';
-      upBtn.style.marginLeft = '8px';
-      upBtn.onclick = (function(r, imgEl){ return function(){
-        var input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.onchange = async function(){
-          if (!input.files || !input.files[0]) { return; }
-          var fd = new FormData();
-          fd.append('file', input.files[0]);
-          if (r.vin) fd.append('vin', r.vin);
-          if (r.vehicleId) fd.append('id', String(r.vehicleId));
-          var resp = await fetch('/api/inventory/upload-image', { method:'POST', body: fd });
-          var jr = await resp.json();
-          if (jr && jr.success) {
-            var nextSrc = r.vin ? ('/api/inventory/image-by-vin/' + encodeURIComponent(r.vin)) : (r.vehicleId ? ('/api/inventory/image/' + encodeURIComponent(String(r.vehicleId))) : '');
-            if (nextSrc) { imgEl.src = nextSrc + '?t=' + Date.now(); }
-            toast('Photo uploaded');
-          } else {
-            toast('Photo upload failed: ' + (jr && jr.error || 'unknown'));
-          }
-        };
-        input.click();
-      };})(row, img);
-      body.appendChild(upBtn);
 
       card.appendChild(body);
       grid.appendChild(card);
@@ -402,6 +413,7 @@
   }
 
   function openDetails(row){
+    detailsModal.classList.add('show');
     try {
       var v = currentInventory.find(function(x){ return x.vin===row.vin || String(x.id)===String(row.vehicleId); }) || {};
       var html = '';
@@ -417,17 +429,26 @@
       html += '<div>Total Gross</div><div style="text-align:right;font-weight:700;">' + fmt$(row.totalGross) + '</div>';
       html += '<div>Your Cost</div><div style="text-align:right;">' + fmt$(v.yourCost) + '</div>';
       html += '<div>Black Book</div><div style="text-align:right;">' + (v.blackBookValue!=null?fmt$(v.blackBookValue):'') + '</div>';
-      html += '<div>CBB Wholesale/Retail</div><div style="text-align:right;">' + (v.cbbWholesale||0) + ' / ' + (v.cbbRetail||0) + '</div>';
-      html += '</div>';
-      if (row.flags && row.flags.length){ html += '<div style="margin-top:8px;color:var(--danger)">' + row.flags.join(', ') + '</div>'; }
-      html += '</div>';
-      html += '</div>';
+      html += '</div></div></div>';
+      if (row.flags && row.flags.length > 0) {
+        html += '<div style="margin-top:12px;padding:8px;background:rgba(248,81,73,0.1);border:1px solid rgba(248,81,73,0.2);border-radius:8px;color:var(--danger);font-size:12px;">' + row.flags.join(', ') + '</div>';
+      }
       detailsContent.innerHTML = html;
-      detailsModal.classList.remove('hidden');
-    } catch(_e){}
+    } catch(_e) {
+      detailsContent.textContent = JSON.stringify(row, null, 2);
+    }
   }
 
-  if (closeDetails) closeDetails.onclick = function(){ try { detailsModal.classList.add('hidden'); } catch(_e){} };
+  document.getElementById('closeDetails').onclick = function(){ detailsModal.classList.remove('show'); };
+
+  var modalBackdrops = document.querySelectorAll('.modal-backdrop');
+  for (var i=0; i<modalBackdrops.length; i++){
+    modalBackdrops[i].onclick = function(e){
+      var modal = e.target.closest('.modal');
+      if (modal) modal.classList.remove('show');
+    };
+  }
+
   if (toggleInventoryBtn) toggleInventoryBtn.onclick = async function(){
     var showing = !inventorySection.classList.contains('hidden');
     if (showing) { inventorySection.classList.add('hidden'); }

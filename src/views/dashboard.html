@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Finance-in-a-Box | Professional Deal Matrix</title>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    /* ===== CSS VARIABLES ===== */
+    :root {
+      --bg-primary: #0a0e14;
+      --bg-secondary: #0f1419;
+      --bg-tertiary: #151a21;
+      --surface: #1a1f29;
+      --surface-elevated: #1f2430;
+      --border: #2a2f3a;
+      --border-hover: #3d4350;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent-primary: #3fb950;
+      --accent-secondary: #58a6ff;
+      --accent-tertiary: #a371f7;
+      --danger: #f85149;
+      --warning: #d29922;
+      --success: #3fb950;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* ===== TYPOGRAPHY ===== */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-primary);
+      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.25; }
+    h1 { font-size: 24px; }
+    h2 { font-size: 20px; }
+    h3 { font-size: 16px; }
+    
+    /* ===== LAYOUT ===== */
+    .app-container { display: flex; flex-direction: column; min-height: 100vh; }
+    
+    /* ===== HEADER ===== */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15, 20, 25, 0.85);
+      backdrop-filter: blur(12px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .header-content {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    
+    .logo {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      color: #000;
+      box-shadow: 0 0 20px rgba(63, 185, 80, 0.3);
+    }
+    
+    .brand-text { display: flex; flex-direction: column; }
+    .brand-title { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+    .brand-subtitle { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.4;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+      user-select: none;
+    }
+    
+    .btn:hover:not(:disabled) {
+      background: var(--surface-elevated);
+      border-color: var(--border-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #2ea043 100%);
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 0 0 0 rgba(63, 185, 80, 0);
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #2ea043 0%, var(--accent-primary) 100%);
+      box-shadow: 0 0 20px rgba(63, 185, 80, 0.4);
+      transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(135deg, var(--accent-secondary) 0%, #1f6feb 100%);
+      border: none;
+      color: #fff;
+      font-weight: 600;
+    }
+    
+    .btn-secondary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #1f6feb 0%, var(--accent-secondary) 100%);
+      box-shadow: 0 0 20px rgba(88, 166, 255, 0.4);
+    }
+    
+    .btn-danger {
+      background: var(--danger);
+      border: none;
+      color: #fff;
+      font-weight: 600;
+    }
+    
+    .btn-danger:hover:not(:disabled) {
+      background: #da3633;
+      box-shadow: 0 0 20px rgba(248, 81, 73, 0.4);
+    }
+    
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+    
+    .btn-lg {
+      padding: 12px 20px;
+      font-size: 14px;
+    }
+    
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      flex: 1;
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    
+    /* ===== STATS BAR ===== */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      transition: var(--transition);
+    }
+    
+    .stat-card:hover {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .stat-change {
+      font-size: 12px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .stat-change.positive { color: var(--success); }
+    .stat-change.negative { color: var(--danger); }
+    
+    /* ===== TOOLBAR ===== */
+    .toolbar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .toolbar-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .form-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .form-select, .form-input {
+      padding: 8px 12px;
+      font-size: 13px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      transition: var(--transition);
+    }
+    
+    .form-select:focus, .form-input:focus {
+      outline: none;
+      border-color: var(--accent-secondary);
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+    }
+    
+    .form-input::placeholder { color: var(--text-muted); }
+    
+    .search-input {
+      min-width: 280px;
+      padding-left: 36px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238b949e' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 12px center;
+    }
+    
+    /* ===== VEHICLE GRID ===== */
+    .vehicle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 20px;
+    }
+    
+    .vehicle-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: var(--transition);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .vehicle-card:hover {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    
+    .vehicle-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--surface) 100%);
+      display: block;
+    }
+    
+    .vehicle-body {
+      padding: 16px;
+    }
+    
+    .vehicle-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+    
+    .vehicle-title {
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--text-primary);
+    }
+    
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 999px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    
+    .vehicle-details {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+    
+    .detail-label {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    
+    .detail-value {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+    
+    .detail-value.highlight {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 16px;
+    }
+    
+    .vehicle-flags {
+      padding: 8px 12px;
+      margin: 12px -16px -16px;
+      background: rgba(248, 81, 73, 0.1);
+      border-top: 1px solid rgba(248, 81, 73, 0.2);
+      font-size: 12px;
+      color: var(--danger);
+      line-height: 1.4;
+    }
+    
+    .vehicle-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    /* ===== MODAL ===== */
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .modal.show { display: flex; }
+    
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+    }
+    
+    .modal-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 640px;
+      max-height: 90vh;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .modal-description {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    
+    .textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 12px;
+      font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      resize: vertical;
+      transition: var(--transition);
+    }
+    
+    .textarea:focus {
+      outline: none;
+      border-color: var(--accent-secondary);
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+    }
+    
+    .file-upload {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 2000;
+      min-width: 300px;
+      max-width: 500px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: var(--shadow-lg);
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+    
+    .toast.show { display: block; }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    .toast-content {
+      display: flex;
+      align-items: start;
+      gap: 12px;
+    }
+    
+    .toast-icon {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .toast-message {
+      flex: 1;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    
+    .toast.success .toast-icon { background: var(--success); }
+    .toast.error .toast-icon { background: var(--danger); }
+    .toast.warning .toast-icon { background: var(--warning); }
+    
+    /* ===== TABLE ===== */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+    }
+    
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    
+    .table th, .table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .table th {
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .table tbody tr:hover {
+      background: var(--bg-tertiary);
+    }
+    
+    .table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    
+    /* ===== UTILITIES ===== */
+    .hidden { display: none !important; }
+    .text-muted { color: var(--text-muted); }
+    .text-success { color: var(--success); }
+    .text-danger { color: var(--danger); }
+    .text-warning { color: var(--warning); }
+    
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .header-content { padding: 12px 16px; }
+      .main-content { padding: 16px; }
+      .stats-bar { grid-template-columns: 1fr; }
+      .vehicle-grid { grid-template-columns: 1fr; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .toolbar-section { flex-direction: column; align-items: stretch; }
+      .search-input { min-width: 100%; }
+      .header-actions { width: 100%; }
+      .btn { width: 100%; justify-content: center; }
+    }
+    
+    /* ===== LOADING STATE ===== */
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    
+    .empty-state-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .empty-state-description {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="brand">
+          <div class="logo">FiB</div>
+          <div class="brand-text">
+            <div class="brand-title">Finance-in-a-Box</div>
+            <div class="brand-subtitle">Professional Deal Matrix</div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-sm" id="uploadInventory">
+            <span>📦</span> Inventory
+          </button>
+          <button class="btn btn-sm" id="uploadRules">
+            <span>⚙️</span> Rules
+          </button>
+          <button class="btn btn-sm" id="uploadApproval">
+            <span>✅</span> Approval
+          </button>
+          <button class="btn btn-sm btn-secondary" id="scrapeDevon">
+            <span>🔍</span> Scrape
+          </button>
+          <button class="btn btn-sm btn-primary" id="score" disabled>
+            <span>🎯</span> Calculate Matrix
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Stats Bar -->
+      <div class="stats-bar" id="statsBar">
+        <div class="stat-card">
+          <div class="stat-label">Total Vehicles</div>
+          <div class="stat-value" id="statVehicles">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Avg Payment</div>
+          <div class="stat-value" id="statAvgPayment">$0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Gross</div>
+          <div class="stat-value" id="statTotalGross">$0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Best Deal</div>
+          <div class="stat-value" id="statBestDeal">$0</div>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="toolbar-section">
+          <div class="form-group">
+            <label class="form-label" for="sortBy">Sort By</label>
+            <select id="sortBy" class="form-select">
+              <option value="total">Total Gross</option>
+              <option value="front">Front Gross</option>
+              <option value="back">Back Gross</option>
+              <option value="payment">Payment (Low to High)</option>
+            </select>
+          </div>
+        </div>
+        <div class="toolbar-section">
+          <input id="search" class="form-input search-input" placeholder="Search VIN, Make, Model..." />
+          <button class="btn" id="toggleInventory">
+            <span>📋</span> View Inventory
+          </button>
+        </div>
+      </div>
+
+      <!-- Vehicle Grid -->
+      <div id="grid" class="vehicle-grid"></div>
+
+      <!-- Inventory Section -->
+      <div id="inventorySection" class="hidden" style="margin-top: 24px;">
+        <div class="table-container">
+          <table id="inventoryTable" class="table">
+            <thead>
+              <tr>
+                <th>Stock</th>
+                <th>VIN</th>
+                <th>Year</th>
+                <th>Make</th>
+                <th>Model</th>
+                <th>Cost</th>
+                <th>Price</th>
+                <th>BB</th>
+                <th>CBB W/R</th>
+                <th>Image</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <div class="toast-content">
+      <div class="toast-icon"></div>
+      <div class="toast-message"></div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <div id="inventoryModal" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Upload Inventory</h3>
+        <p class="modal-description">Upload a CSV file or paste CSV content. Supports stock, vin, year, make, model, trim, mileage, color, engine, transmission, your_cost, suggested_price, in_stock, image_url, black_book_value, cbb_wholesale, cbb_retail.</p>
+      </div>
+      <div class="modal-body">
+        <div class="file-upload">
+          <input type="file" id="inventoryFile" accept=".csv,text/csv" />
+          <input type="file" id="inventoryPdf" accept="application/pdf" />
+          <button class="btn btn-sm" id="parseInventoryPdf">Parse PDF</button>
+          <a class="btn btn-sm" href="/public/inventory-template.csv" download target="_blank">Download Template</a>
+        </div>
+        <textarea id="inventoryText" class="textarea" placeholder="stock,vin,year,make,model,your_cost,suggested_price,image_url&#10;STK001,2HGFC2F59MH000001,2021,Honda,Civic,18000,21995,https://.../civic.jpg"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="closeInventory">Cancel</button>
+        <button class="btn btn-primary" id="saveInventory">Upload</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="approvalModal" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Upload Approval</h3>
+        <p class="modal-description">Paste approval JSON or parse from PDF.</p>
+      </div>
+      <div class="modal-body">
+        <div class="file-upload">
+          <input type="file" id="approvalPdf" accept="application/pdf" />
+          <button class="btn btn-sm" id="parseApprovalPdf">Parse PDF</button>
+        </div>
+        <textarea id="approvalText" class="textarea" placeholder='{"contactId":"","locationId":"","approval":{"bank":"TD","program":"2Key","apr":8.99,"termMonths":72,"paymentMin":350,"paymentMax":450}}'></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="closeApproval">Cancel</button>
+        <button class="btn btn-primary" id="saveApproval">Upload</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="rulesModal" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Upload Lender Rules</h3>
+        <p class="modal-description">Paste JSON array, upload .json file, or parse from PDF.</p>
+      </div>
+      <div class="modal-body">
+        <div class="file-upload">
+          <input type="file" id="rulesFile" accept="application/json" />
+          <input type="file" id="rulesPdf" accept="application/pdf" />
+          <button class="btn btn-sm" id="parseRulesPdf">Parse PDF</button>
+          <button class="btn btn-sm" id="loadSample">Load Sample</button>
+        </div>
+        <textarea id="rulesInput" class="textarea" placeholder='[{"bank":"TD","program":"2Key","frontCapFactor":1.4}]'></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="closeRules">Cancel</button>
+        <button class="btn btn-primary" id="saveRules">Upload</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="detailsModal" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Deal Details</h3>
+      </div>
+      <div class="modal-body">
+        <div id="detailsContent" class="textarea" style="min-height: 300px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="closeDetails">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      try {
+        var u = '/dashboard.js?ts=' + Date.now();
+        fetch(u).then(function(r){ return r.text(); }).then(function(txt){
+          var s = document.createElement('script');
+          s.src = u;
+          document.body.appendChild(s);
+        }).catch(function(err){ console.error('Failed to load dashboard.js', err); });
+      } catch(e) { console.error('Script injection error', e); }
+    })();
+  </script>
+</body>
+</html>
