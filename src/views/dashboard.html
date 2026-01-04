@@ -784,6 +784,18 @@
         <p class="modal-description">Upload a CSV file or paste CSV content. Supports stock, vin, year, make, model, trim, mileage, color, engine, transmission, your_cost, suggested_price, in_stock, image_url, black_book_value, cbb_wholesale, cbb_retail.</p>
       </div>
       <div class="modal-body">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" for="inventorySource">Inventory Source</label>
+          <select id="inventorySource" class="form-select">
+            <option value="new">New Inventory</option>
+            <option value="used">Used Inventory</option>
+            <option value="cargurus">CarGurus</option>
+            <option value="autotrader">AutoTrader</option>
+            <option value="rental">Rental</option>
+            <option value="other">Other Dealership</option>
+            <option value="manual">Manual Entry</option>
+          </select>
+        </div>
         <div class="file-upload">
           <input type="file" id="inventoryFile" accept=".csv,text/csv" />
           <input type="file" id="inventoryPdf" accept="application/pdf" />

@@ -17,12 +17,25 @@ router.post('/upload-file', upload.single('file'), async (req: Request, res: Res
   try {
     const file = (req as any).file as Express.Multer.File | undefined;
     if (!file) return res.status(400).json({ success: false, error: 'No file provided' });
+    const source = (req as any).body?.source || 'manual';
     const text = file.buffer.toString('utf8');
     let parsed = loadInventoryFromCSV(text);
     parsed = await enrichWithVinAuditValuations(parsed);
-    state.inventory = parsed;
+    
+    // Tag vehicles with source
+    parsed = parsed.map((v: Vehicle) => ({ ...v, source }));
+    
+    // Merge with existing inventory - update existing VINs, add new ones
+    const existingVins = new Set(state.inventory.map((v: Vehicle) => v.vin).filter(Boolean));
+    const newVehicles = parsed.filter((v: Vehicle) => !v.vin || !existingVins.has(v.vin));
+    const updatedVehicles = state.inventory.map((existing: Vehicle) => {
+      const update = parsed.find((v: Vehicle) => v.vin && v.vin === existing.vin);
+      return update ? { ...existing, ...update, lastUpdated: new Date().toISOString() } : existing;
+    });
+    
+    state.inventory = [...updatedVehicles, ...newVehicles];
     try { await saveInventoryToSupabase(state.inventory); } catch(_e){}
-    res.json({ success: true, message: `Loaded ${state.inventory.length} vehicles` });
+    res.json({ success: true, message: `Loaded ${parsed.length} vehicles (${newVehicles.length} new, ${parsed.length - newVehicles.length} updated). Total: ${state.inventory.length}` });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
   }
@@ -86,15 +99,28 @@ router.get('/image/:id', (req: Request, res: Response) => {
 
 router.post('/upload', async (req: Request, res: Response) => {
   try {
-    const { csvContent } = req.body;
+    const { csvContent, source } = req.body;
     if (!csvContent) {
       return res.status(400).json({ success: false, error: 'CSV content required' });
     }
     let parsed = loadInventoryFromCSV(csvContent);
     parsed = await enrichWithVinAuditValuations(parsed);
-    state.inventory = parsed;
+    
+    // Tag vehicles with source
+    const vehicleSource = source || 'manual';
+    parsed = parsed.map((v: Vehicle) => ({ ...v, source: vehicleSource }));
+    
+    // Merge with existing inventory - update existing VINs, add new ones
+    const existingVins = new Set(state.inventory.map((v: Vehicle) => v.vin).filter(Boolean));
+    const newVehicles = parsed.filter((v: Vehicle) => !v.vin || !existingVins.has(v.vin));
+    const updatedVehicles = state.inventory.map((existing: Vehicle) => {
+      const update = parsed.find((v: Vehicle) => v.vin && v.vin === existing.vin);
+      return update ? { ...existing, ...update, lastUpdated: new Date().toISOString() } : existing;
+    });
+    
+    state.inventory = [...updatedVehicles, ...newVehicles];
     try { await saveInventoryToSupabase(state.inventory); } catch(_e){}
-    res.json({ success: true, message: `Loaded ${state.inventory.length} vehicles` });
+    res.json({ success: true, message: `Loaded ${parsed.length} vehicles (${newVehicles.length} new, ${parsed.length - newVehicles.length} updated). Total: ${state.inventory.length}` });
   } catch (error) {
     res.status(400).json({ success: false, error: (error as Error).message });
   }

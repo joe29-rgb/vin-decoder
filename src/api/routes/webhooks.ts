@@ -67,19 +67,15 @@ router.post('/approvals/parse-pdf', upload.single('file'), async (req: Request, 
     const termMatch = text.match(/(?:Term of Borrowing|Term|Months)\s*[:\-]?\s*(\d{2,3})/i);
     if (termMatch) suggestion.approval.termMonths = Number(termMatch[1]);
     
-    const payRange = text.match(/Payment[^\d]*(\d{2,4})(?:[^\d]+|\s*to\s*)(\d{2,4})/i);
-    if (payRange) { 
-      suggestion.approval.paymentMin = Number(payRange[1]); 
-      suggestion.approval.paymentMax = Number(payRange[2]); 
-    }
-    
-    const installmentMatch = text.match(/(?:Installment Payment|Payment Frequency|Payment)\s*[:\-]?\s*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
+    const installmentMatch = text.match(/(?:Installment Payment|Payment)\s*[:\-]?\s*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
     if (installmentMatch) {
       const amount = parseFloat(installmentMatch[1].replace(/,/g, ''));
-      if (!payRange) {
-        suggestion.approval.paymentMin = amount;
-        suggestion.approval.paymentMax = amount;
-      }
+      suggestion.approval.paymentMax = amount;
+    }
+    
+    const maxPaymentMatch = text.match(/(?:maximum approved monthly payment|max payment)\s*(?:is)?\s*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
+    if (maxPaymentMatch) {
+      suggestion.approval.paymentMax = parseFloat(maxPaymentMatch[1].replace(/,/g, ''));
     }
     
     const amountFinancedMatch = text.match(/(?:Amount Financed|Financed Amount)\s*[:\-]?\s*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i);

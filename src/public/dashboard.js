@@ -4,7 +4,7 @@
   try { console.log('dashboard.js loaded'); } catch(_e) {}
   try { window.addEventListener('error', function(e){ try{ console.error('dashboard error', e.error || e.message || e); var t=document.getElementById('toast'); if(t){ t.textContent='Error: ' + (e.message || 'check console'); t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 3000);} }catch(_ee){} }); } catch(_e) {}
 
-  var meta = document.getElementById('meta');
+  var meta = document.getElementById('meta') || document.createElement('div');
   var grid = document.getElementById('grid');
   var toastEl = document.getElementById('toast');
   var toggleInventoryBtn = document.getElementById('toggleInventory');
@@ -24,6 +24,7 @@
   var inventoryModal = document.getElementById('inventoryModal');
   var inventoryFile = document.getElementById('inventoryFile');
   var inventoryText = document.getElementById('inventoryText');
+  var inventorySource = document.getElementById('inventorySource');
   var inventoryPdf = document.getElementById('inventoryPdf');
   var parseInventoryPdf = document.getElementById('parseInventoryPdf');
   var saveInventoryFile = document.getElementById('saveInventoryFile');
@@ -197,7 +198,7 @@
       try {
         try { console.log('Scrape button clicked'); } catch(_e){}
         scrapeBtn.disabled = true;
-        meta.textContent = 'Scraping Devon Chrysler inventory (used + new)...';
+        if (meta && meta.textContent !== undefined) meta.textContent = 'Scraping Devon Chrysler inventory (used + new)...';
         toast('Starting scrape...');
         
         var usedPath = 'https://www.devonchrysler.com/search/used-devon-ab/?cy=t9g_1b2&tp=used';
@@ -253,7 +254,7 @@
         await refreshMeta();
         renderInventoryTable();
         toast('Imported ' + ok + ' vehicles');
-        meta.textContent = '';
+        if (meta && meta.textContent !== undefined) meta.textContent = '';
       } catch(e){ 
         try { console.error('Scrape error:', e); } catch(_e){}
         toast('Scrape error: ' + (e.message || 'unknown')); 
@@ -305,7 +306,8 @@
     var txt = (inventoryText.value||'').trim();
     if (!txt && invFileTextCache) txt = invFileTextCache;
     if (!txt) { toast('Provide CSV via text or file'); return; }
-    var resp = await fetch('/api/inventory/upload', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ csvContent: txt }) });
+    var source = inventorySource ? inventorySource.value : 'manual';
+    var resp = await fetch('/api/inventory/upload', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ csvContent: txt, source: source }) });
     var jr = await resp.json();
     if (jr.success) { toast(jr.message || 'Inventory uploaded'); closeInventory(); await refreshMeta(); renderInventoryTable(); inventorySection.classList.remove('hidden'); }
     else { toast('Failed: ' + (jr.error||'unknown')); }
@@ -354,7 +356,13 @@
     
     var resp = await fetch('/api/approvals/ingest', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
     var jr = await resp.json();
-    if (jr.success) { toast('Approval ingested'); closeApproval(); }
+    if (jr.success) { 
+      toast('Approval ingested'); 
+      closeApproval(); 
+      lastApproval = payload;
+      var scoreBtn = document.getElementById('score');
+      if (scoreBtn) scoreBtn.disabled = false;
+    }
     else { toast('Failed: ' + (jr.error||'unknown')); }
   };
 
