@@ -186,7 +186,6 @@
     renderRows();
   }
 
-  document.getElementById('load').onclick = loadApproval;
   document.getElementById('score').onclick = score;
   document.getElementById('uploadInventory').onclick = function(){ openInventory(); };
   document.getElementById('uploadRules').onclick = function(){ openRules(); };
