@@ -191,54 +191,78 @@
   document.getElementById('uploadRules').onclick = function(){ openRules(); };
   document.getElementById('uploadApproval').onclick = function(){ openApproval(); };
   var scrapeBtn = document.getElementById('scrapeDevon');
-  if (scrapeBtn) scrapeBtn.onclick = async function(){
-    try {
-      scrapeBtn.disabled = true;
-      meta.textContent = 'Scraping Devon Chrysler inventory (used + new)...';
-      var usedPath = 'https://www.devonchrysler.com/search/used-devon-ab/?cy=t9g_1b2&tp=used';
-      var newPath = 'https://www.devonchrysler.com/search/new-chrysler-dodge-jeep-ram-devon-ab/?cy=t9g_1b2&tp=new';
-      var u = await fetch('/api/scrape/devon?limit=200&path=' + encodeURIComponent(usedPath));
-      var ju = await u.json();
-      if (!ju.success) { toast('Used scrape failed: ' + (ju.error||'unknown')); }
-      var n = await fetch('/api/scrape/devon?limit=200&path=' + encodeURIComponent(newPath));
-      var jn = await n.json();
-      if (!jn.success) { toast('New scrape failed: ' + (jn.error||'unknown')); }
-      var all = ([]).concat((ju.vehicles||[]),(jn.vehicles||[]));
-      // dedupe by VIN or id
-      var seen = {};
-      var vehicles = [];
-      for (var i=0;i<all.length;i++){
-        var key = (all[i].vin||'') + '|' + (all[i].id||'');
-        if (!seen[key]) { seen[key]=true; vehicles.push(all[i]); }
+  if (scrapeBtn) {
+    try { console.log('Scrape button found, attaching handler'); } catch(_e){}
+    scrapeBtn.onclick = async function(){
+      try {
+        try { console.log('Scrape button clicked'); } catch(_e){}
+        scrapeBtn.disabled = true;
+        meta.textContent = 'Scraping Devon Chrysler inventory (used + new)...';
+        toast('Starting scrape...');
+        
+        var usedPath = 'https://www.devonchrysler.com/search/used-devon-ab/?cy=t9g_1b2&tp=used';
+        var newPath = 'https://www.devonchrysler.com/search/new-chrysler-dodge-jeep-ram-devon-ab/?cy=t9g_1b2&tp=new';
+        
+        try { console.log('Fetching used vehicles...'); } catch(_e){}
+        var u = await fetch('/api/scrape/devon?limit=200&path=' + encodeURIComponent(usedPath));
+        var ju = await u.json();
+        try { console.log('Used scrape result:', ju); } catch(_e){}
+        if (!ju.success) { toast('Used scrape failed: ' + (ju.error||'unknown')); }
+        
+        try { console.log('Fetching new vehicles...'); } catch(_e){}
+        var n = await fetch('/api/scrape/devon?limit=200&path=' + encodeURIComponent(newPath));
+        var jn = await n.json();
+        try { console.log('New scrape result:', jn); } catch(_e){}
+        if (!jn.success) { toast('New scrape failed: ' + (jn.error||'unknown')); }
+        
+        var all = ([]).concat((ju.vehicles||[]),(jn.vehicles||[]));
+        try { console.log('Total vehicles scraped:', all.length); } catch(_e){}
+        
+        var seen = {};
+        var vehicles = [];
+        for (var i=0;i<all.length;i++){
+          var key = (all[i].vin||'') + '|' + (all[i].id||'');
+          if (!seen[key]) { seen[key]=true; vehicles.push(all[i]); }
+        }
+        
+        try { console.log('Unique vehicles after dedup:', vehicles.length); } catch(_e){}
+        toast('Scraped ' + vehicles.length + ' vehicles, importing...');
+        
+        var ok = 0;
+        for (var i2=0;i2<vehicles.length;i2++){
+          var v = vehicles[i2];
+          try {
+            var payload = {
+              id: v.id || v.stock_number || v.vin || ('SCR-' + i2),
+              vin: v.vin,
+              year: v.year,
+              make: v.make,
+              model: v.model,
+              mileage: v.mileage,
+              price: v.suggestedPrice || v.price,
+              suggestedPrice: v.suggestedPrice || v.price,
+              imageUrl: v.imageUrl || v.image_url,
+              inStock: true
+            };
+            var rr = await fetch('/api/inventory/sync', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+            var jr = await rr.json();
+            if (jr && jr.success) ok++;
+          } catch(_e){ try { console.error('Failed to sync vehicle:', _e); } catch(__e){} }
+        }
+        
+        await refreshMeta();
+        renderInventoryTable();
+        toast('Imported ' + ok + ' vehicles');
+        meta.textContent = '';
+      } catch(e){ 
+        try { console.error('Scrape error:', e); } catch(_e){}
+        toast('Scrape error: ' + (e.message || 'unknown')); 
       }
-      var ok = 0;
-      for (var i2=0;i2<vehicles.length;i2++){
-        var v = vehicles[i2];
-        try {
-          var payload = {
-            id: v.id || v.stock_number || v.vin || ('SCR-' + i2),
-            vin: v.vin,
-            year: v.year,
-            make: v.make,
-            model: v.model,
-            mileage: v.mileage,
-            price: v.suggestedPrice || v.price,
-            suggestedPrice: v.suggestedPrice || v.price,
-            imageUrl: v.imageUrl || v.image_url,
-            inStock: true
-          };
-          var rr = await fetch('/api/inventory/sync', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-          var jr = await rr.json();
-          if (jr && jr.success) ok++;
-        } catch(_e){}
-      }
-      await refreshMeta();
-      renderInventoryTable();
-      toast('Imported ' + ok + ' vehicles');
-      meta.textContent = '';
-    } catch(e){ toast('Scrape error'); }
-    finally { scrapeBtn.disabled = false; }
-  };
+      finally { scrapeBtn.disabled = false; }
+    };
+  } else {
+    try { console.error('Scrape button NOT found!'); } catch(_e){}
+  }
   document.getElementById('closeRules').onclick = function(){ closeRules(); };
   document.getElementById('closeApproval').onclick = function(){ closeApproval(); };
   document.getElementById('closeInventory').onclick = function(){ closeInventory(); };
