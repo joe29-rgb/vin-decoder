@@ -371,4 +371,80 @@ router.get('/devon', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/autotrader', async (req: Request, res: Response) => {
+  try {
+    const { scrapeAutoTraderCA, convertToVehicle } = await import('../../modules/scrapers/autotrader-ca');
+    
+    const params = {
+      make: req.query.make as string,
+      model: req.query.model as string,
+      yearMin: req.query.yearMin ? Number(req.query.yearMin) : undefined,
+      yearMax: req.query.yearMax ? Number(req.query.yearMax) : undefined,
+      priceMin: req.query.priceMin ? Number(req.query.priceMin) : undefined,
+      priceMax: req.query.priceMax ? Number(req.query.priceMax) : undefined,
+      location: (req.query.location as string) || 'Alberta',
+      radius: req.query.radius ? Number(req.query.radius) : 250,
+      limit: Math.min(Math.max(Number(req.query.limit) || 20, 1), 100),
+    };
+    
+    const listings = await scrapeAutoTraderCA(params);
+    const vehicles = listings.map(convertToVehicle);
+    
+    res.json({ 
+      success: true, 
+      total: listings.length, 
+      vehicles,
+      listings,
+      params 
+    });
+  } catch (e: any) {
+    res.status(500).json({ 
+      success: false, 
+      error: e.message || 'AutoTrader scrape failed' 
+    });
+  }
+});
+
+router.get('/autotrader/pricing', async (req: Request, res: Response) => {
+  try {
+    const { searchCompetitorPricing } = await import('../../modules/scrapers/autotrader-ca');
+    
+    const year = Number(req.query.year);
+    const make = req.query.make as string;
+    const model = req.query.model as string;
+    const radius = req.query.radius ? Number(req.query.radius) : 250;
+    const location = (req.query.location as string) || 'Alberta';
+    
+    if (!year || !make || !model) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required parameters: year, make, model'
+      });
+    }
+    
+    const result = await searchCompetitorPricing(year, make, model, radius, location);
+    
+    res.json({
+      success: true,
+      year,
+      make,
+      model,
+      location,
+      radius,
+      pricing: {
+        average: result.average,
+        min: result.min,
+        max: result.max,
+        count: result.count,
+      },
+      listings: result.listings,
+    });
+  } catch (e: any) {
+    res.status(500).json({
+      success: false,
+      error: e.message || 'Pricing search failed'
+    });
+  }
+});
+
 export default router;
