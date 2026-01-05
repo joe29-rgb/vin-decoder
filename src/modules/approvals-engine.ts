@@ -52,7 +52,7 @@ function calcGrossParts(
 
   let back = 0;
   if (approval.backCap) {
-    const bb = vehicle.blackBookValue ?? 0;
+    const bb = vehicle.cbbWholesale || vehicle.blackBookValue || 0;
     if (approval.backCap.type === 'percent_of_bb') {
       back = approval.backCap.percent * bb;
     } else {
@@ -104,12 +104,12 @@ export function scoreInventory(
 
   for (const v of inventory) {
     const flags: string[] = [];
-    const bb = v.blackBookValue;
-    if (bb == null || isNaN(bb)) {
+    const bb = v.cbbWholesale || v.blackBookValue || 0;
+    if (bb <= 0 || isNaN(bb)) {
       flags.push('missing_black_book');
       continue;
     }
-    if (v.yourCost == null || isNaN(v.yourCost)) {
+    if (v.yourCost == null || isNaN(v.yourCost) || v.yourCost <= 0) {
       flags.push('missing_cost');
       continue;
     }

@@ -230,17 +230,23 @@
         try { console.log('Unique vehicles after dedup:', vehicles.length); } catch(_e){}
         toast('Scraped ' + vehicles.length + ' vehicles, converting to CSV...');
         
-        var csvLines = ['stock,vin,year,make,model,mileage,suggested_price,image_url,in_stock'];
+        var csvLines = ['stock,vin,year,make,model,mileage,cost,suggested_price,engine,transmission,cbb_wholesale,cbb_retail,image_url,in_stock'];
         for (var i2=0;i2<vehicles.length;i2++){
           var v = vehicles[i2];
+          var price = v.suggestedPrice || v.price || 0;
           var line = [
             v.id || v.stock_number || v.vin || ('SCR-' + i2),
             v.vin || '',
             v.year || '',
             v.make || '',
             v.model || '',
-            v.mileage || '',
-            v.suggestedPrice || v.price || '',
+            v.mileage || 0,
+            price * 0.85 || 0,
+            price || 0,
+            v.engine || 'V6',
+            v.transmission || 'Automatic',
+            price * 0.75 || 0,
+            price * 0.85 || 0,
             v.imageUrl || v.image_url || '',
             'true'
           ].join(',');

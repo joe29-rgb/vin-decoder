@@ -39,6 +39,7 @@ app.use('/api/reports', reportsRouter);
 // Backward-compatibility mounts for legacy paths
 app.use('/api', dealsRouter);      // provides /api/lenders, /api/deals/*
 app.use('/api', webhooksRouter);   // provides /api/rules/*, /api/approvals/*
+app.use('/', inventoryRouter);     // provides /upload, /sync for backward compatibility
 
 // Health
 app.get('/health', healthCheck);
