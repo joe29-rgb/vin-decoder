@@ -81,11 +81,6 @@ export function loadInventoryFromCSV(csvContent: string): Vehicle[] {
           return !(val === 'false' || val === 'no' || val === '0' || val === 'sold' || val === 'unavailable');
         })(),
         imageUrl: (pick('image_url','imageurl','image','photo_url','photourl','photo','picture_url','picture') as string) || undefined,
-        blackBookValue: (function(){
-          const b = pick('black_book_value','blackbook','bb','bb_value','black_book','bbv','black_book$','blackbook_value');
-          const n = num(b, NaN);
-          return isNaN(n) ? undefined : n;
-        })(),
       };
 
       vehicles.push(vehicle);
@@ -112,23 +107,10 @@ export function updateVehicle(vehicleId: string, updates: Partial<Vehicle>, inve
 }
 
 export async function enrichWithVinAuditValuations(inventory: Vehicle[]): Promise<Vehicle[]> {
-  const key = process.env.VINAUDIT_API_KEY;
-  if (!key) return inventory;
-
-  const updated: Vehicle[] = [];
-  for (const v of inventory) {
-    try {
-      const valuation = await getVehicleValuation(v.vin, v.mileage);
-      updated.push({
-        ...v,
-        cbbWholesale: valuation.wholesale,
-        cbbRetail: valuation.retail,
-      });
-    } catch (_e) {
-      updated.push(v);
-    }
-  }
-  return updated;
+  // VinAudit provides US Black Book values, NOT Canadian Black Book (CBB)
+  // CBB values should come from CSV uploads or manual entry, not VinAudit
+  // Keeping this function for potential future US market support
+  return inventory;
 }
 
 // Robust CSV line parser that handles quotes, commas, and escaped quotes

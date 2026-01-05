@@ -147,7 +147,6 @@ function normalizeVehicleFromJsonLd(obj: any, idx: number, baseUrl?: string): Ve
       inStock: true,
       imageUrl: imageUrls[0] || undefined,
       imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
-      blackBookValue: undefined,
     };
 
     return vehicle;
@@ -347,7 +346,6 @@ function normalizeVehicleFromDom(html: string, pageUrl: string, idx: number): Ve
       inStock: true,
       imageUrl: imageUrls[0] || undefined,
       imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
-      blackBookValue: undefined,
     };
     return vehicle;
   } catch(_e) {

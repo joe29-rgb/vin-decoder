@@ -158,16 +158,20 @@ router.post('/sync', (req: Request, res: Response) => {
     if (b.suggestedPrice !== undefined || b.price !== undefined) updates.suggestedPrice = Number(b.suggestedPrice || b.price);
     if (b.inStock !== undefined) updates.inStock = String(b.inStock).toLowerCase() !== 'false';
     if (b.imageUrl !== undefined || b.image_url !== undefined || b.photoUrl !== undefined) updates.imageUrl = b.imageUrl || b.image_url || b.photoUrl;
-    if (b.blackBookValue !== undefined || b.black_book_value !== undefined) updates.blackBookValue = Number(b.blackBookValue ?? b.black_book_value);
 
-    // Update mirrored inventory
+    // CRITICAL FIX: Update PRIMARY inventory first, then mirrored
+    const pi = state.inventory.findIndex(x => x.id === id);
+    if (pi >= 0) {
+      state.inventory[pi] = { ...state.inventory[pi], ...updates } as Vehicle;
+    } else {
+      // Add to primary inventory if not found
+      state.inventory.push({ id, ...(updates as any) } as Vehicle);
+    }
+
+    // Also update mirrored inventory for backwards compatibility
     const mi = state.mirroredInventory.findIndex(x => x.id === id);
     if (mi >= 0) state.mirroredInventory[mi] = { ...state.mirroredInventory[mi], ...updates } as Vehicle;
     else state.mirroredInventory.push({ id, ...(updates as any) } as Vehicle);
-
-    // Also update primary inventory if present
-    const pi = state.inventory.findIndex(x => x.id === id);
-    if (pi >= 0) state.inventory[pi] = { ...state.inventory[pi], ...updates } as Vehicle;
 
     res.json({ success: true, message: 'Vehicle upserted', vehicleId: id });
   } catch (e) {

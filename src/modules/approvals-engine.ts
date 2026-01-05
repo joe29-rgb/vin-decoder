@@ -52,7 +52,7 @@ function calcGrossParts(
 
   let back = 0;
   if (approval.backCap) {
-    const bb = vehicle.blackBookValue ?? 0;
+    const bb = vehicle.cbbWholesale ?? 0;
     if (approval.backCap.type === 'percent_of_bb') {
       back = approval.backCap.percent * bb;
     } else {
@@ -104,9 +104,10 @@ export function scoreInventory(
 
   for (const v of inventory) {
     const flags: string[] = [];
-    const bb = v.blackBookValue;
-    if (bb == null || isNaN(bb)) {
-      flags.push('missing_black_book');
+    // Use CBB Wholesale as the Black Book value for calculations
+    const bb = v.cbbWholesale;
+    if (bb == null || isNaN(bb) || bb === 0) {
+      flags.push('missing_cbb_wholesale');
       continue;
     }
     if (v.yourCost == null || isNaN(v.yourCost)) {

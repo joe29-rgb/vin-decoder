@@ -35,7 +35,6 @@ function toRow(v: Vehicle) {
     suggested_price: v.suggestedPrice,
     in_stock: v.inStock,
     image_url: v.imageUrl ?? null,
-    black_book_value: v.blackBookValue ?? null,
   } as const;
 }
 
@@ -57,7 +56,6 @@ function fromRow(r: any): Vehicle {
     suggestedPrice: Number(r.suggested_price || 0),
     inStock: Boolean(r.in_stock !== false),
     imageUrl: r.image_url || undefined,
-    blackBookValue: r.black_book_value != null ? Number(r.black_book_value) : undefined,
   };
 }
 
