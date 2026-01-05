@@ -157,16 +157,13 @@
       var r = await fetch('/api/inventory');
       var j = await r.json();
       currentInventory = Array.isArray(j.vehicles) ? j.vehicles : [];
-      try { console.log('Inventory loaded:', currentInventory.length, 'vehicles'); } catch(_e){}
       var inv = j && j.total != null ? j.total : 0;
       meta.textContent = '';
       var span = document.createElement('span');
       span.className = 'chip';
       span.textContent = inv + ' vehicles loaded';
       meta.appendChild(span);
-    } catch (e) { 
-      try { console.error('refreshMeta error:', e); } catch(_e){}
-    }
+    } catch (e) { }
   }
 
   async function loadApproval(){
@@ -184,17 +181,10 @@
   async function score(){
     grid.innerHTML = '';
     meta.insertAdjacentHTML('beforeend', '<div style="margin-top:6px;color:var(--muted)">Scoring inventory...</div>');
-    try { console.log('Calling /api/approvals/score...'); } catch(_e){}
     var r = await fetch('/api/approvals/score', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
     var j = await r.json();
-    try { console.log('Score response:', j); } catch(_e){}
-    if (!j.success) { 
-      try { console.error('Score failed:', j.error); } catch(_e){}
-      grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Scoring Failed</div><div class="empty-state-description">' + (j.error || 'unknown error') + '</div></div>';
-      return; 
-    }
+    if (!j.success) { grid.textContent = 'Error: ' + (j.error || 'unknown'); return; }
     currentRows = j.rows || [];
-    try { console.log('Scored rows:', currentRows.length); } catch(_e){}
     renderRows();
   }
 
@@ -265,7 +255,6 @@
           body: JSON.stringify({ csvContent: csvContent, source: 'devon-scraper' }) 
         });
         var uploadResult = await uploadResp.json();
-        try { console.log('Upload result:', uploadResult); } catch(_e){}
         
         await refreshMeta();
         renderInventoryTable();
@@ -425,7 +414,8 @@
         tr.appendChild(td(v.model||''));
         tr.appendChild(td(fmt$(v.yourCost)));
         tr.appendChild(td(fmt$(v.suggestedPrice)));
-        tr.appendChild(td(fmt$(v.cbbWholesale) + ' / ' + fmt$(v.cbbRetail)));
+        var bb = v.blackBookValue!=null? ('$'+Number(v.blackBookValue).toLocaleString()):''; tr.appendChild(td(bb));
+        tr.appendChild(td((v.cbbWholesale||0) + ' / ' + (v.cbbRetail||0)));
         var imgTd = document.createElement('td');
         var img = document.createElement('img'); img.style.width='48px'; img.style.height='32px'; img.style.objectFit='cover'; img.src = v.imageUrl || ''; img.alt='';
         imgTd.appendChild(img); tr.appendChild(imgTd);
@@ -462,20 +452,18 @@
           input.click();
         };})(v, img);
         act.appendChild(b2);
-        var b3 = document.createElement('button'); b3.className='btn'; b3.textContent='Set CBB'; b3.style.marginLeft='8px'; b3.onclick=(function(vv){ return async function(){
+        var b3 = document.createElement('button'); b3.className='btn'; b3.textContent='Set BB'; b3.style.marginLeft='8px'; b3.onclick=(function(vv){ return async function(){
           try {
-            var wholesale = prompt('Enter CBB Wholesale for '+ (vv.vin||vv.id) + ' (e.g. 25000):', vv.cbbWholesale? String(vv.cbbWholesale):'');
-            if (wholesale===null) return;
-            var retail = prompt('Enter CBB Retail for '+ (vv.vin||vv.id) + ' (e.g. 28000):', vv.cbbRetail? String(vv.cbbRetail):'');
-            if (retail===null) return;
-            var w = parseFloat(String(wholesale).replace(/[$,\s]/g,''));
-            var r = parseFloat(String(retail).replace(/[$,\s]/g,''));
-            if (isNaN(w) || isNaN(r)) { toast('Invalid numbers'); return; }
-            var resp = await fetch('/api/inventory/sync', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: vv.id, cbbWholesale: w, cbbRetail: r }) });
+            var val = prompt('Enter Black Book value for '+ (vv.vin||vv.id) + ' (numbers only, e.g. 45250):', vv.blackBookValue!=null? String(vv.blackBookValue):'');
+            if (val===null) return; // cancel
+            var clean = String(val).replace(/[$,\s]/g,'');
+            var num = parseFloat(clean);
+            if (isNaN(num)) { toast('Invalid number'); return; }
+            var resp = await fetch('/api/inventory/sync', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id: vv.id, blackBookValue: num }) });
             var jr = await resp.json();
-            if (jr.success) { vv.cbbWholesale = w; vv.cbbRetail = r; renderInventoryTable(); toast('CBB values updated'); }
+            if (jr.success) { vv.blackBookValue = num; renderInventoryTable(); toast('Black Book updated'); }
             else { toast('Update failed: ' + (jr.error||'unknown')); }
-          } catch(e) { toast('Error: ' + (e.message||'unknown')); }
+          } catch(e){ toast('Update failed'); }
         };})(v);
         act.appendChild(b3);
         tr.appendChild(act);
@@ -500,7 +488,7 @@
       html += '<div>Back Gross</div><div style="text-align:right;">' + fmt$(row.backGross) + '</div>';
       html += '<div>Total Gross</div><div style="text-align:right;font-weight:700;">' + fmt$(row.totalGross) + '</div>';
       html += '<div>Your Cost</div><div style="text-align:right;">' + fmt$(v.yourCost) + '</div>';
-      html += '<div>CBB W/R</div><div style="text-align:right;">' + fmt$(v.cbbWholesale) + ' / ' + fmt$(v.cbbRetail) + '</div>';
+      html += '<div>Black Book</div><div style="text-align:right;">' + (v.blackBookValue!=null?fmt$(v.blackBookValue):'') + '</div>';
       html += '</div></div></div>';
       if (row.flags && row.flags.length > 0) {
         html += '<div style="margin-top:12px;padding:8px;background:rgba(248,81,73,0.1);border:1px solid rgba(248,81,73,0.2);border-radius:8px;color:var(--danger);font-size:12px;">' + row.flags.join(', ') + '</div>';

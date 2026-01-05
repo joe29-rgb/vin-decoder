@@ -269,6 +269,7 @@ export function convertToVehicle(listing: AutoTraderListing): Vehicle {
     inStock: true,
     imageUrl: listing.images[0],
     imageUrls: listing.images,
+    blackBookValue: undefined,
   };
 }
 

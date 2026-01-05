@@ -345,6 +345,7 @@ export function convertToVehicle(listing: CarGurusListing): Vehicle {
     inStock: true,
     imageUrl: listing.images[0],
     imageUrls: listing.images,
+    blackBookValue: undefined,
   };
 }
 

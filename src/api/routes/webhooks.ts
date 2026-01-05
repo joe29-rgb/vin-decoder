@@ -146,7 +146,7 @@ router.post('/approvals/ingest', (req: Request, res: Response) => {
     if (payload.blackBook?.overrideVehicleId && payload.blackBook?.overrideValue != null) {
       const id = payload.blackBook.overrideVehicleId;
       const vi = state.mirroredInventory.findIndex(v => v.id === id);
-      if (vi >= 0) state.mirroredInventory[vi] = { ...state.mirroredInventory[vi], cbbWholesale: Number(payload.blackBook.overrideValue) };
+      if (vi >= 0) state.mirroredInventory[vi] = { ...state.mirroredInventory[vi], blackBookValue: Number(payload.blackBook.overrideValue) };
     }
     res.json({ success: true });
   } catch (e) {
