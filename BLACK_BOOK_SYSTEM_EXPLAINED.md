@@ -128,27 +128,65 @@ totalGross = $13,000 + $750 = $13,750
 
 ## Different Lenders, Different Advances
 
-### AutoCapital Canada - Tier 1 (Best Prime)
-- **Front-End Advance: 140%**
-- **All-In LTV: 175%**
-- Black Book: $30,000
-- Max Sale Price: $30,000 × 1.40 = **$42,000**
+### PRIME LENDERS (Banks)
 
-### AutoCapital Canada - Tier 6 (High Risk)
-- **Front-End Advance: 130%**
-- **All-In LTV: 150%**
-- Black Book: $30,000
-- Max Sale Price: $30,000 × 1.30 = **$39,000**
-
-### TD Auto Finance - 5-Key Program (Subprime)
+**TD Auto Finance - 5-Key Program (Subprime)**
 - **Front-End LTV: 140%**
 - **All-In LTV: 100%**
 - Black Book: $30,000
 - Max Sale Price: $30,000 × 1.40 = **$42,000**
 
-**Key Point:** The `frontCapFactor` varies by lender and tier. It comes from:
+**Santander Consumer Bank - Tier 8**
+- **All-In LTV: 165%**
+- Black Book: $30,000
+- Max Sale Price: ~$30,000 × 1.65 = **$49,500** (all-in)
+
+---
+
+### SUBPRIME LENDERS (Non-Bank)
+
+**AutoCapital Canada - Tier 1**
+- **Front-End Advance: 140%**
+- **All-In LTV: 175%**
+- Black Book: $30,000
+- Max Sale Price: $30,000 × 1.40 = **$42,000**
+
+**AutoCapital Canada - Tier 6**
+- **Front-End Advance: 130%**
+- **All-In LTV: 150%**
+- Black Book: $30,000
+- Max Sale Price: $30,000 × 1.30 = **$39,000**
+
+**Eden Park - 5 Ride**
+- **Front-End Advance: 140%**
+- Black Book: $30,000
+- Max Sale Price: $30,000 × 1.40 = **$42,000**
+
+**IA Auto Finance - 6th Gear**
+- **Used Vehicle Advance: 140%**
+- Black Book: $30,000
+- Max Sale Price: $30,000 × 1.40 = **$42,000**
+
+**RIFCO - Preferred Tier 1**
+- **Front-End LTV: 140%**
+- **All-In LTV: 170%**
+- Black Book: $30,000
+- Max Sale Price: $30,000 × 1.40 = **$42,000**
+
+**Northlake - Titanium/Platinum**
+- **Max LTV: 140%+**
+- Black Book: $30,000
+- Max Sale Price: $30,000 × 1.40 = **$42,000**
+
+---
+
+**Key Point:** The `frontCapFactor` varies by lender, program, and tier. It comes from:
 1. The approval PDF (parsed into `ApprovalSpec.frontCapFactor`)
 2. Or falls back to `LenderRuleSet.frontCapFactor` from rules-library
+
+**Prime vs Subprime:**
+- **Prime Lenders:** TD, RBC, CIBC, National Bank, General Bank, Santander (banks with lower rates, stricter credit)
+- **Subprime Lenders:** AutoCapital, Eden Park, IA, LendCare, Northlake, Prefera, RIFCO (non-bank finance companies, higher rates, flexible credit)
 
 ---
 
@@ -214,9 +252,8 @@ totalGross = $13,000 + $750 = $13,750
 
 ❌ **Hardcoding frontCapFactor to 1.40**
 - Different lenders have different advances
-- TD 5-Key: **140%** of Black Book
-- AutoCapital Tier 1: **140%** of Black Book
-- Eden Park 5 Ride: **140%** of Black Book
+- TD 5-Key: **140%**, AutoCapital Tier 1: **140%**, Eden Park 5 Ride: **140%**, IA 6th Gear: **140%**, RIFCO Tier 1: **140%**
+- But AutoCapital Tier 6: **130%**, Eden Park 2 Ride: **130%**, Santander varies by tier
 - Always use `ApprovalSpec.frontCapFactor` or `LenderRuleSet.frontCapFactor`
 
 ❌ **Forgetting to set Black Book**
