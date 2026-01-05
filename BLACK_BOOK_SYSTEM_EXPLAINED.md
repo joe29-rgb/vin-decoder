@@ -141,10 +141,10 @@ totalGross = $13,000 + $750 = $13,750
 - Max Sale Price: $30,000 × 1.30 = **$39,000**
 
 ### TD Auto Finance - 5-Key Program (Subprime)
-- **Front-End LTV: 90%**
+- **Front-End LTV: 140%**
 - **All-In LTV: 100%**
 - Black Book: $30,000
-- Max Sale Price: $30,000 × 0.90 = **$27,000**
+- Max Sale Price: $30,000 × 1.40 = **$42,000**
 
 **Key Point:** The `frontCapFactor` varies by lender and tier. It comes from:
 1. The approval PDF (parsed into `ApprovalSpec.frontCapFactor`)
@@ -214,7 +214,9 @@ totalGross = $13,000 + $750 = $13,750
 
 ❌ **Hardcoding frontCapFactor to 1.40**
 - Different lenders have different advances
-- TD 5-Key: 0.90, AutoCapital Tier 1: 1.40, Eden Park 5 Ride: 1.40
+- TD 5-Key: **140%** of Black Book
+- AutoCapital Tier 1: **140%** of Black Book
+- Eden Park 5 Ride: **140%** of Black Book
 - Always use `ApprovalSpec.frontCapFactor` or `LenderRuleSet.frontCapFactor`
 
 ❌ **Forgetting to set Black Book**
