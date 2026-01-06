@@ -163,79 +163,101 @@ function inferYearFromName(name?: string): number | undefined {
 }
 
 async function fetchVehiclesFromListing(url: string, limit = 20): Promise<Vehicle[]> {
+  console.log('[SCRAPER] fetchVehiclesFromListing called:', { url, limit });
   const out: Vehicle[] = [];
-  const html = await fetchHtml(url);
-  const blocks = extractJsonLd(html);
-  // 1) try direct Vehicle objects in JSON-LD
-  const direct: Vehicle[] = [];
-  blocks.forEach((b, i) => {
-    const v = normalizeVehicleFromJsonLd(b, i, url);
-    if (v && (v.vin || v.make || v.model)) direct.push(v);
-  });
-  if (direct.length > 0) return direct.slice(0, limit);
-
-  // 2) find SearchResultsPage -> itemListElement -> url; fetch detail pages
-  const urls: string[] = [];
-  for (const b of blocks) {
-    const type = b['@type'];
-    if (!type) continue;
-    const t = Array.isArray(type) ? type.map(String) : [String(type)];
-    if (t.some((x) => x.toLowerCase().includes('searchresultspage'))) {
-      // Dealer sites vary: try a few shapes
-      const items = b.itemListElement || b.hasPart?.itemListElement || [];
-      if (Array.isArray(items)) {
-        for (const it of items) {
-          const u = it?.url || it?.item?.url || it?.mainEntityOfPage?.url;
-          if (u) urls.push(String(u));
+  
+  try {
+    const html = await fetchHtml(url);
+    console.log('[SCRAPER] HTML fetched, length:', html.length);
+    
+    const blocks = extractJsonLd(html);
+    console.log('[SCRAPER] JSON-LD blocks found:', blocks.length);
+    
+    // 1) try direct Vehicle objects in JSON-LD
+    const direct: Vehicle[] = [];
+    blocks.forEach((b, i) => {
+      const v = normalizeVehicleFromJsonLd(b, i, url);
+      if (v && (v.vin || v.make || v.model)) {
+        console.log('[SCRAPER] Valid vehicle from JSON-LD:', v.id, v.year, v.make, v.model);
+        direct.push(v);
+      }
+    });
+    if (direct.length > 0) {
+      console.log('[SCRAPER] Found', direct.length, 'vehicles from JSON-LD');
+      out.push(...direct.slice(0, limit));
+      return out;
+    }
+  
+    console.log('[SCRAPER] No vehicles from JSON-LD, trying DOM parsing...');
+    // 2) find SearchResultsPage -> itemListElement -> url; fetch detail pages
+    const urls: string[] = [];
+    for (const b of blocks) {
+      const type = b['@type'];
+      if (!type) continue;
+      const t = Array.isArray(type) ? type.map(String) : [String(type)];
+      if (t.some((x) => x.toLowerCase().includes('searchresultspage'))) {
+        // Dealer sites vary: try a few shapes
+        const items = b.itemListElement || b.hasPart?.itemListElement || [];
+        if (Array.isArray(items)) {
+          for (const it of items) {
+            const u = it?.url || it?.item?.url || it?.mainEntityOfPage?.url;
+            if (u) urls.push(String(u));
+          }
         }
       }
     }
-  }
 
-  // 3) If we still have no URLs, fallback to DOM link discovery with Cheerio
-  if (urls.length === 0) {
-    try {
-      const $ = cheerioLoad(html);
-      const candidates = new Set<string>();
-      $('a[href]').each((_i: number, el: any) => {
-        const href = String($(el).attr('href') || '');
-        if (!href) return;
-        // Filter likely vehicle detail links
-        const h = href.toLowerCase();
-        if (h.includes('/used') || h.includes('/new') || h.includes('/vehicle') || h.includes('/inventory')) {
-          candidates.add(href);
+    // 3) If we still have no URLs, fallback to DOM link discovery with Cheerio
+    if (urls.length === 0) {
+      try {
+        const $ = cheerioLoad(html);
+        const links: string[] = [];
+        $('a[href]').each((_i: number, el: any) => {
+          const href = $(el).attr('href');
+          if (href && /vehicle|inventory|car|detail/i.test(href)) {
+            const abs = /^https?:/i.test(href) ? href : new URL(href, url).href;
+            if (!links.includes(abs)) links.push(abs);
+          }
+        });
+        console.log('[SCRAPER] Found', links.length, 'vehicle detail page links');
+        urls.push(...links);
+      } catch (_e) {
+        console.error('[SCRAPER] Error discovering links:', _e);
+      }
+    }
+
+    const unique = Array.from(new Set(urls)).slice(0, limit);
+    for (let i = 0; i < unique.length; i++) {
+      try {
+        const u = unique[i].startsWith('http') ? unique[i] : new URL(unique[i], url).href;
+        console.log('[SCRAPER] Fetching vehicle detail page:', u);
+        const h = await fetchHtml(u, url);
+        const bs = extractJsonLd(h);
+        for (let j = 0; j < bs.length; j++) {
+          const v = normalizeVehicleFromJsonLd(bs[j], j, u);
+          if (v && (v.vin || v.make || v.model)) { out.push(v); break; }
         }
-      });
-      const abs = Array.from(candidates)
-        .map((h) => (h.startsWith('http') ? h : new URL(h, url).href))
-        .filter((h) => h.includes('devonchrysler.com'));
-      urls.push(...Array.from(new Set(abs)));
-    } catch (_e) {}
-  }
-
-  const unique = Array.from(new Set(urls)).slice(0, limit);
-  for (let i = 0; i < unique.length; i++) {
-    try {
-      const u = unique[i].startsWith('http') ? unique[i] : new URL(unique[i], url).href;
-      const h = await fetchHtml(u, url);
-      const bs = extractJsonLd(h);
-      for (let j = 0; j < bs.length; j++) {
-        const v = normalizeVehicleFromJsonLd(bs[j], j, u);
-        if (v && (v.vin || v.make || v.model)) { out.push(v); break; }
+        // If JSON-LD did not produce a vehicle, try DOM parsing heuristics
+        if (out.length < i + 1) {
+          const domVeh = normalizeVehicleFromDom(h, u, i);
+          if (domVeh) out.push(domVeh);
+        }
+      } catch (e) {
+        console.error('[SCRAPER] Error fetching detail page:', unique[i], (e as Error).message);
       }
-      // If JSON-LD did not produce a vehicle, try DOM parsing heuristics
-      if (out.length < i + 1) {
-        const domVeh = normalizeVehicleFromDom(h, u, i);
-        if (domVeh) out.push(domVeh);
-      }
-    } catch (_e) {}
-  }
+    }
 
-  return out.slice(0, limit);
+    console.log('[SCRAPER] Total vehicles collected:', out.length);
+    return out;
+  } catch (e) {
+    console.error('[SCRAPER] fetchVehiclesFromListing error:', (e as Error).message, (e as Error).stack);
+    throw e;
+  }
 }
 
 function normalizeVehicleFromDom(html: string, pageUrl: string, idx: number): Vehicle | null {
   try {
+    console.log('[SCRAPER] Normalizing vehicle from DOM:', idx);
     const $ = cheerioLoad(html);
     // Name/year/make/model
     const ogTitle = $('meta[property="og:title"]').attr('content') || '';
@@ -428,13 +450,32 @@ router.get('/devon', async (req: Request, res: Response) => {
     const path = (req.query.path as string) || '/inventory/';
     const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
     const url = new URL(path, base).href;
+    
+    console.log('[SCRAPER] Devon scrape started:', { url, limit, path });
+    
     const vehicles = await fetchVehiclesFromListing(url, limit);
-    res.json({ success: true, total: vehicles.length, vehicles });
+    
+    console.log('[SCRAPER] Vehicles fetched:', vehicles.length);
+    if (vehicles.length > 0) {
+      console.log('[SCRAPER] Sample vehicle:', JSON.stringify(vehicles[0], null, 2));
+    } else {
+      console.warn('[SCRAPER] WARNING: No vehicles returned from fetchVehiclesFromListing');
+    }
+    
+    res.json({ success: true, total: vehicles.length, vehicles, debug: { url, limit } });
   } catch (e) {
     const err: any = e;
     const status = err?.response?.status;
     const statusText = err?.response?.statusText;
-    res.status(500).json({ success: false, error: (err?.message || 'scrape failed'), status, statusText });
+    console.error('[SCRAPER] Devon scrape error:', err.message, err.stack);
+    res.status(500).json({ 
+      success: false, 
+      error: (err?.message || 'scrape failed'), 
+      status, 
+      statusText,
+      stack: err?.stack,
+      debug: { url: req.query.path, limit: req.query.limit }
+    });
   }
 });
 
