@@ -55,32 +55,123 @@ router.post('/approvals/parse-pdf', upload.single('file'), async (req: Request, 
     const text = data.text || '';
     const suggestion: any = { approval: {}, trade: {}, vehicle: {}, customer: {} };
     
-    const bankMatch = text.match(/(?:Bank|Lender)\s*[:\-]\s*([A-Za-z0-9 &\-]+)/i);
-    if (bankMatch) suggestion.approval.bank = bankMatch[1].trim();
-    
-    const programMatch = text.match(/(?:Program|Product)\s*[:\-]\s*([^\n]+)/i);
-    if (programMatch) suggestion.approval.program = programMatch[1].trim();
-    
-    const aprMatch = text.match(/(?:Annual Interest Rate|APR|Rate)\s*[:\-]?\s*(\d{1,2}(?:\.\d{1,2})?)\s*%?/i);
-    if (aprMatch) suggestion.approval.apr = Number(aprMatch[1]);
-    
-    const termMatch = text.match(/(?:Term of Borrowing|Term|Months)\s*[:\-]?\s*(\d{2,3})/i);
-    if (termMatch) suggestion.approval.termMonths = Number(termMatch[1]);
-    
-    const installmentMatch = text.match(/(?:Installment Payment|Payment)\s*[:\-]?\s*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
-    if (installmentMatch) {
-      const amount = parseFloat(installmentMatch[1].replace(/,/g, ''));
-      suggestion.approval.paymentMax = amount;
+    // Enhanced lender matching for all formats
+    let lenderName = '';
+    const lenderPatterns = [
+      /Lender\s*[:\-]?\s*([^\n]+?)(?=\s*Status|\s*Lender Reference|$)/i,
+      /Bank\s*[:\-]?\s*([^\n]+?)(?=\s*Status|\s*Reference|$)/i,
+      /(?:Scotia Dealer Advantage|iA Auto Finance|Eden Park|RIFCO|TD Auto Finance)/i
+    ];
+    for (const pattern of lenderPatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        lenderName = match[1] ? match[1].trim() : match[0].trim();
+        break;
+      }
+    }
+    // Normalize lender names to match lender-programs.ts format
+    if (lenderName) {
+      const normalized = lenderName
+        .replace(/\s+Inc\.?$/i, '')
+        .replace(/\s+Ltd\.?$/i, '')
+        .replace(/\s+Limited$/i, '')
+        .replace(/\s+Corporation$/i, '')
+        .replace(/\s+Corp\.?$/i, '');
+      
+      // Map common variations to standard names
+      const lenderMap: Record<string, string> = {
+        'scotia dealer advantage': 'SDA',
+        'ia auto finance': 'IAAutoFinance',
+        'i.a. auto finance': 'IAAutoFinance',
+        'eden park': 'EdenPark',
+        'rifco': 'RIFCO',
+        'td auto finance': 'TD',
+        'td': 'TD',
+        'santander': 'Santander',
+        'auto capital': 'AutoCapital',
+        'autocapital': 'AutoCapital',
+        'lendcare': 'LendCare',
+        'northlake': 'Northlake'
+      };
+      
+      const lowerNorm = normalized.toLowerCase();
+      suggestion.approval.bank = lenderMap[lowerNorm] || normalized;
     }
     
-    const maxPaymentMatch = text.match(/(?:maximum approved monthly payment|max payment)\s*(?:is)?\s*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
-    if (maxPaymentMatch) {
-      suggestion.approval.paymentMax = parseFloat(maxPaymentMatch[1].replace(/,/g, ''));
+    // Enhanced program matching
+    const programPatterns = [
+      /Product\s*[:\-]?\s*([^\n]+?)(?=\s*Applicant|$)/i,
+      /Program\s*[:\-]?\s*([^\n]+?)(?=\s*Applicant|$)/i,
+      /(?:Pre-Approval|Loan|Conditional Approval)/i
+    ];
+    let programName = '';
+    for (const pattern of programPatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        programName = match[1] ? match[1].trim() : match[0].trim();
+        break;
+      }
+    }
+    if (programName) suggestion.approval.program = programName;
+    
+    // Enhanced APR matching with support for various formats
+    const aprPatterns = [
+      /Annual Interest Rate\s*[:\-]?\s*(\d{1,2}(?:\.\d{1,2})?)\s*%?/i,
+      /APR\s*[:\-]?\s*(\d{1,2}(?:\.\d{1,2})?)\s*%?/i,
+      /Rate\s*[:\-]?\s*(\d{1,2}(?:\.\d{1,2})?)\s*%?/i,
+      /Flat Rate\s*(\d{1,2}(?:\.\d{1,2})?)\s*%/i,
+      /(\d{1,2}\.\d{2})\s*%/
+    ];
+    for (const pattern of aprPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        suggestion.approval.apr = Number(match[1]);
+        break;
+      }
     }
     
-    const amountFinancedMatch = text.match(/(?:Amount Financed|Financed Amount)\s*[:\-]?\s*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
-    if (amountFinancedMatch) {
-      suggestion.approval.amountFinanced = parseFloat(amountFinancedMatch[1].replace(/,/g, ''));
+    // Enhanced term matching
+    const termPatterns = [
+      /Term of Borrowing\s*[:\-]?\s*(\d{2,3})/i,
+      /Term\s*[:\-]?\s*(\d{2,3})\s*(?:months?|mo)/i,
+      /Amortization\s*[:\-]?\s*(\d{2,3})/i
+    ];
+    for (const pattern of termPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        suggestion.approval.termMonths = Number(match[1]);
+        break;
+      }
+    }
+    
+    // Enhanced payment matching with multiple patterns
+    const paymentPatterns = [
+      /maximum approved monthly payment\s*(?:is)?\s*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i,
+      /max payment\s*(?:is)?\s*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i,
+      /Installment Payment\s*[:\-]?\s*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i,
+      /Payment\s*[:\-]?\s*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i
+    ];
+    for (const pattern of paymentPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const amount = parseFloat(match[1].replace(/,/g, ''));
+        suggestion.approval.paymentMax = amount;
+        suggestion.approval.paymentMin = Math.round(amount * 0.8); // 80% of max
+        break;
+      }
+    }
+    
+    // Enhanced amount financed matching
+    const amountPatterns = [
+      /Amount Financed\s*[:\-]?\s*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i,
+      /Financed Amount\s*[:\-]?\s*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i
+    ];
+    for (const pattern of amountPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        suggestion.approval.amountFinanced = parseFloat(match[1].replace(/,/g, ''));
+        break;
+      }
     }
     
     const residualMatch = text.match(/(?:Residual Value|Residual)\s*[:\-]?\s*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
