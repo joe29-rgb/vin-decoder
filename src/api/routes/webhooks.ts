@@ -216,6 +216,41 @@ router.post('/approvals/parse-pdf', upload.single('file'), async (req: Request, 
       suggestion.approval.paymentFrequency = paymentFreqMatch[1].trim();
     }
     
+    // Province extraction for tax calculations
+    const provincePatterns = [
+      /\b(AB|Alberta)\b/i,
+      /\b(BC|British Columbia)\b/i,
+      /\b(MB|Manitoba)\b/i,
+      /\b(NB|New Brunswick)\b/i,
+      /\b(NL|Newfoundland|Labrador)\b/i,
+      /\b(NS|Nova Scotia)\b/i,
+      /\b(ON|Ontario)\b/i,
+      /\b(PE|PEI|Prince Edward Island)\b/i,
+      /\b(QC|Quebec|Québec)\b/i,
+      /\b(SK|Saskatchewan)\b/i
+    ];
+    
+    for (const pattern of provincePatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        const prov = match[1].toUpperCase();
+        // Normalize to 2-letter codes
+        const provinceMap: Record<string, string> = {
+          'ALBERTA': 'AB', 'BRITISH COLUMBIA': 'BC', 'MANITOBA': 'MB',
+          'NEW BRUNSWICK': 'NB', 'NEWFOUNDLAND': 'NL', 'LABRADOR': 'NL',
+          'NOVA SCOTIA': 'NS', 'ONTARIO': 'ON', 'PRINCE EDWARD ISLAND': 'PE',
+          'PEI': 'PE', 'QUEBEC': 'QC', 'QUÉBEC': 'QC', 'SASKATCHEWAN': 'SK'
+        };
+        suggestion.approval.province = provinceMap[prov] || prov.substring(0, 2);
+        break;
+      }
+    }
+    
+    // Default to AB if not found
+    if (!suggestion.approval.province) {
+      suggestion.approval.province = 'AB';
+    }
+    
     res.json({ success: true, text, suggestion });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
