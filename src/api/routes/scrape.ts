@@ -302,19 +302,86 @@ function normalizeVehicleFromDom(html: string, pageUrl: string, idx: number): Ve
       const nums = priceTexts.map((t) => toNumber(t)).filter((n) => typeof n === 'number') as number[];
       if (nums.length) price = Math.max(...nums);
     }
-    // VIN & Stock & Mileage heuristics
+    // VIN & Stock & Mileage & Engine & Transmission extraction
     const whole = $('body').text();
+    
+    // VIN extraction with multiple patterns
     let vin = '';
-    const mVin = whole.match(/\bVIN[:\s]*([A-HJ-NPR-Z0-9]{17})\b/i);
-    if (mVin) vin = mVin[1].toUpperCase();
+    const vinPatterns = [
+      /\bVIN[:\s#]*([A-HJ-NPR-Z0-9]{17})\b/i,
+      /\bVehicle Identification Number[:\s]*([A-HJ-NPR-Z0-9]{17})\b/i,
+      /\b([A-HJ-NPR-Z0-9]{17})\b/
+    ];
+    for (const pattern of vinPatterns) {
+      const match = whole.match(pattern);
+      if (match && match[1] && /^[A-HJ-NPR-Z0-9]{17}$/.test(match[1])) {
+        vin = match[1].toUpperCase();
+        break;
+      }
+    }
+    
+    // Stock number extraction
     let stock = '';
-    const mStk = whole.match(/\bStock[:#\s]*([A-Za-z0-9-]+)\b/i);
-    if (mStk) stock = mStk[1];
+    const stockPatterns = [
+      /\bStock[:#\s]*([A-Za-z0-9-]+)\b/i,
+      /\bStock Number[:#\s]*([A-Za-z0-9-]+)\b/i,
+      /\bStock #[:#\s]*([A-Za-z0-9-]+)\b/i
+    ];
+    for (const pattern of stockPatterns) {
+      const match = whole.match(pattern);
+      if (match && match[1]) {
+        stock = match[1];
+        break;
+      }
+    }
+    
+    // Mileage extraction with better patterns
     let mileage = 0;
-    const mMil = whole.match(/([0-9][0-9,\.]*)\s*(km|kms|kilometers|kilometres)\b/i);
-    if (mMil) {
-      const n = parseFloat(mMil[1].replace(/[,\.]/g, ''));
-      if (!isNaN(n)) mileage = n;
+    const mileagePatterns = [
+      /([0-9][0-9,\.]*)\s*(km|kms|kilometers|kilometres)\b/i,
+      /\bMileage[:\s]*([0-9][0-9,\.]*)/i,
+      /\bOdometer[:\s]*([0-9][0-9,\.]*)/i,
+      /([0-9]{1,3}(?:,\d{3})+)\s*km/i
+    ];
+    for (const pattern of mileagePatterns) {
+      const match = whole.match(pattern);
+      if (match && match[1]) {
+        const n = parseFloat(match[1].replace(/[,]/g, ''));
+        if (!isNaN(n) && n > 0 && n < 500000) {
+          mileage = Math.round(n);
+          break;
+        }
+      }
+    }
+    
+    // Engine extraction
+    let engine = 'Unknown';
+    const enginePatterns = [
+      /\b(\d\.\d+L?\s*(?:V\d+|I\d+|L\d+|Turbo|DOHC|SOHC|Hybrid|Electric)[^,\n]*)/i,
+      /\bEngine[:\s]*([^,\n]+?)(?=\s*Transmission|\s*Trans|$)/i,
+      /\b(V6|V8|V4|I4|I6|L4|L6|Turbo|Hybrid|Electric|EV)\b/i
+    ];
+    for (const pattern of enginePatterns) {
+      const match = whole.match(pattern);
+      if (match && match[1]) {
+        engine = match[1].trim();
+        break;
+      }
+    }
+    
+    // Transmission extraction
+    let transmission = 'Unknown';
+    const transPatterns = [
+      /\b(\d+-Speed\s+(?:Automatic|Manual|CVT)[^,\n]*)/i,
+      /\bTransmission[:\s]*([^,\n]+?)(?=\s*Engine|\s*Drivetrain|$)/i,
+      /\b(Automatic|Manual|CVT|6-Speed|8-Speed|9-Speed|10-Speed)\b/i
+    ];
+    for (const pattern of transPatterns) {
+      const match = whole.match(pattern);
+      if (match && match[1]) {
+        transmission = match[1].trim();
+        break;
+      }
     }
     // Make/Model from title tokens if possible
     let make = '';
@@ -338,8 +405,8 @@ function normalizeVehicleFromDom(html: string, pageUrl: string, idx: number): Ve
       trim: '',
       mileage: mileage,
       color: undefined,
-      engine: 'Unknown',
-      transmission: 'Unknown',
+      engine: engine,
+      transmission: transmission,
       cbbWholesale: 0,
       cbbRetail: 0,
       yourCost: 0,
