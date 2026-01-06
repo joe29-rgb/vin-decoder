@@ -179,13 +179,27 @@
   }
 
   async function score(){
-    grid.innerHTML = '';
-    meta.insertAdjacentHTML('beforeend', '<div style="margin-top:6px;color:var(--muted)">Scoring inventory...</div>');
-    var r = await fetch('/api/approvals/score', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
-    var j = await r.json();
-    if (!j.success) { grid.textContent = 'Error: ' + (j.error || 'unknown'); return; }
-    currentRows = j.rows || [];
-    renderRows();
+    grid.innerHTML = '<div style="text-align:center;padding:40px;"><div class="spinner" style="margin:0 auto 16px;"></div><div style="color:var(--muted);">Scoring inventory against approval criteria...</div></div>';
+    try {
+      var r = await fetch('/api/approvals/score', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+      var j = await r.json();
+      if (!j.success) { 
+        grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Scoring Failed</div><div class="empty-state-description">' + (j.error || 'Unknown error occurred') + '</div></div>';
+        toast('Scoring failed: ' + (j.error || 'unknown'));
+        return; 
+      }
+      currentRows = j.rows || [];
+      if (currentRows.length === 0) {
+        grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🚗</div><div class="empty-state-title">No Matching Vehicles</div><div class="empty-state-description">No vehicles in inventory meet the approval criteria. Try uploading more inventory or adjusting the approval parameters.</div></div>';
+        toast('No vehicles matched approval criteria');
+      } else {
+        renderRows();
+        toast('Scored ' + currentRows.length + ' vehicles');
+      }
+    } catch(e) {
+      grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❌</div><div class="empty-state-title">Network Error</div><div class="empty-state-description">' + (e.message || 'Failed to connect to server') + '</div></div>';
+      toast('Error: ' + (e.message || 'unknown'));
+    }
   }
 
   document.getElementById('score').onclick = score;
@@ -199,6 +213,7 @@
       try {
         try { console.log('Scrape button clicked'); } catch(_e){}
         scrapeBtn.disabled = true;
+        scrapeBtn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;"></span>Scraping...';
         if (meta && meta.textContent !== undefined) meta.textContent = 'Scraping Devon Chrysler inventory (used + new)...';
         toast('Starting scrape...');
         
@@ -276,7 +291,10 @@
         try { console.error('Scrape error:', e); } catch(_e){}
         toast('Scrape error: ' + (e.message || 'unknown')); 
       }
-      finally { scrapeBtn.disabled = false; }
+      finally { 
+        scrapeBtn.disabled = false; 
+        scrapeBtn.innerHTML = '🔄 Scrape Devon Inventory';
+      }
     };
   } else {
     try { console.error('Scrape button NOT found!'); } catch(_e){}
@@ -296,11 +314,15 @@
     if (!txt && fileTextCache) txt = fileTextCache;
     if (!txt) { toast('Provide JSON via text or file'); return; }
     var body;
-    try { body = JSON.parse(txt); } catch(e) { toast('Invalid JSON'); return; }
+    try { body = JSON.parse(txt); } catch(e) { toast('Invalid JSON format'); return; }
     var resp = await fetch('/api/rules/upload', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
     var jr = await resp.json();
-    if (jr.success) { toast('Rules loaded: ' + jr.total); closeRules(); }
-    else { toast('Failed: ' + (jr.error||'unknown')); }
+    if (jr.success) { 
+      toast('✓ Rules loaded successfully: ' + jr.total);
+      closeRules(); 
+    } else { 
+      toast('Failed to load rules: ' + (jr.error||'unknown')); 
+    }
   };
 
   rulesFile.onchange = function(){
@@ -385,14 +407,23 @@
 
   if (parseApprovalPdf) parseApprovalPdf.onclick = async function(){
     if (!approvalPdf || !approvalPdf.files || !approvalPdf.files[0]) { toast('Select an approval PDF'); return; }
-    var fd = new FormData(); fd.append('file', approvalPdf.files[0]);
-    var resp = await fetch('/api/approvals/parse-pdf', { method:'POST', body: fd });
-    var jr = await resp.json();
-    if (jr.success) {
-      if (jr.suggestion) { try { approvalText.value = JSON.stringify(jr.suggestion, null, 2); } catch(_e) { approvalText.value = String(jr.text||''); } }
-      else { approvalText.value = String(jr.text||''); }
-      toast('Parsed approval PDF');
-    } else { toast('Failed: ' + (jr.error||'unknown')); }
+    parseApprovalPdf.disabled = true;
+    parseApprovalPdf.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;"></span>Parsing...';
+    try {
+      var fd = new FormData(); fd.append('file', approvalPdf.files[0]);
+      var resp = await fetch('/api/approvals/parse-pdf', { method:'POST', body: fd });
+      var jr = await resp.json();
+      if (jr.success) {
+        if (jr.suggestion) { try { approvalText.value = JSON.stringify(jr.suggestion, null, 2); } catch(_e) { approvalText.value = String(jr.text||''); } }
+        else { approvalText.value = String(jr.text||''); }
+        toast('✓ Parsed approval PDF successfully');
+      } else { toast('Failed to parse PDF: ' + (jr.error||'unknown')); }
+    } catch(e) {
+      toast('Error parsing PDF: ' + (e.message || 'unknown'));
+    } finally {
+      parseApprovalPdf.disabled = false;
+      parseApprovalPdf.innerHTML = '📄 Parse PDF';
+    }
   };
 
   sortBy.onchange = renderRows; 
