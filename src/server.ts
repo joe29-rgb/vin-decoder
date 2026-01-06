@@ -39,7 +39,6 @@ app.use('/api/reports', reportsRouter);
 // Backward-compatibility mounts for legacy paths
 app.use('/api', dealsRouter);      // provides /api/lenders, /api/deals/*
 app.use('/api', webhooksRouter);   // provides /api/rules/*, /api/approvals/*
-app.use('/', inventoryRouter);     // provides /upload, /sync for backward compatibility
 
 // Health
 app.get('/health', healthCheck);
@@ -48,6 +47,10 @@ app.get('/health', healthCheck);
 app.get('/', (_req, res) => {
   res.redirect('/dashboard');
 });
+
+// Backward-compatibility routes for /upload, /sync (must come after specific routes)
+app.post('/upload', inventoryRouter);
+app.post('/sync', inventoryRouter);
 
 app.get('/dashboard', (_req, res) => {
   const htmlPath = path.join(process.cwd(), 'src', 'views', 'dashboard.html');
