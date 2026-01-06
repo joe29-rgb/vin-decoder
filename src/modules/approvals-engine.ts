@@ -117,6 +117,37 @@ export function scoreInventory(
 
     // Load dynamic lender rule if available
     const rule = findRule(approval.bank, approval.program);
+    
+    // Booking guide validation: Check vehicle year and mileage against lender rules
+    const currentYear = new Date().getFullYear();
+    const vehicleAge = currentYear - v.year;
+    
+    // Skip vehicles that are too old (most lenders: max 15 years)
+    if (vehicleAge > 15) {
+      flags.push('vehicle_too_old');
+      continue;
+    }
+    
+    // Skip vehicles with excessive mileage (most lenders: max 200,000 km)
+    if (v.mileage > 200000) {
+      flags.push('excessive_mileage');
+      continue;
+    }
+    
+    // Validate against lender-specific term restrictions by model year
+    if (rule?.termByModelYear && Array.isArray(rule.termByModelYear)) {
+      let meetsYearRequirement = false;
+      for (const t of rule.termByModelYear) {
+        if (v.year >= t.yearFrom && v.year <= t.yearTo) {
+          meetsYearRequirement = true;
+          break;
+        }
+      }
+      if (!meetsYearRequirement) {
+        flags.push('year_outside_lender_range');
+        continue;
+      }
+    }
 
     // Effective caps & constraints
     const frontCapFactorEff = approval.frontCapFactor ?? rule?.frontCapFactor;
