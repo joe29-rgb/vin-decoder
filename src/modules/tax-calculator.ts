@@ -21,8 +21,21 @@ const TAX_RATES: Record<Province, number> = {
 export function calculateTaxSavings(
   salePrice: number,
   tradeInCredit: number,
-  province: Province
+  province: Province,
+  isNativeStatus: boolean = false
 ): TaxResult {
+  // Native status individuals are tax exempt
+  if (isNativeStatus) {
+    return {
+      province,
+      taxRate: 0,
+      salePrice,
+      taxableBase: salePrice,
+      totalTax: 0,
+      taxSavingsWithTrade: 0,
+    };
+  }
+
   const taxRate = TAX_RATES[province];
   if (!taxRate) throw new Error(`Unknown province: ${province}`);
 

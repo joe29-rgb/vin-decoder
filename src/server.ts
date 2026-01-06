@@ -16,6 +16,7 @@ import geolocationRouter from './api/routes/geolocation';
 import inventorySyncRouter from './api/routes/inventory-sync';
 import reportsRouter from './api/routes/reports';
 import dealershipsRouter from './api/routes/dealerships';
+import smartsheetRouter from './api/routes/smartsheet';
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use('/api/location', geolocationRouter);
 app.use('/api/sync', inventorySyncRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/dealerships', dealershipsRouter);
+app.use('/api/smartsheet', smartsheetRouter);
 // Backward-compatibility mounts for legacy paths
 app.use('/api', dealsRouter);      // provides /api/lenders, /api/deals/*
 app.use('/api', webhooksRouter);   // provides /api/rules/*, /api/approvals/*

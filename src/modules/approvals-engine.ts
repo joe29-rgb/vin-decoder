@@ -17,7 +17,7 @@ function computeMonthlyPayment(
   const down = approval.downPayment || 0;
 
   const equity = trade.allowance - trade.lienBalance; // negative means rolled in
-  const tax = calculateTaxSavings(salePrice, trade.allowance, province);
+  const tax = calculateTaxSavings(salePrice, trade.allowance, province, approval.isNativeStatus || false);
   const principal = salePrice - down - equity + DEFAULT_FEE + tax.totalTax;
 
   const { monthlyPayment } = getPaymentSummary(
@@ -36,7 +36,7 @@ function computePrincipal(
 ): number {
   const down = approval.downPayment || 0;
   const equity = trade.allowance - trade.lienBalance; // negative means rolled in
-  const tax = calculateTaxSavings(salePrice, trade.allowance, province);
+  const tax = calculateTaxSavings(salePrice, trade.allowance, province, approval.isNativeStatus || false);
   const principal = salePrice - down - equity + DEFAULT_FEE + tax.totalTax;
   return Math.max(0, principal);
 }
@@ -105,14 +105,19 @@ export function scoreInventory(
   for (const v of inventory) {
     try {
       const flags: string[] = [];
-      const bb = v.cbbWholesale || v.blackBookValue || 0;
+      
+      // Allow estimated Black Book value if missing
+      let bb = v.cbbWholesale || v.blackBookValue || 0;
       if (bb <= 0 || isNaN(bb)) {
-        flags.push('missing_black_book');
-        continue;
+        bb = v.suggestedPrice * 0.75; // Estimate as 75% of suggested price
+        flags.push('estimated_black_book');
       }
-      if (v.yourCost == null || isNaN(v.yourCost) || v.yourCost <= 0) {
-        flags.push('missing_cost');
-        continue;
+      
+      // Allow estimated cost if missing
+      let cost = v.yourCost;
+      if (cost == null || isNaN(cost) || cost <= 0) {
+        cost = v.suggestedPrice * 0.85; // Estimate as 85% of suggested price
+        flags.push('estimated_cost');
       }
 
     // Load dynamic lender rule if available
@@ -167,7 +172,7 @@ export function scoreInventory(
     const paymentMaxEff = Math.min(approval.paymentMax, rule?.maxPayCall ?? Number.POSITIVE_INFINITY);
 
     const frontCap = frontCapFactorEff != null ? bb * frontCapFactorEff : Number.POSITIVE_INFINITY;
-    const minPrice = Math.max(v.yourCost, 0);
+    const minPrice = Math.max(cost, 0);
     const maxPrice = Math.max(minPrice, Math.min(frontCap, minPrice + 100000));
 
     const best = findMaxPriceWithinPayment(
@@ -183,7 +188,7 @@ export function scoreInventory(
 
     // Front gross
     const overAllowance = Math.max(0, trade.allowance - trade.acv);
-    const front = (best.price - v.yourCost) - overAllowance;
+    const front = (best.price - cost) - overAllowance;
 
     // Compute amount financed (principal) for reserve calculations
     const province = approval.province || DEFAULT_PROVINCE;

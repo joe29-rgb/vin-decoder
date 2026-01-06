@@ -78,3 +78,50 @@ export async function fetchInventoryFromSupabase(): Promise<Vehicle[]> {
   if (error) throw new Error('Supabase select failed: ' + error.message);
   return (data || []).map(fromRow);
 }
+
+/**
+ * Scraper cache functions for 7-day persistent storage
+ */
+export async function saveScraperCacheToSupabase(cacheEntry: {
+  url: string;
+  vehicles: Vehicle[];
+  timestamp: number;
+  expiresAt: number;
+}): Promise<void> {
+  const sb = getSupabase();
+  if (!sb) return;
+  
+  const { error } = await sb.from('scraper_cache').upsert({
+    url: cacheEntry.url,
+    vehicles: JSON.stringify(cacheEntry.vehicles),
+    timestamp: new Date(cacheEntry.timestamp).toISOString(),
+    expires_at: new Date(cacheEntry.expiresAt).toISOString()
+  }, { onConflict: 'url' });
+  
+  if (error) throw new Error('Supabase cache save failed: ' + error.message);
+}
+
+export async function fetchScraperCacheFromSupabase(url: string): Promise<{
+  url: string;
+  vehicles: Vehicle[];
+  timestamp: number;
+  expiresAt: number;
+} | null> {
+  const sb = getSupabase();
+  if (!sb) return null;
+  
+  const { data, error } = await sb
+    .from('scraper_cache')
+    .select('*')
+    .eq('url', url)
+    .single();
+  
+  if (error || !data) return null;
+  
+  return {
+    url: data.url,
+    vehicles: JSON.parse(data.vehicles),
+    timestamp: new Date(data.timestamp).getTime(),
+    expiresAt: new Date(data.expires_at).getTime()
+  };
+}

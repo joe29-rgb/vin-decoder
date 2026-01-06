@@ -444,25 +444,112 @@ function normalizeVehicleFromDom(html: string, pageUrl: string, idx: number): Ve
   }
 }
 
+import { getCachedVehicles, setCachedVehicles, getCacheStats } from '../../modules/scraper-cache';
+import { retryWithBackoff, RateLimiter, validateVehicleData, normalizeStockNumber } from '../../modules/scraper-utils';
+
+const rateLimiter = new RateLimiter(500); // 500ms delay between requests
+
+/**
+ * Health check endpoint
+ */
+router.get('/health', async (_req: Request, res: Response) => {
+  try {
+    const testUrl = 'https://www.devonchrysler.com';
+    const response = await fetch(testUrl, { method: 'HEAD' });
+    const cacheStats = getCacheStats();
+    
+    res.json({
+      success: true,
+      status: 'healthy',
+      devonChrysler: {
+        accessible: response.ok,
+        statusCode: response.status
+      },
+      cache: cacheStats,
+      rateLimiter: {
+        delayMs: 500
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      status: 'unhealthy',
+      error: (error as Error).message
+    });
+  }
+});
+
 router.get('/devon', async (req: Request, res: Response) => {
   try {
     const base = 'https://www.devonchrysler.com';
     const path = (req.query.path as string) || '/inventory/';
     const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
     const url = new URL(path, base).href;
+    const useCache = req.query.cache !== 'false';
     
-    console.log('[SCRAPER] Devon scrape started:', { url, limit, path });
+    console.log('[SCRAPER] Devon scrape started:', { url, limit, path, useCache });
     
-    const vehicles = await fetchVehiclesFromListing(url, limit);
-    
-    console.log('[SCRAPER] Vehicles fetched:', vehicles.length);
-    if (vehicles.length > 0) {
-      console.log('[SCRAPER] Sample vehicle:', JSON.stringify(vehicles[0], null, 2));
-    } else {
-      console.warn('[SCRAPER] WARNING: No vehicles returned from fetchVehiclesFromListing');
+    // Check cache first
+    if (useCache) {
+      const cached = await getCachedVehicles(url);
+      if (cached) {
+        console.log('[SCRAPER] Returning cached vehicles:', cached.length);
+        return res.json({ 
+          success: true, 
+          total: cached.length, 
+          vehicles: cached, 
+          cached: true,
+          debug: { url, limit } 
+        });
+      }
     }
     
-    res.json({ success: true, total: vehicles.length, vehicles, debug: { url, limit } });
+    // Apply rate limiting
+    await rateLimiter.waitIfNeeded();
+    
+    // Fetch with retry logic
+    const vehicles = await retryWithBackoff(
+      () => fetchVehiclesFromListing(url, limit),
+      3,
+      2000
+    );
+    
+    // Normalize stock numbers
+    vehicles.forEach(v => {
+      if (v.id) {
+        v.id = normalizeStockNumber(v.id);
+      }
+    });
+    
+    // Validate data quality
+    const validVehicles = vehicles.filter(v => {
+      const quality = validateVehicleData(v);
+      if (quality.score < 40) {
+        console.warn(`[SCRAPER] Low quality vehicle filtered: ${v.id} (score: ${quality.score})`);
+        return false;
+      }
+      return true;
+    });
+    
+    console.log('[SCRAPER] Vehicles fetched:', validVehicles.length, '(filtered from', vehicles.length, ')');
+    
+    // Save to cache
+    if (useCache && validVehicles.length > 0) {
+      await setCachedVehicles(url, validVehicles);
+    }
+    
+    if (validVehicles.length > 0) {
+      console.log('[SCRAPER] Sample vehicle:', JSON.stringify(validVehicles[0], null, 2));
+    }
+    
+    res.json({ 
+      success: true, 
+      total: validVehicles.length, 
+      vehicles: validVehicles, 
+      cached: false,
+      filtered: vehicles.length - validVehicles.length,
+      debug: { url, limit } 
+    });
   } catch (e) {
     const err: any = e;
     const status = err?.response?.status;

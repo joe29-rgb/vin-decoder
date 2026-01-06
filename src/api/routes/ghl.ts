@@ -98,6 +98,84 @@ router.post('/oauth/disconnect', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GHL Webhook Listener
+ * POST /api/ghl/webhook
+ * Receives real-time updates from GoHighLevel
+ */
+import { verifyGHLWebhookSignature, processGHLWebhook } from '../../modules/ghl-webhook-handler';
+
+router.post('/webhook', async (req: Request, res: Response) => {
+  try {
+    const signature = req.headers['x-ghl-signature'] as string;
+    const webhookSecret = process.env.GHL_WEBHOOK_SECRET || '';
+    
+    // Verify webhook signature if secret is configured
+    if (webhookSecret && signature) {
+      const payload = JSON.stringify(req.body);
+      const isValid = verifyGHLWebhookSignature(payload, signature, webhookSecret);
+      
+      if (!isValid) {
+        return res.status(401).json({ success: false, error: 'Invalid webhook signature' });
+      }
+    }
+    
+    // Process webhook payload
+    await processGHLWebhook(req.body);
+    
+    res.json({ success: true, message: 'Webhook processed' });
+  } catch (error) {
+    console.error('GHL webhook error:', error);
+    res.status(500).json({ success: false, error: (error as Error).message });
+  }
+});
+
+/**
+ * Register webhook with GHL
+ * POST /api/ghl/webhook/register
+ */
+router.post('/webhook/register', async (req: Request, res: Response) => {
+  try {
+    const { locationId, webhookUrl, events } = req.body;
+    
+    if (!locationId || !webhookUrl) {
+      return res.status(400).json({ success: false, error: 'locationId and webhookUrl required' });
+    }
+    
+    if (!hasToken(locationId)) {
+      return res.status(401).json({ success: false, error: 'Not authenticated with GHL' });
+    }
+    
+    // Get token from storage (would need to add getToken function to ghl-oauth module)
+    const token = process.env.GHL_ACCESS_TOKEN || '';
+    
+    // Register webhook with GHL API
+    const response = await fetch(`https://services.leadconnectorhq.com/hooks/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Version': '2021-07-28'
+      },
+      body: JSON.stringify({
+        locationId,
+        url: webhookUrl,
+        events: events || ['contact.updated', 'opportunity.updated', 'note.created']
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`GHL API error: ${response.statusText}`);
+    }
+    
+    const result = await response.json();
+    res.json({ success: true, webhookId: result.id, message: 'Webhook registered' });
+  } catch (error) {
+    console.error('Register webhook error:', error);
+    res.status(500).json({ success: false, error: (error as Error).message });
+  }
+});
+
 router.post('/save-deal', async (req: Request, res: Response) => {
   try {
     const { contactId, locationId, deal } = req.body;

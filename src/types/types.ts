@@ -239,6 +239,8 @@ export interface ApprovalSpec {
   backCap?: BackCapRule;   // optional cap for back-end as % of BB or price
   province?: Province;     // optional taxation province
   downPayment?: number;    // optional down payment
+  isNativeStatus?: boolean; // tax exempt for status natives
+  customerName?: string;   // customer name for manual entry
 }
 
 export interface TradeInfo {

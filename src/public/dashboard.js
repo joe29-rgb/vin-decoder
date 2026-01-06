@@ -33,6 +33,24 @@
   var approvalText = document.getElementById('approvalText');
   var approvalPdf = document.getElementById('approvalPdf');
   var parseApprovalPdf = document.getElementById('parseApprovalPdf');
+  var manualApprovalTab = document.getElementById('manualApprovalTab');
+  var pdfApprovalTab = document.getElementById('pdfApprovalTab');
+  var manualApprovalForm = document.getElementById('manualApprovalForm');
+  var pdfApprovalForm = document.getElementById('pdfApprovalForm');
+  var approvalLender = document.getElementById('approvalLender');
+  var approvalProgram = document.getElementById('approvalProgram');
+
+  var LENDER_PROGRAMS = {
+    'TD': ['2-Key', '3-Key', '4-Key', '5-Key'],
+    'Santander': ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4', 'Tier 5', 'Tier 6', 'Tier 7', 'Tier 8'],
+    'SDA': ['Star 1', 'Star 2', 'Star 3', 'Star 4', 'Star 5', 'Star 6', 'Star 7', 'StartRight'],
+    'RIFCO': ['Prime', 'Near Prime', 'Subprime', 'Deep Subprime'],
+    'IAAutoFinance': ['Tier A', 'Tier B', 'Tier C', 'Tier D'],
+    'EdenPark': ['Prime', 'Standard', 'Value'],
+    'AutoCapital': ['Tier 1', 'Tier 2', 'Tier 3'],
+    'LendCare': ['Prime', 'Standard'],
+    'Northlake': ['Tier A', 'Tier B', 'Tier C']
+  };
 
   var sortBy = document.getElementById('sortBy');
   var search = document.getElementById('search');
@@ -52,8 +70,43 @@
   function closeRules(){ rulesModal.classList.remove('show'); }
   function openInventory(){ inventoryModal.classList.add('show'); }
   function closeInventory(){ inventoryModal.classList.remove('show'); }
-  function openApproval(){ approvalModal.classList.add('show'); }
+  function openApproval(){ 
+    approvalModal.classList.add('show'); 
+    if (manualApprovalTab) manualApprovalTab.click();
+  }
   function closeApproval(){ approvalModal.classList.remove('show'); }
+
+  if (manualApprovalTab) {
+    manualApprovalTab.onclick = function(){
+      manualApprovalForm.style.display = 'block';
+      pdfApprovalForm.style.display = 'none';
+      manualApprovalTab.classList.add('btn-primary');
+      pdfApprovalTab.classList.remove('btn-primary');
+    };
+  }
+
+  if (pdfApprovalTab) {
+    pdfApprovalTab.onclick = function(){
+      manualApprovalForm.style.display = 'none';
+      pdfApprovalForm.style.display = 'block';
+      pdfApprovalTab.classList.add('btn-primary');
+      manualApprovalTab.classList.remove('btn-primary');
+    };
+  }
+
+  if (approvalLender) {
+    approvalLender.onchange = function(){
+      var lender = approvalLender.value;
+      var programs = LENDER_PROGRAMS[lender] || [];
+      approvalProgram.innerHTML = '<option value="">Select Program</option>';
+      for (var i = 0; i < programs.length; i++) {
+        var opt = document.createElement('option');
+        opt.value = programs[i];
+        opt.textContent = programs[i];
+        approvalProgram.appendChild(opt);
+      }
+    };
+  }
 
   function fmt$(n){ try{ return '$' + Number(n||0).toLocaleString(); }catch(e){ return '$' + n; } }
 
@@ -339,6 +392,77 @@
     var jr = await resp.json();
     if (jr.success) { rulesInput.value = jr.text || ''; toast('Parsed rules PDF'); }
     else { toast('Failed: ' + (jr.error||'unknown')); }
+  };
+
+  document.getElementById('saveApproval').onclick = async function(){
+    if (manualApprovalForm.style.display !== 'none') {
+      // Manual entry mode
+      var customerName = document.getElementById('approvalCustomerName').value;
+      var lender = document.getElementById('approvalLender').value;
+      var program = document.getElementById('approvalProgram').value;
+      var apr = parseFloat(document.getElementById('approvalAPR').value);
+      var term = parseInt(document.getElementById('approvalTerm').value);
+      var paymentMin = parseFloat(document.getElementById('approvalPaymentMin').value);
+      var paymentMax = parseFloat(document.getElementById('approvalPaymentMax').value);
+      var downPayment = parseFloat(document.getElementById('approvalDownPayment').value) || 0;
+      var tradeAllowance = parseFloat(document.getElementById('approvalTradeAllowance').value) || 0;
+      var tradeACV = parseFloat(document.getElementById('approvalTradeACV').value) || 0;
+      var tradeLien = parseFloat(document.getElementById('approvalTradeLien').value) || 0;
+      var province = document.getElementById('approvalProvince').value;
+      var isNativeStatus = document.getElementById('approvalNativeStatus').checked;
+      
+      if (!lender || !program || !apr || !term || !paymentMax) {
+        toast('Please fill in all required fields');
+        return;
+      }
+      
+      var payload = {
+        contactId: 'manual-' + Date.now(),
+        locationId: 'manual',
+        approval: {
+          bank: lender,
+          program: program,
+          apr: apr,
+          termMonths: term,
+          paymentMin: paymentMin || Math.round(paymentMax * 0.8),
+          paymentMax: paymentMax,
+          downPayment: downPayment,
+          province: province,
+          isNativeStatus: isNativeStatus,
+          customerName: customerName
+        },
+        trade: {
+          allowance: tradeAllowance,
+          acv: tradeACV,
+          lienBalance: tradeLien
+        }
+      };
+      
+      var resp = await fetch('/api/approvals/ingest', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      var jr = await resp.json();
+      if (jr.success) { 
+        toast('✓ Approval created successfully');
+        closeApproval();
+        document.getElementById('score').disabled = false;
+      } else { 
+        toast('Failed: ' + (jr.error||'unknown')); 
+      }
+    } else {
+      // PDF mode
+      var txt = (approvalText.value||'').trim();
+      if (!txt) { toast('Provide approval JSON'); return; }
+      var body;
+      try { body = JSON.parse(txt); } catch(e) { toast('Invalid JSON format'); return; }
+      var resp = await fetch('/api/approvals/ingest', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      var jr = await resp.json();
+      if (jr.success) { 
+        toast('✓ Approval loaded');
+        closeApproval();
+        document.getElementById('score').disabled = false;
+      } else { 
+        toast('Failed: ' + (jr.error||'unknown')); 
+      }
+    }
   };
 
   document.getElementById('saveInventory').onclick = async function(){

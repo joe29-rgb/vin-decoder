@@ -303,4 +303,59 @@ router.get('/deals/history', (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Excel Export Endpoints
+ */
+import { exportInventoryToExcel, exportDealsToExcel, exportAnalyticsToExcel } from '../../modules/excel-export';
+import { state } from '../state';
+
+router.get('/export/excel/inventory', async (req: Request, res: Response) => {
+  try {
+    const buffer = await exportInventoryToExcel(state.inventory);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=inventory-${Date.now()}.xlsx`);
+    res.send(buffer);
+  } catch (error: any) {
+    logger.error('Export inventory to Excel failed', { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post('/export/excel/deals', async (req: Request, res: Response) => {
+  try {
+    const { rows, approval } = req.body;
+    if (!rows || !Array.isArray(rows)) {
+      return res.status(400).json({ success: false, error: 'Scored rows required' });
+    }
+    const buffer = await exportDealsToExcel(rows, approval);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=deals-${Date.now()}.xlsx`);
+    res.send(buffer);
+  } catch (error: any) {
+    logger.error('Export deals to Excel failed', { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/export/excel/analytics', async (req: Request, res: Response) => {
+  try {
+    const dealMetrics = getDealMetrics();
+    const lenderPerformance = getLenderPerformance();
+    const revenue = getRevenueByMonth();
+    
+    const buffer = await exportAnalyticsToExcel({
+      dealMetrics,
+      lenderPerformance,
+      revenue
+    });
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=analytics-${Date.now()}.xlsx`);
+    res.send(buffer);
+  } catch (error: any) {
+    logger.error('Export analytics to Excel failed', { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 export default router;
