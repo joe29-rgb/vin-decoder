@@ -103,16 +103,17 @@ export function scoreInventory(
   const rows: ScoredVehicleRow[] = [];
 
   for (const v of inventory) {
-    const flags: string[] = [];
-    const bb = v.cbbWholesale || v.blackBookValue || 0;
-    if (bb <= 0 || isNaN(bb)) {
-      flags.push('missing_black_book');
-      continue;
-    }
-    if (v.yourCost == null || isNaN(v.yourCost) || v.yourCost <= 0) {
-      flags.push('missing_cost');
-      continue;
-    }
+    try {
+      const flags: string[] = [];
+      const bb = v.cbbWholesale || v.blackBookValue || 0;
+      if (bb <= 0 || isNaN(bb)) {
+        flags.push('missing_black_book');
+        continue;
+      }
+      if (v.yourCost == null || isNaN(v.yourCost) || v.yourCost <= 0) {
+        flags.push('missing_cost');
+        continue;
+      }
 
     // Load dynamic lender rule if available
     const rule = findRule(approval.bank, approval.program);
@@ -200,6 +201,11 @@ export function scoreInventory(
       totalGross,
       flags,
     });
+    } catch (e) {
+      // Skip vehicles that cause errors in scoring (e.g., invalid data)
+      console.error(`Error scoring vehicle ${v.id || v.vin}:`, (e as Error).message);
+      continue;
+    }
   }
 
   return rows.sort((a, b) => b.totalGross - a.totalGross);

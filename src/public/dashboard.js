@@ -234,6 +234,8 @@
         for (var i2=0;i2<vehicles.length;i2++){
           var v = vehicles[i2];
           var price = v.suggestedPrice || v.price || 0;
+          var imgUrl = v.imageUrl || v.image_url || '';
+          if (imgUrl && !imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) imgUrl = '';
           var line = [
             v.id || v.stock_number || v.vin || ('SCR-' + i2),
             v.vin || '',
@@ -247,7 +249,7 @@
             v.transmission || 'Automatic',
             price * 0.75 || 0,
             price * 0.85 || 0,
-            v.imageUrl || v.image_url || '',
+            imgUrl,
             'true'
           ].join(',');
           csvLines.push(line);
