@@ -98,6 +98,42 @@ router.post('/oauth/disconnect', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/save-deal', async (req: Request, res: Response) => {
+  try {
+    const { contactId, locationId, deal } = req.body;
+    
+    if (!contactId || !locationId || !deal) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: contactId, locationId, deal'
+      });
+    }
+    
+    if (!hasToken(locationId)) {
+      return res.status(401).json({
+        success: false,
+        error: 'Not authenticated with GHL. Please connect first.'
+      });
+    }
+    
+    logger.info('Saving deal to GHL', { contactId, locationId });
+    
+    const result = await saveDealToGHL(contactId, locationId, deal);
+    
+    res.json({
+      success: true,
+      message: 'Deal saved to GHL successfully',
+      result
+    });
+  } catch (error: any) {
+    logger.error('Save deal to GHL failed', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 router.get('/oauth/status', async (req: Request, res: Response) => {
   try {
     const { location_id } = req.query;
