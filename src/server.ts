@@ -15,6 +15,7 @@ import carfaxRouter from './api/routes/carfax';
 import geolocationRouter from './api/routes/geolocation';
 import inventorySyncRouter from './api/routes/inventory-sync';
 import reportsRouter from './api/routes/reports';
+import dealershipsRouter from './api/routes/dealerships';
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use('/api/carfax', carfaxRouter);
 app.use('/api/location', geolocationRouter);
 app.use('/api/sync', inventorySyncRouter);
 app.use('/api/reports', reportsRouter);
+app.use('/api/dealerships', dealershipsRouter);
 // Backward-compatibility mounts for legacy paths
 app.use('/api', dealsRouter);      // provides /api/lenders, /api/deals/*
 app.use('/api', webhooksRouter);   // provides /api/rules/*, /api/approvals/*
@@ -59,6 +61,13 @@ app.get('/dashboard', (_req, res) => {
   res.sendFile(path.resolve(htmlPath));
 });
 
+app.get('/deal-calculator', (_req, res) => {
+  const htmlPath = path.join(process.cwd(), 'src', 'views', 'deal-calculator.html');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data: https:");
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.resolve(htmlPath));
+});
+
 app.get('/dashboard.js', (_req, res) => {
   const distPath = path.join(process.cwd(), 'dist', 'public', 'dashboard.js');
   const srcPath = path.join(process.cwd(), 'src', 'public', 'dashboard.js');
@@ -68,6 +77,19 @@ app.get('/dashboard.js', (_req, res) => {
   res.sendFile(path.resolve(p), { headers: { 'Content-Type': 'application/javascript; charset=utf-8' } }, (err) => {
     if (err) {
       res.status(500).send("console.error('Failed to load dashboard.js');");
+    }
+  });
+});
+
+app.get('/deal-calculator.js', (_req, res) => {
+  const distPath = path.join(process.cwd(), 'dist', 'public', 'deal-calculator.js');
+  const srcPath = path.join(process.cwd(), 'src', 'public', 'deal-calculator.js');
+  const p = fs.existsSync(distPath) ? distPath : srcPath;
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.sendFile(path.resolve(p), { headers: { 'Content-Type': 'application/javascript; charset=utf-8' } }, (err) => {
+    if (err) {
+      res.status(500).send("console.error('Failed to load deal-calculator.js');");
     }
   });
 });
