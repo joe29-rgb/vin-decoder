@@ -263,11 +263,28 @@ router.post('/approvals/ingest', (req: Request, res: Response) => {
     if (!payload?.contactId || !payload?.locationId || !payload?.approval || !payload?.trade) {
       return res.status(400).json({ success: false, error: 'Missing contactId, locationId, approval, or trade' });
     }
+    
+    // Apply defaults for optional approval fields
+    const approval = {
+      ...payload.approval,
+      downPayment: payload.approval.downPayment ?? 0,
+      province: payload.approval.province || 'AB',
+      frontCapFactor: payload.approval.frontCapFactor ?? 1.4,
+    };
+    
+    // Apply defaults for trade fields
+    const trade = {
+      ...payload.trade,
+      allowance: payload.trade.allowance ?? 0,
+      acv: payload.trade.acv ?? 0,
+      lienBalance: payload.trade.lienBalance ?? 0,
+    };
+    
     state.lastApproval = {
       contactId: payload.contactId,
       locationId: payload.locationId,
-      approval: payload.approval,
-      trade: payload.trade,
+      approval,
+      trade,
     };
     if (payload.blackBook?.overrideVehicleId && payload.blackBook?.overrideValue != null) {
       const id = payload.blackBook.overrideVehicleId;
