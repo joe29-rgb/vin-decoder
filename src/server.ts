@@ -27,7 +27,7 @@ app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
 
-// API routes (skeletons)
+// API routes
 app.use('/api/deals', dealsRouter);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/webhooks', webhooksRouter);
