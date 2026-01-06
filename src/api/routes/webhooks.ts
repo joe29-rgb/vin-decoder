@@ -306,8 +306,8 @@ router.post('/approvals/score', (req: Request, res: Response) => {
   try {
     const body: ScoreRequest = req.body || {};
     const approval = body.approval || state.lastApproval?.approval;
-    const trade = body.trade || state.lastApproval?.trade;
-    if (!approval || !trade) return res.status(400).json({ success: false, error: 'Missing approval or trade (ingest first or include in request)' });
+    const trade = body.trade || state.lastApproval?.trade || { allowance: 0, acv: 0, lienBalance: 0 };
+    if (!approval) return res.status(400).json({ success: false, error: 'Missing approval (ingest first or include in request)' });
     
     // Always use latest inventory from state.inventory
     const inventoryToScore = state.inventory.length > 0 ? state.inventory : state.mirroredInventory;

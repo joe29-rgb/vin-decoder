@@ -6,7 +6,7 @@ import { Vehicle } from '../../types/types';
 const router = express.Router();
 
 const http = axios.create({
-  timeout: 20000,
+  timeout: 60000,
   maxRedirects: 5,
   headers: {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36',
@@ -37,8 +37,8 @@ async function fetchHtmlHeadless(url: string, referer?: string): Promise<string>
       if (rt === 'image' || rt === 'font' || rt === 'media' || rt === 'stylesheet') return req.abort();
       req.continue();
     });
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
-    await page.waitForSelector('body', { timeout: 15000 });
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 120000 });
+    await page.waitForSelector('body', { timeout: 30000 });
     return await page.content();
   } finally {
     if (browser) { try { await browser.close(); } catch(_e) {} }
