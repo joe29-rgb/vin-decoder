@@ -13,6 +13,17 @@ import {
   exportReportToCSV,
   generateExecutiveSummary,
 } from '../../modules/reports-analytics';
+import {
+  getDealMetrics,
+  getLenderPerformance,
+  getVehicleTurnover,
+  getRevenueByMonth,
+  getCreditTierDistribution,
+  recordDeal,
+  generateSampleData,
+  clearDealHistory,
+  getDealHistory,
+} from '../../modules/reports-generator';
 import { getInventoryStore } from '../../modules/inventory-sync';
 import logger from '../../utils/logger';
 
@@ -188,6 +199,107 @@ router.get('/dashboard', async (req: Request, res: Response) => {
       success: false,
       error: error.message,
     });
+  }
+});
+
+router.get('/deals/metrics', (req: Request, res: Response) => {
+  try {
+    const metrics = getDealMetrics();
+    res.json({ success: true, metrics });
+  } catch (error: any) {
+    logger.error('Get deal metrics failed', { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/deals/lenders', (req: Request, res: Response) => {
+  try {
+    const lenders = getLenderPerformance();
+    res.json({ success: true, lenders });
+  } catch (error: any) {
+    logger.error('Get lender performance failed', { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/deals/turnover', (req: Request, res: Response) => {
+  try {
+    const turnover = getVehicleTurnover();
+    res.json({ success: true, turnover });
+  } catch (error: any) {
+    logger.error('Get vehicle turnover failed', { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/deals/revenue', (req: Request, res: Response) => {
+  try {
+    const months = parseInt(req.query.months as string) || 6;
+    const revenue = getRevenueByMonth(months);
+    res.json({ success: true, revenue });
+  } catch (error: any) {
+    logger.error('Get revenue by month failed', { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/deals/credit-tiers', (req: Request, res: Response) => {
+  try {
+    const tiers = getCreditTierDistribution();
+    res.json({ success: true, tiers });
+  } catch (error: any) {
+    logger.error('Get credit tier distribution failed', { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post('/deals/record', (req: Request, res: Response) => {
+  try {
+    const { vehicleId, lender, revenue, grossProfit, payment, creditTier } = req.body;
+    
+    if (!vehicleId || !lender || !revenue || !grossProfit || !payment) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: vehicleId, lender, revenue, grossProfit, payment',
+      });
+    }
+    
+    recordDeal({ vehicleId, lender, revenue, grossProfit, payment, creditTier });
+    
+    res.json({ success: true, message: 'Deal recorded successfully' });
+  } catch (error: any) {
+    logger.error('Record deal failed', { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post('/deals/generate-sample', (req: Request, res: Response) => {
+  try {
+    generateSampleData();
+    res.json({ success: true, message: 'Sample data generated' });
+  } catch (error: any) {
+    logger.error('Generate sample data failed', { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.delete('/deals/history', (req: Request, res: Response) => {
+  try {
+    clearDealHistory();
+    res.json({ success: true, message: 'Deal history cleared' });
+  } catch (error: any) {
+    logger.error('Clear deal history failed', { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/deals/history', (req: Request, res: Response) => {
+  try {
+    const history = getDealHistory();
+    res.json({ success: true, total: history.length, history });
+  } catch (error: any) {
+    logger.error('Get deal history failed', { error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
