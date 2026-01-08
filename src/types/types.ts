@@ -136,6 +136,12 @@ export interface LenderProgram {
   fee: number;
   negativeEquityLimit: number;
   rateUpsell?: number;
+  maxTerm?: number;
+  maxVehicleAge?: number;
+  maxMileage?: number;
+  minCreditScore?: number;
+  apr?: number;
+  maxLTV?: number;
 }
 
 /**
