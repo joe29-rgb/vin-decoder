@@ -138,6 +138,62 @@ router.get('/', (_req: Request, res: Response) => {
   })();
 });
 
+router.post('/enrich', async (req: Request, res: Response) => {
+  try {
+    const { vehicles } = req.body;
+    if (!vehicles || !Array.isArray(vehicles)) {
+      return res.status(400).json({ success: false, error: 'vehicles array required' });
+    }
+    
+    let enriched = 0;
+    let notFound = 0;
+    
+    for (const scraped of vehicles) {
+      const stock = String(scraped.id || scraped.stock || '').trim();
+      const vin = String(scraped.vin || '').trim();
+      
+      // Find existing vehicle by stock number or VIN
+      const idx = state.inventory.findIndex((v: Vehicle) => {
+        const vStock = String(v.id || '').trim();
+        const vVin = String(v.vin || '').trim();
+        if (stock && vStock && vStock === stock) return true;
+        if (vin && vVin && vVin === vin) return true;
+        return false;
+      });
+      
+      if (idx >= 0) {
+        const existing = state.inventory[idx];
+        // Enrich with scraped data - only update missing fields
+        state.inventory[idx] = {
+          ...existing,
+          vin: existing.vin || scraped.vin || '',
+          mileage: existing.mileage || scraped.mileage || 0,
+          engine: existing.engine || scraped.engine || 'Unknown',
+          transmission: existing.transmission || scraped.transmission || 'Unknown',
+          imageUrl: scraped.imageUrl || existing.imageUrl,
+          imageUrls: scraped.imageUrls || existing.imageUrls,
+          color: existing.color || scraped.color
+        };
+        enriched++;
+      } else {
+        notFound++;
+      }
+    }
+    
+    try { await saveInventoryToSupabase(state.inventory); } catch(_e){}
+    
+    res.json({ 
+      success: true, 
+      message: `Enriched ${enriched} vehicles with scraped data. ${notFound} scraped vehicles not found in inventory.`,
+      enriched,
+      notFound,
+      total: state.inventory.length
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: (error as Error).message });
+  }
+});
+
 router.post('/sync', (req: Request, res: Response) => {
   try {
     const b = req.body || {};

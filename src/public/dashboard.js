@@ -296,48 +296,23 @@
         }
         
         try { console.log('Unique vehicles after dedup:', vehicles.length); } catch(_e){}
-        toast('Scraped ' + vehicles.length + ' vehicles, converting to CSV...');
+        toast('Scraped ' + vehicles.length + ' vehicles, enriching existing inventory...');
         
-        var csvLines = ['stock,vin,year,make,model,mileage,cost,suggested_price,engine,transmission,cbb_wholesale,cbb_retail,image_url,in_stock'];
-        for (var i2=0;i2<vehicles.length;i2++){
-          var v = vehicles[i2];
-          var price = v.suggestedPrice || v.price || 0;
-          var imgUrl = v.imageUrl || v.image_url || '';
-          if (imgUrl && !imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) imgUrl = '';
-          var line = [
-            v.id || v.stock_number || v.vin || ('SCR-' + i2),
-            v.vin || '',
-            v.year || '',
-            v.make || '',
-            v.model || '',
-            v.mileage || 0,
-            price * 0.85 || 0,
-            price || 0,
-            v.engine || 'V6',
-            v.transmission || 'Automatic',
-            price * 0.75 || 0,
-            price * 0.85 || 0,
-            imgUrl,
-            'true'
-          ].join(',');
-          csvLines.push(line);
-        }
-        
-        var csvContent = csvLines.join('\n');
-        try { console.log('Uploading scraped inventory as CSV...'); } catch(_e){}
-        var uploadResp = await fetch('/api/inventory/upload', { 
+        // Enrich existing inventory with scraped data (images, VIN, mileage, engine, transmission)
+        try { console.log('Enriching inventory with scraped data...'); } catch(_e){}
+        var enrichResp = await fetch('/api/inventory/enrich', { 
           method:'POST', 
           headers:{'Content-Type':'application/json'}, 
-          body: JSON.stringify({ csvContent: csvContent, source: 'devon-scraper' }) 
+          body: JSON.stringify({ vehicles: vehicles }) 
         });
-        var uploadResult = await uploadResp.json();
+        var uploadResult = await enrichResp.json();
         
         await refreshMeta();
         renderInventoryTable();
         if (uploadResult.success) {
-          toast(uploadResult.message || 'Scraped vehicles imported');
+          toast(uploadResult.message || ('Enriched ' + (uploadResult.enriched || 0) + ' vehicles'));
         } else {
-          toast('Import failed: ' + (uploadResult.error || 'unknown'));
+          toast('Enrichment failed: ' + (uploadResult.error || 'unknown'));
         }
         if (meta && meta.textContent !== undefined) meta.textContent = '';
       } catch(e){ 
