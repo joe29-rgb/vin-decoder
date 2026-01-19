@@ -866,7 +866,7 @@ class ProductionDealershipScraper {
       });
 
       // Simulate human behavior
-      await page.waitForTimeout(1000 + Math.random() * 1000);
+      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
 
       const html = await page.content();
       await page.close();
