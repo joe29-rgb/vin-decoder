@@ -98,8 +98,14 @@ router.post('/approvals/parse-pdf', upload.single('file'), async (req: Request, 
       suggestion.approval.bank = lenderMap[lowerNorm] || normalized;
     }
     
-    // Enhanced program matching
+    // Enhanced program matching - look for Key/Star/Tier patterns
     const programPatterns = [
+      /(\d+[-\s]?Key)/i,                    // "5-Key" or "5 Key"
+      /(Key[-\s]?\d+)/i,                    // "Key-5" or "Key 5"
+      /(Star[-\s]?\d+)/i,                   // "Star-6" or "Star 6"
+      /(\d+[-\s]?Star)/i,                   // "6-Star" or "6 Star"
+      /(Tier[-\s]?\d+)/i,                   // "Tier-8" or "Tier 8"
+      /(\d+[-\s]?Tier)/i,                   // "8-Tier" or "8 Tier"
       /Product\s*[:\-]?\s*([^\n]+?)(?=\s*Applicant|$)/i,
       /Program\s*[:\-]?\s*([^\n]+?)(?=\s*Applicant|$)/i,
       /(?:Pre-Approval|Loan|Conditional Approval)/i
@@ -156,7 +162,7 @@ router.post('/approvals/parse-pdf', upload.single('file'), async (req: Request, 
       if (match && match[1]) {
         const amount = parseFloat(match[1].replace(/,/g, ''));
         suggestion.approval.paymentMax = amount;
-        suggestion.approval.paymentMin = Math.round(amount * 0.8); // 80% of max
+        suggestion.approval.paymentMin = 0; // No minimum payment
         break;
       }
     }

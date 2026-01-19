@@ -17,6 +17,16 @@ try {
   }
 } catch (_e) {}
 
+// TD Auto Finance dynamic reserve brackets (official documentation)
+const TD_RESERVE_BRACKETS = [
+  { minFinanced: 40000, maxFinanced: 10000000, amount: 700 },
+  { minFinanced: 25000, maxFinanced: 39999, amount: 600 },
+  { minFinanced: 20000, maxFinanced: 24999, amount: 500 },
+  { minFinanced: 15000, maxFinanced: 19999, amount: 400 },
+  { minFinanced: 10000, maxFinanced: 14999, amount: 300 },
+  { minFinanced: 7500, maxFinanced: 9999, amount: 200 },
+];
+
 // Also load built-in program DB (TD/Santander/SDA) and map to LenderRuleSet
 try {
   const db = getAllLenderPrograms();
@@ -24,15 +34,19 @@ try {
     const programs = db[bankKey] || {};
     for (const progKey of Object.keys(programs)) {
       const p = programs[progKey];
+      
+      // Special handling for TD programs - use dynamic reserve brackets
+      const isTD = bankKey === 'TD';
+      
       const rule: LenderRuleSet = {
         bank: canonicalBank,
         program: p.tier,
-        baseApr: p.rate,
-        maxFrontEndAdvance: (p.ltv && p.ltv > 0) ? (p.ltv / 100) : undefined,
-        frontAdvanceBase: 'black_book',
-        reserve: p.reserve ? {
+        frontCapFactor: (p.ltv && p.ltv > 0) ? (p.ltv / 100) : undefined,
+        reserve: isTD ? {
+          fixedByFinancedAmount: TD_RESERVE_BRACKETS,
+        } : (p.reserve ? {
           fixedByFinancedAmount: [ { minFinanced: 0, maxFinanced: 10000000, amount: p.reserve } ],
-        } : undefined,
+        } : undefined),
       } as LenderRuleSet;
       RULES.push(rule);
     }
