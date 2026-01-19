@@ -43,18 +43,6 @@
   // Store multiple lender approvals
   var lenderApprovals = [];
 
-  var LENDER_PROGRAMS = {
-    'TD': ['2-Key', '3-Key', '4-Key', '5-Key'],
-    'Santander': ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4', 'Tier 5', 'Tier 6', 'Tier 7', 'Tier 8'],
-    'SDA': ['Star 1', 'Star 2', 'Star 3', 'Star 4', 'Star 5', 'Star 6', 'Star 7', 'StartRight'],
-    'RIFCO': ['Prime', 'Near Prime', 'Subprime', 'Deep Subprime'],
-    'IAAutoFinance': ['Tier A', 'Tier B', 'Tier C', 'Tier D'],
-    'EdenPark': ['Prime', 'Standard', 'Value'],
-    'AutoCapital': ['Tier 1', 'Tier 2', 'Tier 3'],
-    'LendCare': ['Prime', 'Standard'],
-    'Northlake': ['Tier A', 'Tier B', 'Tier C']
-  };
-
   var sortBy = document.getElementById('sortBy');
   var search = document.getElementById('search');
   var sourceFilter = document.getElementById('sourceFilter');
@@ -189,22 +177,7 @@
   // Add first lender approval on load
   if (addLenderApproval) {
     addLenderApproval.onclick = addLenderApprovalCard;
-    // Add one by default
     addLenderApprovalCard();
-  }
-
-  if (approvalLender) {
-    approvalLender.onchange = function(){
-      var lender = approvalLender.value;
-      var programs = LENDER_PROGRAMS[lender] || [];
-      approvalProgram.innerHTML = '<option value="">Select Program</option>';
-      for (var i = 0; i < programs.length; i++) {
-        var opt = document.createElement('option');
-        opt.value = programs[i];
-        opt.textContent = programs[i];
-        approvalProgram.appendChild(opt);
-      }
-    };
   }
 
   function fmt$(n){ try{ return '$' + Number(n||0).toLocaleString(); }catch(e){ return '$' + n; } }
