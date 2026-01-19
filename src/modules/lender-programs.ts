@@ -1,20 +1,26 @@
 /**
  * MODULE 2: LENDER PROGRAMS DATABASE
- * TD Auto Finance - Complete Program Implementation
- * Based on official January 2026 documentation
+ * Complete Canadian Subprime Lender Implementation
+ * Based on official January 2025 - January 2026 documentation
  * 
- * PROGRAMS:
- * 1. Specialized Lending (2-6 Key) - Non-Prime/Subprime
- * 2. Holiday Special - Prime (Dec 16, 2025 - Jan 18, 2026)
- * 3. Eco Program - Prime (Hybrid/Electric)
- * 4. Standard Fixed Rates - Prime (2015-2026)
+ * LENDERS IMPLEMENTED:
+ * 1. TD Auto Finance (Specialized Lending 2-6 Key + Prime)
+ * 2. Scotia Dealer Advantage (Star 1-7 + StartRight)
+ * 3. Santander Consumer (Tier 1-8)
+ * 4. RIFCO (Standard + Preferred Tier 1-3)
+ * 5. iA Auto Finance (1st-6th Gear)
+ * 6. Northlake Financial (Titanium, Platinum, Gold, Standard, U-Drive)
+ * 7. AutoCapital Canada (Tier 1-6)
+ * 8. Eden Park (2-6 Ride + EP Ride+ + EP No Hit)
+ * 9. Prefera Finance (P1-P4)
+ * 10. LendCare (Tier 1-3)
  */
 
 import { LenderProgram, LenderType } from '../types/types';
 
 /**
  * Calculate TD reserve based on amount financed
- * Base Reserve Grid (applies to all TD programs):
+ * Base Reserve Grid (applies to all TD Specialized Lending programs):
  * $40,000+: $700
  * $25,000-$39,999: $600
  * $20,000-$24,999: $500
@@ -30,6 +36,65 @@ export function calculateTDReserve(amountFinanced: number): number {
   if (amountFinanced >= 10000) return 300;
   if (amountFinanced >= 7500) return 200;
   return 0;
+}
+
+/**
+ * Calculate iA Auto Finance reserve based on amount financed
+ * > $50,000 = $1,000
+ * $45,001-$50,000 = $750
+ * $35,001-$45,000 = $600
+ * $20,001-$35,000 = $500
+ * $15,001-$20,000 = $450
+ * $10,001-$15,000 = $300
+ * < $10,000 = $100
+ */
+export function calculateIAReserve(amountFinanced: number): number {
+  if (amountFinanced > 50000) return 1000;
+  if (amountFinanced >= 45001) return 750;
+  if (amountFinanced >= 35001) return 600;
+  if (amountFinanced >= 20001) return 500;
+  if (amountFinanced >= 15001) return 450;
+  if (amountFinanced >= 10001) return 300;
+  return 100;
+}
+
+/**
+ * Calculate Eden Park reserve based on amount financed
+ * $45,001+ = $750
+ * $25,001-$45,000 = $600
+ * $20,001-$25,000 = $500
+ * $15,001-$20,000 = $450
+ * $10,001-$15,000 = $300
+ * Up to $10,000 = $250
+ */
+export function calculateEdenParkReserve(amountFinanced: number): number {
+  if (amountFinanced >= 45001) return 750;
+  if (amountFinanced >= 25001) return 600;
+  if (amountFinanced >= 20001) return 500;
+  if (amountFinanced >= 15001) return 450;
+  if (amountFinanced >= 10001) return 300;
+  return 250;
+}
+
+/**
+ * Calculate AutoCapital reserve based on amount financed
+ * ATF ≤ $15,000 = $300
+ * ATF > $15,000 = $500
+ */
+export function calculateAutoCapitalReserve(amountFinanced: number): number {
+  return amountFinanced <= 15000 ? 300 : 500;
+}
+
+/**
+ * Calculate Prefera reserve based on amount financed
+ * $200-$600 (based on ATF)
+ */
+export function calculatePreferaReserve(amountFinanced: number): number {
+  if (amountFinanced >= 40000) return 600;
+  if (amountFinanced >= 30000) return 500;
+  if (amountFinanced >= 20000) return 400;
+  if (amountFinanced >= 15000) return 300;
+  return 200;
 }
 
 /**
@@ -614,6 +679,11 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
     },
   },
   EdenPark: {
+    // ========================================
+    // EDEN PARK - RIDE PROGRAM
+    // 7 Options: 6 Ride, 5 Ride, 4 Ride, 3 Ride, 2 Ride, EP Ride+, EP No Hit
+    // Dynamic reserve based on ATF
+    // ========================================
     '6Ride': {
       lender: 'EdenPark',
       tier: '6Ride',
@@ -621,7 +691,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       ltv: 140,
       maxDsr: 50,
       minIncome: 1800,
-      reserve: 750,
+      reserve: 0, // Dynamic - calculated via calculateEdenParkReserve()
       fee: 0,
       negativeEquityLimit: 5000,
     },
@@ -632,7 +702,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       ltv: 140,
       maxDsr: 50,
       minIncome: 1800,
-      reserve: 750,
+      reserve: 0, // Dynamic
       fee: 0,
       negativeEquityLimit: 5000,
     },
@@ -643,7 +713,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       ltv: 140,
       maxDsr: 50,
       minIncome: 1800,
-      reserve: 750,
+      reserve: 0, // Dynamic
       fee: 0,
       negativeEquityLimit: 4000,
     },
@@ -654,7 +724,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       ltv: 135,
       maxDsr: 50,
       minIncome: 1800,
-      reserve: 750,
+      reserve: 0, // Dynamic
       fee: 0,
       negativeEquityLimit: 4000,
     },
@@ -665,20 +735,47 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       ltv: 130,
       maxDsr: 50,
       minIncome: 1800,
-      reserve: 750,
+      reserve: 0, // Dynamic
+      fee: 0,
+      negativeEquityLimit: 3000,
+    },
+    'EPRidePlus': {
+      lender: 'EdenPark',
+      tier: 'EPRidePlus',
+      rate: 11.99,
+      ltv: 140,
+      maxDsr: 50,
+      minIncome: 1800,
+      reserve: 0, // Dynamic
+      fee: 0,
+      negativeEquityLimit: 5000,
+    },
+    'EPNoHit': {
+      lender: 'EdenPark',
+      tier: 'EPNoHit',
+      rate: 19.99,
+      ltv: 130,
+      maxDsr: 50,
+      minIncome: 1800,
+      reserve: 0, // Dynamic
       fee: 0,
       negativeEquityLimit: 3000,
     },
   },
   IAAutoFinance: {
+    // ========================================
+    // iA AUTO FINANCE - GEARS PROGRAM
+    // 6 Tiers (1st-6th Gear)
+    // Dynamic reserve based on ATF
+    // ========================================
     '6thGear': {
       lender: 'IAAutoFinance',
       tier: '6thGear',
       rate: 11.49,
-      ltv: 140,
+      ltv: 140, // Used: 140%, New: $60,000+
       maxDsr: 50,
       minIncome: 1800,
-      reserve: 1000,
+      reserve: 0, // Dynamic - calculated via calculateIAReserve()
       fee: 699,
       negativeEquityLimit: 5000,
     },
@@ -689,7 +786,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       ltv: 140,
       maxDsr: 50,
       minIncome: 1800,
-      reserve: 1000,
+      reserve: 0, // Dynamic
       fee: 699,
       negativeEquityLimit: 5000,
     },
@@ -700,7 +797,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       ltv: 135,
       maxDsr: 50,
       minIncome: 1800,
-      reserve: 1000,
+      reserve: 0, // Dynamic
       fee: 699,
       negativeEquityLimit: 4000,
     },
@@ -711,7 +808,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       ltv: 125,
       maxDsr: 50,
       minIncome: 1800,
-      reserve: 1000,
+      reserve: 0, // Dynamic
       fee: 699,
       negativeEquityLimit: 3000,
     },
@@ -722,7 +819,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       ltv: 125,
       maxDsr: 50,
       minIncome: 1800,
-      reserve: 1000,
+      reserve: 0, // Dynamic
       fee: 699,
       negativeEquityLimit: 3000,
     },
@@ -733,32 +830,36 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       ltv: 110,
       maxDsr: 50,
       minIncome: 1800,
-      reserve: 1000,
+      reserve: 0, // Dynamic
       fee: 699,
       negativeEquityLimit: 2000,
     },
   },
   LendCare: {
+    // ========================================
+    // LENDCARE - 3 TIERS
+    // Tier 1: 11.9%-25.9%, Tier 2: 26.9%-28.9%, Tier 3: 29.9%
+    // ========================================
     'Tier1': {
       lender: 'LendCare',
       tier: 'Tier1',
-      rate: 18.9,
+      rate: 18.9, // Midpoint of 11.9%-25.9%
       ltv: 140,
-      maxDsr: 50,
+      maxDsr: 18, // PTI: 18% for 11.9%-16.9%, 16% for 17.9%+
       minIncome: 1800,
       reserve: 799,
-      fee: 0,
+      fee: 799, // Lender fee
       negativeEquityLimit: 5000,
     },
     'Tier2': {
       lender: 'LendCare',
       tier: 'Tier2',
-      rate: 27.9,
+      rate: 27.9, // Midpoint of 26.9%-28.9%
       ltv: 140,
-      maxDsr: 50,
+      maxDsr: 16,
       minIncome: 1800,
       reserve: 599,
-      fee: 0,
+      fee: 799, // + $599 GPS if selling price > $15,000
       negativeEquityLimit: 3000,
     },
     'Tier3': {
@@ -766,10 +867,10 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       tier: 'Tier3',
       rate: 29.9,
       ltv: 110,
-      maxDsr: 50,
+      maxDsr: 16,
       minIncome: 1800,
-      reserve: 399,
-      fee: 0,
+      reserve: 299, // $199-$399
+      fee: 699, // $599-$799 + GPS
       negativeEquityLimit: 2000,
     },
   },
@@ -830,72 +931,110 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       negativeEquityLimit: 2000,
     },
   },
+  Prefera: {
+    // ========================================
+    // PREFERA FINANCE - 4 TIERS
+    // P1-P4 with varying LTV and add-on limits
+    // ========================================
+    'P1': {
+      lender: 'Prefera',
+      tier: 'P1',
+      rate: 17.95, // Midpoint of 16.95%-18.95%
+      ltv: 170,
+      maxDsr: 50,
+      minIncome: 1800,
+      reserve: 0, // Dynamic - calculated via calculatePreferaReserve()
+      fee: 895, // Fixed admin fee
+      negativeEquityLimit: 12000, // Max add-on
+    },
+    'P2': {
+      lender: 'Prefera',
+      tier: 'P2',
+      rate: 21.95, // Midpoint of 20.95%-22.95%
+      ltv: 160,
+      maxDsr: 50,
+      minIncome: 1800,
+      reserve: 0, // Dynamic
+      fee: 895,
+      negativeEquityLimit: 10000, // Max add-on
+    },
+    'P3': {
+      lender: 'Prefera',
+      tier: 'P3',
+      rate: 25.95, // Midpoint of 24.95%-26.95%
+      ltv: 150,
+      maxDsr: 50,
+      minIncome: 1800,
+      reserve: 0, // Dynamic
+      fee: 895,
+      negativeEquityLimit: 8000, // Max add-on
+    },
+    'P4': {
+      lender: 'Prefera',
+      tier: 'P4',
+      rate: 29.95, // Midpoint of 28.95%-30.95%
+      ltv: 140,
+      maxDsr: 50,
+      minIncome: 1800,
+      reserve: 0, // Dynamic
+      fee: 895,
+      negativeEquityLimit: 2500, // Max add-on
+    },
+  },
   RIFCO: {
+    // ========================================
+    // RIFCO STANDARD PROGRAM
+    // Single rate: 29.95%
+    // Front-End LTV: 155%, All-In LTV: 130%
+    // ========================================
+    'Standard': {
+      lender: 'RIFCO',
+      tier: 'Standard',
+      rate: 29.95,
+      ltv: 155, // Front-End: 155%, All-In: 130%
+      maxDsr: 50,
+      minIncome: 950,
+      reserve: 250, // Flat $250
+      fee: 990, // $395 loan fee + $595 device fee
+      negativeEquityLimit: 3000,
+    },
+    
+    // ========================================
+    // RIFCO PREFERRED/ALL-ACCESS PROGRAM
+    // 3 Tiers with rate upsell options
+    // ========================================
     'PreferredTier1': {
       lender: 'RIFCO',
       tier: 'PreferredTier1',
       rate: 12.95,
-      ltv: 140,
+      ltv: 140, // Front-End: 140%, All-In: 170%
       maxDsr: 50,
-      minIncome: 1800,
-      reserve: 600,
-      fee: 395,
+      minIncome: 3000,
+      reserve: 600, // Base $600, +$300 for 1% upsell, +$600 for 2% upsell
+      fee: 990, // $395 + $595
       negativeEquityLimit: 5000,
     },
     'PreferredTier2': {
       lender: 'RIFCO',
       tier: 'PreferredTier2',
       rate: 14.95,
-      ltv: 135,
+      ltv: 140, // Front-End: 140%, All-In: 165%
       maxDsr: 50,
-      minIncome: 1800,
-      reserve: 500,
-      fee: 395,
+      minIncome: 3000,
+      reserve: 500, // Base $500, +$300 for 1% upsell, +$600 for 2% upsell
+      fee: 990,
       negativeEquityLimit: 5000,
     },
     'PreferredTier3': {
       lender: 'RIFCO',
       tier: 'PreferredTier3',
       rate: 19.95,
-      ltv: 135,
+      ltv: 135, // Front-End: 135%, All-In: 160%
       maxDsr: 50,
-      minIncome: 1800,
-      reserve: 400,
-      fee: 395,
+      minIncome: 3000,
+      reserve: 400, // Base $400, +$300 for 1% upsell
+      fee: 990,
       negativeEquityLimit: 4000,
-    },
-    'PreferredTier4': {
-      lender: 'RIFCO',
-      tier: 'PreferredTier4',
-      rate: 24.95,
-      ltv: 130,
-      maxDsr: 50,
-      minIncome: 1800,
-      reserve: 0,
-      fee: 395,
-      negativeEquityLimit: 3000,
-    },
-    'PreferredTier5': {
-      lender: 'RIFCO',
-      tier: 'PreferredTier5',
-      rate: 29.95,
-      ltv: 125,
-      maxDsr: 50,
-      minIncome: 1800,
-      reserve: 300,
-      fee: 395,
-      negativeEquityLimit: 3000,
-    },
-    'Standard': {
-      lender: 'RIFCO',
-      tier: 'Standard',
-      rate: 29.95,
-      ltv: 130,
-      maxDsr: 50,
-      minIncome: 1800,
-      reserve: 250,
-      fee: 395,
-      negativeEquityLimit: 3000,
     },
   },
 };

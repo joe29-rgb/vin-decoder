@@ -3,7 +3,7 @@
  * All TypeScript interfaces used across the system
  */
 
-export type LenderType = 'TD' | 'Santander' | 'SDA' | 'AutoCapital' | 'EdenPark' | 'IAAutoFinance' | 'LendCare' | 'Northlake' | 'RIFCO';
+export type LenderType = 'TD' | 'Santander' | 'SDA' | 'AutoCapital' | 'EdenPark' | 'IAAutoFinance' | 'LendCare' | 'Northlake' | 'RIFCO' | 'Prefera';
 export type Province = 'AB' | 'BC' | 'SK' | 'MB' | 'ON' | 'QC' | 'NS' | 'NB' | 'PE' | 'NL';
 
 /**
