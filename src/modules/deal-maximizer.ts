@@ -68,10 +68,10 @@ function processVehicle(
   }
   baseFinance += program.fee;
 
-  const bundles = recommendBundles(vehicle.cbbWholesale, request.lender);
+  const bundles = recommendBundles(vehicle.blackBookValue, request.lender);
 
   for (const bundle of bundles) {
-    const productFit = validateProductFit(bundle, vehicle.cbbWholesale, request.lender);
+    const productFit = validateProductFit(bundle, vehicle.blackBookValue, request.lender);
     if (!productFit.fits) continue;
 
     const financeAmount = baseFinance + bundle.totalRetail;
@@ -82,7 +82,7 @@ function processVehicle(
       paymentCalc.monthlyPayment,
       request.monthlyIncome,
       financeAmount,
-      vehicle.cbbWholesale,
+      vehicle.blackBookValue,
       request.lender,
       request.tier
     );

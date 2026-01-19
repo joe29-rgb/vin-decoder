@@ -29,13 +29,11 @@ function toRow(v: Vehicle) {
     color: v.color ?? null,
     engine: v.engine,
     transmission: v.transmission,
-    cbb_wholesale: v.cbbWholesale,
-    cbb_retail: v.cbbRetail,
+    black_book_value: v.blackBookValue,
     your_cost: v.yourCost,
     suggested_price: v.suggestedPrice,
     in_stock: v.inStock,
     image_url: v.imageUrl ?? null,
-    black_book_value: v.blackBookValue ?? null,
   } as const;
 }
 
@@ -51,13 +49,11 @@ function fromRow(r: any): Vehicle {
     color: r.color || undefined,
     engine: String(r.engine || 'Unknown'),
     transmission: String(r.transmission || 'Unknown'),
-    cbbWholesale: Number(r.cbb_wholesale || 0),
-    cbbRetail: Number(r.cbb_retail || 0),
+    blackBookValue: Number(r.black_book_value || 0),
     yourCost: Number(r.your_cost || 0),
     suggestedPrice: Number(r.suggested_price || 0),
     inStock: Boolean(r.in_stock !== false),
     imageUrl: r.image_url || undefined,
-    blackBookValue: r.black_book_value != null ? Number(r.black_book_value) : undefined,
   };
 }
 

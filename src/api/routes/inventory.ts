@@ -208,8 +208,7 @@ router.post('/sync', (req: Request, res: Response) => {
     if (b.color !== undefined) updates.color = b.color;
     if (b.engine !== undefined) updates.engine = b.engine;
     if (b.transmission !== undefined) updates.transmission = b.transmission;
-    if (b.cbbWholesale !== undefined) updates.cbbWholesale = Number(b.cbbWholesale);
-    if (b.cbbRetail !== undefined) updates.cbbRetail = Number(b.cbbRetail);
+    if (b.blackBookValue !== undefined) updates.blackBookValue = Number(b.blackBookValue);
     if (b.cost !== undefined || b.yourCost !== undefined) updates.yourCost = Number(b.cost || b.yourCost);
     if (b.suggestedPrice !== undefined || b.price !== undefined) updates.suggestedPrice = Number(b.suggestedPrice || b.price);
     if (b.inStock !== undefined) updates.inStock = String(b.inStock).toLowerCase() !== 'false';

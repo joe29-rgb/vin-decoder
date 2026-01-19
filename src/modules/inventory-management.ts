@@ -162,8 +162,7 @@ export function compareVehicles(vehicles: Vehicle[]): {
     trim: [],
     mileage: [],
     price: [],
-    cbbWholesale: [],
-    cbbRetail: [],
+    blackBookValue: [],
     yourCost: [],
     engine: [],
     transmission: [],
@@ -178,8 +177,7 @@ export function compareVehicles(vehicles: Vehicle[]): {
     comparison.trim.push(v.trim || 'N/A');
     comparison.mileage.push(v.mileage);
     comparison.price.push(v.suggestedPrice);
-    comparison.cbbWholesale.push(v.cbbWholesale);
-    comparison.cbbRetail.push(v.cbbRetail);
+    comparison.blackBookValue.push(v.blackBookValue);
     comparison.yourCost.push(v.yourCost);
     comparison.engine.push(v.engine);
     comparison.transmission.push(v.transmission);

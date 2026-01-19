@@ -26,8 +26,6 @@ export async function exportInventoryToExcel(inventory: Vehicle[]): Promise<any>
     { header: 'Transmission', key: 'transmission', width: 15 },
     { header: 'Your Cost', key: 'yourCost', width: 12 },
     { header: 'Suggested Price', key: 'suggestedPrice', width: 15 },
-    { header: 'CBB Wholesale', key: 'cbbWholesale', width: 15 },
-    { header: 'CBB Retail', key: 'cbbRetail', width: 15 },
     { header: 'Black Book', key: 'blackBookValue', width: 15 },
     { header: 'In Stock', key: 'inStock', width: 10 }
   ];
@@ -54,15 +52,13 @@ export async function exportInventoryToExcel(inventory: Vehicle[]): Promise<any>
       transmission: vehicle.transmission,
       yourCost: vehicle.yourCost,
       suggestedPrice: vehicle.suggestedPrice,
-      cbbWholesale: vehicle.cbbWholesale,
-      cbbRetail: vehicle.cbbRetail,
-      blackBookValue: vehicle.blackBookValue || 0,
+      blackBookValue: vehicle.blackBookValue,
       inStock: vehicle.inStock ? 'Yes' : 'No'
     });
   });
 
   // Format currency columns
-  ['yourCost', 'suggestedPrice', 'cbbWholesale', 'cbbRetail', 'blackBookValue'].forEach(key => {
+  ['yourCost', 'suggestedPrice', 'blackBookValue'].forEach(key => {
     const col = worksheet.getColumn(key);
     col.numFmt = '$#,##0.00';
   });

@@ -20,14 +20,12 @@ export interface Vehicle {
   color?: string;
   engine: string;
   transmission: string;
-  cbbWholesale: number;
-  cbbRetail: number;
+  blackBookValue: number;
   yourCost: number;
   suggestedPrice: number;
   inStock: boolean;
   imageUrl?: string;
   imageUrls?: string[];
-  blackBookValue?: number;
 }
 
 /**

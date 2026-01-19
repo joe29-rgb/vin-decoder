@@ -140,14 +140,12 @@ function normalizeVehicleFromJsonLd(obj: any, idx: number, baseUrl?: string): Ve
       color: undefined,
       engine: 'Unknown',
       transmission: 'Unknown',
-      cbbWholesale: 0,
-      cbbRetail: 0,
+      blackBookValue: 0,
       yourCost: 0,
       suggestedPrice: price ?? 0,
       inStock: true,
       imageUrl: imageUrls[0] || undefined,
       imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
-      blackBookValue: undefined,
     };
 
     return vehicle;
@@ -429,14 +427,12 @@ function normalizeVehicleFromDom(html: string, pageUrl: string, idx: number): Ve
       color: undefined,
       engine: engine,
       transmission: transmission,
-      cbbWholesale: 0,
-      cbbRetail: 0,
+      blackBookValue: 0,
       yourCost: 0,
       suggestedPrice: price ?? 0,
       inStock: true,
       imageUrl: imageUrls[0] || undefined,
       imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
-      blackBookValue: undefined,
     };
     return vehicle;
   } catch(_e) {

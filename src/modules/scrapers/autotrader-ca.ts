@@ -262,14 +262,12 @@ export function convertToVehicle(listing: AutoTraderListing): Vehicle {
     color: listing.exteriorColor,
     engine: 'Unknown',
     transmission: listing.transmission || 'Unknown',
-    cbbWholesale: 0,
-    cbbRetail: 0,
+    blackBookValue: 0,
     yourCost: 0,
     suggestedPrice: listing.price,
     inStock: true,
     imageUrl: listing.images[0],
     imageUrls: listing.images,
-    blackBookValue: undefined,
   };
 }
 

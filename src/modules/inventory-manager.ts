@@ -61,10 +61,8 @@ export function loadInventoryFromCSV(csvContent: string): Vehicle[] {
         color: (pick('color','exterior_color') as string) || '',
         engine: vinData?.engine || (pick('engine','motor') as string) || 'Unknown',
         transmission: (pick('transmission','trans','gearbox') as string) || 'Unknown',
-        cbbWholesale:
-          num(pick('cbb_wholesale','cbbwholesale','bb_wholesale','bbwholesale','blackbook_wholesale','black_book_wholesale','bbw','bb_whl')), 
-        cbbRetail:
-          num(pick('cbb_retail','cbbretail','bb_retail','bbretail','blackbook_retail','black_book_retail','bbr','bb_rtl')),
+        blackBookValue:
+          num(pick('black_book_value','blackbookvalue','black_book','blackbook','bb_value','bbvalue','bb','cbb_wholesale','cbbwholesale','bb_wholesale','bbwholesale')) || 0,
         yourCost:
           num(pick(
             'your_cost','yourcost','cost','purchase_cost','our_cost','acquisition_cost','base_cost','vehicle_cost','unit_cost','net_cost','cost_value',
@@ -81,11 +79,6 @@ export function loadInventoryFromCSV(csvContent: string): Vehicle[] {
           return !(val === 'false' || val === 'no' || val === '0' || val === 'sold' || val === 'unavailable');
         })(),
         imageUrl: (pick('image_url','imageurl','image','photo_url','photourl','photo','picture_url','picture') as string) || undefined,
-        blackBookValue: (function(){
-          const b = pick('black_book_value','blackbook','bb','bb_value','black_book','bbv','black_book$','blackbook_value');
-          const n = num(b, NaN);
-          return isNaN(n) ? undefined : n;
-        })(),
       };
 
       vehicles.push(vehicle);
@@ -121,8 +114,7 @@ export async function enrichWithVinAuditValuations(inventory: Vehicle[]): Promis
       const valuation = await getVehicleValuation(v.vin, v.mileage);
       updated.push({
         ...v,
-        cbbWholesale: valuation.wholesale,
-        cbbRetail: valuation.retail,
+        blackBookValue: valuation.wholesale,
       });
     } catch (_e) {
       updated.push(v);

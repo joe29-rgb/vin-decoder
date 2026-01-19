@@ -36,7 +36,7 @@ interface DataQualityScore {
   missingFields: string[];
 }
 
-export class ProductionDealershipScraper {
+class ProductionDealershipScraper {
   private config: ScraperConfig;
   private allVehicles: Vehicle[] = [];
   private browser: any = null;
@@ -340,8 +340,7 @@ export class ProductionDealershipScraper {
     vehicle.mileage = 0;
     vehicle.engine = 'Unknown';
     vehicle.transmission = 'Unknown';
-    vehicle.cbbWholesale = 0;
-    vehicle.cbbRetail = 0;
+    vehicle.blackBookValue = 0;
     vehicle.yourCost = 0;
     vehicle.inStock = true;
 
@@ -368,9 +367,7 @@ export class ProductionDealershipScraper {
         imageUrl: $el.find('[itemprop="image"]').attr('src') || $el.find('[itemprop="image"]').attr('content'),
         engine: 'Unknown',
         transmission: 'Unknown',
-        trim: '',
-        cbbWholesale: 0,
-        cbbRetail: 0,
+        blackBookValue: 0,
         yourCost: 0,
         inStock: true,
       };
@@ -401,10 +398,7 @@ export class ProductionDealershipScraper {
         vin: $el.find('[property="vehicleIdentificationNumber"]').text().trim() || '',
         engine: 'Unknown',
         transmission: 'Unknown',
-        trim: '',
-        mileage: 0,
-        cbbWholesale: 0,
-        cbbRetail: 0,
+        blackBookValue: 0,
         yourCost: 0,
         inStock: true,
       };
@@ -460,14 +454,12 @@ export class ProductionDealershipScraper {
           color: undefined,
           engine: 'Unknown',
           transmission: 'Unknown',
-          cbbWholesale: 0,
-          cbbRetail: 0,
+          blackBookValue: 0,
           yourCost: 0,
           suggestedPrice: price,
           inStock: true,
           imageUrl: images[0],
           imageUrls: images.length > 0 ? images : undefined,
-          blackBookValue: undefined,
         };
 
         if (vehicle.make && vehicle.model && vehicle.suggestedPrice > 0) {
@@ -540,12 +532,10 @@ export class ProductionDealershipScraper {
           color: undefined,
           engine: 'Unknown',
           transmission: 'Unknown',
-          cbbWholesale: 0,
-          cbbRetail: 0,
+          blackBookValue: 0,
           yourCost: 0,
           suggestedPrice: nearbyPrice.price,
           inStock: true,
-          blackBookValue: undefined,
         });
       }
     }
@@ -980,14 +970,12 @@ export class ProductionDealershipScraper {
         color: obj.color || undefined,
         engine: obj.vehicleEngine?.name || 'Unknown',
         transmission: obj.vehicleTransmission || 'Unknown',
-        cbbWholesale: 0,
-        cbbRetail: 0,
+        blackBookValue: 0,
         yourCost: 0,
         suggestedPrice: price,
         inStock: true,
-        imageUrl: imageUrls[0] || undefined,
+        imageUrl: imageUrls[0],
         imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
-        blackBookValue: undefined,
       };
 
       return vehicle;
@@ -1018,4 +1006,5 @@ export class ProductionDealershipScraper {
   }
 }
 
+export { ProductionDealershipScraper };
 export default ProductionDealershipScraper;

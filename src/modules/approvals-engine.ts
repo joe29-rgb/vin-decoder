@@ -52,7 +52,7 @@ function calcGrossParts(
 
   let back = 0;
   if (approval.backCap) {
-    const bb = vehicle.cbbWholesale || vehicle.blackBookValue || 0;
+    const bb = vehicle.blackBookValue || 10000;
     if (approval.backCap.type === 'percent_of_bb') {
       back = approval.backCap.percent * bb;
     } else {
@@ -106,10 +106,10 @@ export function scoreInventory(
     try {
       const flags: string[] = [];
       
-      // Allow estimated Black Book value if missing
-      let bb = v.cbbWholesale || v.blackBookValue || 0;
+      // Use blackBookValue, default to 10000 if missing or zero
+      let bb = v.blackBookValue || 0;
       if (bb <= 0 || isNaN(bb)) {
-        bb = v.suggestedPrice * 0.75; // Estimate as 75% of suggested price
+        bb = 10000; // Default to $10,000 when missing
         flags.push('estimated_black_book');
       }
       
