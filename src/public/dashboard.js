@@ -37,8 +37,11 @@
   var pdfApprovalTab = document.getElementById('pdfApprovalTab');
   var manualApprovalForm = document.getElementById('manualApprovalForm');
   var pdfApprovalForm = document.getElementById('pdfApprovalForm');
-  var approvalLender = document.getElementById('approvalLender');
-  var approvalProgram = document.getElementById('approvalProgram');
+  var lenderApprovalsList = document.getElementById('lenderApprovalsList');
+  var addLenderApproval = document.getElementById('addLenderApproval');
+  
+  // Store multiple lender approvals
+  var lenderApprovals = [];
 
   var LENDER_PROGRAMS = {
     'TD': ['2-Key', '3-Key', '4-Key', '5-Key'],
@@ -76,6 +79,20 @@
   }
   function closeApproval(){ approvalModal.classList.remove('show'); }
 
+  // Lender program mappings
+  var lenderPrograms = {
+    'TD': ['2-Key', '3-Key', '4-Key', '5-Key', '6-Key', 'Holiday Special', 'Eco', 'Standard Fixed'],
+    'SDA': ['Star 1', 'Star 2', 'Star 3', 'Star 4', 'Star 5', 'Star 6', 'Star 7', 'StartRight'],
+    'Santander': ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4', 'Tier 5', 'Tier 6', 'Tier 7', 'Tier 8'],
+    'RIFCO': ['Standard', 'Preferred Tier 1', 'Preferred Tier 2', 'Preferred Tier 3'],
+    'IAAutoFinance': ['1st Gear', '2nd Gear', '3rd Gear', '4th Gear', '5th Gear', '6th Gear'],
+    'EdenPark': ['2 Ride', '3 Ride', '4 Ride', '5 Ride', '6 Ride', 'EP Ride+', 'EP No Hit'],
+    'AutoCapital': ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4', 'Tier 5', 'Tier 6'],
+    'LendCare': ['Tier 1', 'Tier 2', 'Tier 3'],
+    'Northlake': ['Titanium', 'Platinum', 'Gold', 'Standard', 'U-Drive'],
+    'Prefera': ['P1', 'P2', 'P3', 'P4']
+  };
+
   if (manualApprovalTab) {
     manualApprovalTab.onclick = function(){
       manualApprovalForm.style.display = 'block';
@@ -92,6 +109,88 @@
       pdfApprovalTab.classList.add('btn-primary');
       manualApprovalTab.classList.remove('btn-primary');
     };
+  }
+
+  // Add lender approval card
+  function addLenderApprovalCard() {
+    var id = 'lender-' + Date.now();
+    var card = document.createElement('div');
+    card.id = id;
+    card.style.cssText = 'background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px;';
+    
+    card.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h5 style="color: var(--accent-secondary); margin: 0;">Lender Approval</h5>
+        <button class="btn btn-sm btn-danger" onclick="removeLenderApproval('${id}')" style="padding: 4px 8px;">✕ Remove</button>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Lender <span style="color: var(--danger);">*</span></label>
+          <select class="form-select lender-select" data-id="${id}">
+            <option value="">Select Lender</option>
+            <option value="TD">TD Auto Finance</option>
+            <option value="SDA">Scotia Dealer Advantage</option>
+            <option value="Santander">Santander</option>
+            <option value="RIFCO">RIFCO</option>
+            <option value="IAAutoFinance">iA Auto Finance</option>
+            <option value="EdenPark">Eden Park</option>
+            <option value="AutoCapital">AutoCapital</option>
+            <option value="LendCare">LendCare</option>
+            <option value="Northlake">Northlake</option>
+            <option value="Prefera">Prefera</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Program/Tier (Optional)</label>
+          <select class="form-select program-select" data-id="${id}">
+            <option value="">Not specified</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Max Payment (Paycall) <span style="color: var(--danger);">*</span></label>
+          <input type="number" class="form-input payment-max" data-id="${id}" placeholder="450" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Interest Rate (APR %) <span style="color: var(--danger);">*</span></label>
+          <input type="number" class="form-input apr-input" data-id="${id}" placeholder="8.99" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Term (Months)</label>
+          <input type="number" class="form-input term-input" data-id="${id}" placeholder="72" value="72" />
+        </div>
+      </div>
+    `;
+    
+    lenderApprovalsList.appendChild(card);
+    
+    // Add event listener for lender change to update programs
+    var lenderSelect = card.querySelector('.lender-select');
+    var programSelect = card.querySelector('.program-select');
+    lenderSelect.onchange = function() {
+      var lender = this.value;
+      programSelect.innerHTML = '<option value="">Not specified</option>';
+      if (lender && lenderPrograms[lender]) {
+        lenderPrograms[lender].forEach(function(prog) {
+          var opt = document.createElement('option');
+          opt.value = prog;
+          opt.textContent = prog;
+          programSelect.appendChild(opt);
+        });
+      }
+    };
+  }
+
+  // Remove lender approval card
+  window.removeLenderApproval = function(id) {
+    var card = document.getElementById(id);
+    if (card) card.remove();
+  };
+
+  // Add first lender approval on load
+  if (addLenderApproval) {
+    addLenderApproval.onclick = addLenderApprovalCard;
+    // Add one by default
+    addLenderApprovalCard();
   }
 
   if (approvalLender) {
@@ -371,41 +470,59 @@
 
   document.getElementById('saveApproval').onclick = async function(){
     if (manualApprovalForm.style.display !== 'none') {
-      // Manual entry mode
+      // Manual entry mode - collect all lender approvals
       var customerName = document.getElementById('approvalCustomerName').value;
-      var lender = document.getElementById('approvalLender').value;
-      var program = document.getElementById('approvalProgram').value;
-      var apr = parseFloat(document.getElementById('approvalAPR').value);
-      var term = parseInt(document.getElementById('approvalTerm').value);
-      var paymentMin = parseFloat(document.getElementById('approvalPaymentMin').value);
-      var paymentMax = parseFloat(document.getElementById('approvalPaymentMax').value);
+      var province = document.getElementById('approvalProvince').value;
+      var isNativeStatus = document.getElementById('approvalNativeStatus').checked;
       var downPayment = parseFloat(document.getElementById('approvalDownPayment').value) || 0;
       var tradeAllowance = parseFloat(document.getElementById('approvalTradeAllowance').value) || 0;
       var tradeACV = parseFloat(document.getElementById('approvalTradeACV').value) || 0;
       var tradeLien = parseFloat(document.getElementById('approvalTradeLien').value) || 0;
-      var province = document.getElementById('approvalProvince').value;
-      var isNativeStatus = document.getElementById('approvalNativeStatus').checked;
       
-      if (!lender || !program || !apr || !term || !paymentMax) {
-        toast('Please fill in all required fields');
+      // Collect all lender approvals from cards
+      var lenderCards = lenderApprovalsList.querySelectorAll('[id^="lender-"]');
+      var approvals = [];
+      
+      for (var i = 0; i < lenderCards.length; i++) {
+        var card = lenderCards[i];
+        var lender = card.querySelector('.lender-select').value;
+        var program = card.querySelector('.program-select').value;
+        var paymentMax = parseFloat(card.querySelector('.payment-max').value);
+        var apr = parseFloat(card.querySelector('.apr-input').value);
+        var term = parseInt(card.querySelector('.term-input').value) || 72;
+        
+        if (!lender || !paymentMax || !apr) {
+          toast('Please fill in Lender, Max Payment, and Interest Rate for all approvals');
+          return;
+        }
+        
+        approvals.push({
+          bank: lender,
+          program: program || 'Not Specified',
+          apr: apr,
+          termMonths: term,
+          paymentMin: 0,
+          paymentMax: paymentMax
+        });
+      }
+      
+      if (approvals.length === 0) {
+        toast('Add at least one lender approval');
         return;
       }
+      
+      // Use the first approval as primary, store others for comparison
+      var primaryApproval = approvals[0];
+      primaryApproval.downPayment = downPayment;
+      primaryApproval.province = province;
+      primaryApproval.isNativeStatus = isNativeStatus;
+      primaryApproval.customerName = customerName;
+      primaryApproval.alternativeApprovals = approvals.slice(1);
       
       var payload = {
         contactId: 'manual-' + Date.now(),
         locationId: 'manual',
-        approval: {
-          bank: lender,
-          program: program,
-          apr: apr,
-          termMonths: term,
-          paymentMin: paymentMin || Math.round(paymentMax * 0.8),
-          paymentMax: paymentMax,
-          downPayment: downPayment,
-          province: province,
-          isNativeStatus: isNativeStatus,
-          customerName: customerName
-        },
+        approval: primaryApproval,
         trade: {
           allowance: tradeAllowance,
           acv: tradeACV,
@@ -416,27 +533,18 @@
       var resp = await fetch('/api/approvals/ingest', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
       var jr = await resp.json();
       if (jr.success) { 
-        toast('✓ Approval created successfully');
+        toast('✓ Approval created with ' + approvals.length + ' lender(s)');
         closeApproval();
+        // Clear form
+        lenderApprovalsList.innerHTML = '';
+        addLenderApprovalCard();
         document.getElementById('score').disabled = false;
       } else { 
         toast('Failed: ' + (jr.error||'unknown')); 
       }
     } else {
-      // PDF mode
-      var txt = (approvalText.value||'').trim();
-      if (!txt) { toast('Provide approval JSON'); return; }
-      var body;
-      try { body = JSON.parse(txt); } catch(e) { toast('Invalid JSON format'); return; }
-      var resp = await fetch('/api/approvals/ingest', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-      var jr = await resp.json();
-      if (jr.success) { 
-        toast('✓ Approval loaded');
-        closeApproval();
-        document.getElementById('score').disabled = false;
-      } else { 
-        toast('Failed: ' + (jr.error||'unknown')); 
-      }
+      // PDF mode - no JSON parsing needed, just upload
+      toast('PDF parsing not yet implemented - use Manual Entry');
     }
   };
 

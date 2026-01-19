@@ -841,101 +841,86 @@
     <div class="modal-content" style="max-width: 800px;">
       <div class="modal-header">
         <h3 class="modal-title">Create Approval</h3>
-        <p class="modal-description">Build approval manually or parse from PDF</p>
+        <p class="modal-description">Add lender approvals manually or upload PDF</p>
       </div>
       <div class="modal-body">
         <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-          <button class="btn btn-sm" id="manualApprovalTab" style="flex: 1;">Manual Entry</button>
-          <button class="btn btn-sm" id="pdfApprovalTab" style="flex: 1;">Parse PDF</button>
+          <button class="btn btn-sm btn-primary" id="manualApprovalTab" style="flex: 1;">✏️ Manual Entry</button>
+          <button class="btn btn-sm" id="pdfApprovalTab" style="flex: 1;">📄 Upload PDF</button>
         </div>
         
         <div id="manualApprovalForm">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-            <div class="form-group">
-              <label class="form-label">Customer Name</label>
-              <input type="text" id="approvalCustomerName" class="form-input" placeholder="John Doe" />
+          <!-- Customer Info -->
+          <div style="background: var(--bg-tertiary); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px;">
+            <h4 style="margin-bottom: 12px; color: var(--accent-primary);">Customer Information</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label class="form-label">Customer Name</label>
+                <input type="text" id="approvalCustomerName" class="form-input" placeholder="John Doe" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Province</label>
+                <select id="approvalProvince" class="form-select">
+                  <option value="AB">Alberta</option>
+                  <option value="BC">British Columbia</option>
+                  <option value="SK">Saskatchewan</option>
+                  <option value="MB">Manitoba</option>
+                  <option value="ON">Ontario</option>
+                  <option value="QC">Quebec</option>
+                  <option value="NS">Nova Scotia</option>
+                  <option value="NB">New Brunswick</option>
+                  <option value="PE">Prince Edward Island</option>
+                  <option value="NL">Newfoundland</option>
+                </select>
+              </div>
             </div>
-            <div class="form-group">
-              <label class="form-label">Province</label>
-              <select id="approvalProvince" class="form-select">
-                <option value="AB">Alberta</option>
-                <option value="BC">British Columbia</option>
-                <option value="SK">Saskatchewan</option>
-                <option value="MB">Manitoba</option>
-                <option value="ON">Ontario</option>
-                <option value="QC">Quebec</option>
-                <option value="NS">Nova Scotia</option>
-                <option value="NB">New Brunswick</option>
-                <option value="PE">Prince Edward Island</option>
-                <option value="NL">Newfoundland</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Lender</label>
-              <select id="approvalLender" class="form-select">
-                <option value="">Select Lender</option>
-                <option value="TD">TD Auto Finance</option>
-                <option value="Santander">Santander</option>
-                <option value="SDA">Scotia Dealer Advantage</option>
-                <option value="RIFCO">RIFCO</option>
-                <option value="IAAutoFinance">iA Auto Finance</option>
-                <option value="EdenPark">Eden Park</option>
-                <option value="AutoCapital">Auto Capital</option>
-                <option value="LendCare">LendCare</option>
-                <option value="Northlake">Northlake</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Program</label>
-              <select id="approvalProgram" class="form-select">
-                <option value="">Select Lender First</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">APR (%)</label>
-              <input type="number" id="approvalAPR" class="form-input" placeholder="8.99" step="0.01" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Term (Months)</label>
-              <input type="number" id="approvalTerm" class="form-input" placeholder="72" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Min Payment ($)</label>
-              <input type="number" id="approvalPaymentMin" class="form-input" placeholder="350" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Max Payment ($)</label>
-              <input type="number" id="approvalPaymentMax" class="form-input" placeholder="450" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Down Payment ($)</label>
-              <input type="number" id="approvalDownPayment" class="form-input" placeholder="0" value="0" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Trade Allowance ($)</label>
-              <input type="number" id="approvalTradeAllowance" class="form-input" placeholder="0" value="0" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Trade ACV ($)</label>
-              <input type="number" id="approvalTradeACV" class="form-input" placeholder="0" value="0" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Owing on Trade ($)</label>
-              <input type="number" id="approvalTradeLien" class="form-input" placeholder="0" value="0" />
+            <div class="form-group" style="margin-top: 12px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="approvalNativeStatus" />
+                <span>Status Native (Tax Exempt)</span>
+              </label>
             </div>
           </div>
-          <div class="form-group" style="margin-top: 16px;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="checkbox" id="approvalNativeStatus" />
-              <span>Status Native (Tax Exempt)</span>
-            </label>
+
+          <!-- Lender Approvals -->
+          <div style="background: var(--bg-tertiary); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h4 style="color: var(--accent-primary);">Lender Approvals</h4>
+              <button class="btn btn-sm btn-primary" id="addLenderApproval">+ Add Lender</button>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Add all lenders that approved this customer. Most clients get 2-3 approvals.</p>
+            <div id="lenderApprovalsList"></div>
+          </div>
+
+          <!-- Trade Info -->
+          <div style="background: var(--bg-tertiary); padding: 16px; border-radius: var(--radius-md);">
+            <h4 style="margin-bottom: 12px; color: var(--accent-primary);">Trade-In (Optional)</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label class="form-label">Trade Allowance ($)</label>
+                <input type="number" id="approvalTradeAllowance" class="form-input" placeholder="0" value="0" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Trade ACV ($)</label>
+                <input type="number" id="approvalTradeACV" class="form-input" placeholder="0" value="0" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Owing on Trade ($)</label>
+                <input type="number" id="approvalTradeLien" class="form-input" placeholder="0" value="0" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Down Payment ($)</label>
+                <input type="number" id="approvalDownPayment" class="form-input" placeholder="0" value="0" />
+              </div>
+            </div>
           </div>
         </div>
         
         <div id="pdfApprovalForm" style="display: none;">
-          <div class="file-upload">
-            <input type="file" id="approvalPdf" accept="application/pdf" />
-            <button class="btn btn-sm" id="parseApprovalPdf">Parse PDF</button>
+          <div style="background: var(--bg-tertiary); padding: 24px; border-radius: var(--radius-md); text-align: center;">
+            <p style="margin-bottom: 16px; color: var(--text-secondary);">Upload approval PDF and we'll extract the details automatically</p>
+            <input type="file" id="approvalPdf" accept="application/pdf" style="margin-bottom: 12px;" />
+            <button class="btn btn-primary" id="parseApprovalPdf">📄 Upload & Extract</button>
           </div>
           <textarea id="approvalText" class="textarea" placeholder='{"contactId":"","locationId":"","approval":{"bank":"TD","program":"2Key","apr":8.99,"termMonths":72,"paymentMin":350,"paymentMax":450}}'></textarea>
         </div>
