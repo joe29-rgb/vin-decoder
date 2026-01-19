@@ -75,39 +75,57 @@ export interface DataQualityResult {
 export function validateVehicleData(vehicle: any): DataQualityResult {
   const result: DataQualityResult = {
     isValid: true,
-    score: 100,
+    score: 0,
     missingFields: [],
     warnings: []
   };
 
-  // Critical fields (20 points each)
-  const criticalFields = ['vin', 'year', 'make', 'model', 'suggestedPrice'];
-  for (const field of criticalFields) {
-    if (!vehicle[field] || vehicle[field] === 'Unknown' || vehicle[field] === 0) {
+  // CRITICAL FIELDS: 25 points each (125 total)
+  const criticalFields = [
+    { field: 'vin', points: 25 },
+    { field: 'year', points: 25 },
+    { field: 'make', points: 25 },
+    { field: 'model', points: 25 },
+    { field: 'suggestedPrice', points: 25 }
+  ];
+  
+  for (const { field, points } of criticalFields) {
+    if (vehicle[field] && vehicle[field] !== 'Unknown' && vehicle[field] !== 0) {
+      result.score += points;
+    } else {
       result.missingFields.push(field);
-      result.score -= 20;
-      result.isValid = false;
     }
   }
 
-  // Important fields (10 points each)
+  // IMPORTANT FIELDS: 10 points each (30 total)
   const importantFields = ['mileage', 'engine', 'transmission'];
   for (const field of importantFields) {
-    if (!vehicle[field] || vehicle[field] === 'Unknown' || vehicle[field] === 0) {
+    if (vehicle[field] && vehicle[field] !== 'Unknown' && vehicle[field] !== 0) {
+      result.score += 10;
+    } else {
       result.warnings.push(`Missing ${field}`);
-      result.score -= 10;
     }
   }
 
-  // Optional fields (5 points each)
+  // OPTIONAL FIELDS: 5 points each (15 total)
   const optionalFields = ['imageUrl', 'trim', 'color'];
   for (const field of optionalFields) {
-    if (!vehicle[field]) {
-      result.score -= 5;
+    if (vehicle[field]) {
+      result.score += 5;
     }
   }
 
-  result.score = Math.max(0, result.score);
+  // Gradual validation thresholds
+  if (result.score >= 100) {
+    result.isValid = true; // Excellent: has all critical fields
+  } else if (result.score >= 75) {
+    result.isValid = true; // Good: missing some optional fields
+  } else if (result.score >= 50) {
+    // Fair: usable for deals if has core fields (vin, make, model, price)
+    result.isValid = vehicle.vin && vehicle.make && vehicle.model && vehicle.suggestedPrice;
+  } else {
+    result.isValid = false; // Poor: too incomplete
+  }
   
   return result;
 }

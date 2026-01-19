@@ -483,7 +483,7 @@ router.get('/devon', async (req: Request, res: Response) => {
   try {
     const base = 'https://www.devonchrysler.com';
     const path = (req.query.path as string) || '/inventory/';
-    const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+    const limit = Math.min(Math.max(Number(req.query.limit) || 200, 1), 500);
     const url = new URL(path, base).href;
     const useCache = req.query.cache !== 'false';
     
@@ -504,15 +504,18 @@ router.get('/devon', async (req: Request, res: Response) => {
       }
     }
     
-    // Apply rate limiting
-    await rateLimiter.waitIfNeeded();
+    // Use production scraper with all 7 fixes
+    const { ProductionDealershipScraper } = await import('../../modules/production-scraper');
+    const scraper = new ProductionDealershipScraper({
+      baseUrl: url,
+      maxPages: Math.ceil(limit / 20),
+      minScore: 50, // Adjusted threshold (was 40)
+      headless: true,
+      useCache: useCache,
+    });
     
-    // Fetch with retry logic
-    const vehicles = await retryWithBackoff(
-      () => fetchVehiclesFromListing(url, limit),
-      3,
-      2000
-    );
+    console.log('[SCRAPER] Using ProductionDealershipScraper with pagination support');
+    const vehicles = await scraper.scrapeInventory();
     
     // Normalize stock numbers
     vehicles.forEach(v => {
@@ -521,34 +524,23 @@ router.get('/devon', async (req: Request, res: Response) => {
       }
     });
     
-    // Validate data quality
-    const validVehicles = vehicles.filter(v => {
-      const quality = validateVehicleData(v);
-      if (quality.score < 40) {
-        console.warn(`[SCRAPER] Low quality vehicle filtered: ${v.id} (score: ${quality.score})`);
-        return false;
-      }
-      return true;
-    });
-    
-    console.log('[SCRAPER] Vehicles fetched:', validVehicles.length, '(filtered from', vehicles.length, ')');
+    console.log('[SCRAPER] Vehicles fetched:', vehicles.length);
     
     // Save to cache
-    if (useCache && validVehicles.length > 0) {
-      await setCachedVehicles(url, validVehicles);
+    if (useCache && vehicles.length > 0) {
+      await setCachedVehicles(url, vehicles);
     }
     
-    if (validVehicles.length > 0) {
-      console.log('[SCRAPER] Sample vehicle:', JSON.stringify(validVehicles[0], null, 2));
+    if (vehicles.length > 0) {
+      console.log('[SCRAPER] Sample vehicle:', JSON.stringify(vehicles[0], null, 2));
     }
     
     res.json({ 
       success: true, 
-      total: validVehicles.length, 
-      vehicles: validVehicles, 
+      total: vehicles.length, 
+      vehicles: vehicles, 
       cached: false,
-      filtered: vehicles.length - validVehicles.length,
-      debug: { url, limit } 
+      debug: { url, limit, maxPages: Math.ceil(limit / 20) } 
     });
   } catch (e) {
     const err: any = e;
