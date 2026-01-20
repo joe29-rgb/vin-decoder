@@ -256,7 +256,11 @@
       pushBtn.className = 'btn btn-primary btn-sm';
       pushBtn.innerHTML = '<span>✓</span> Push to GHL';
       pushBtn.onclick = (function(r){ return async function(){
-        var payload = { contactId: (lastApproval && lastApproval.contactId) || '', selected: r };
+        var payload = { 
+          contactId: (lastApproval && lastApproval.contactId) || '', 
+          locationId: (lastApproval && lastApproval.locationId) || 'manual',
+          selected: r 
+        };
         var resp = await fetch('/api/ghl/push-selected', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         var jj = await resp.json();
         toast(jj.success ? 'Pushed to GHL' : ('Push failed: ' + (jj.error || 'unknown')));
