@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Deal Worksheet | Finance-in-a-Box</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg-primary: #0a0e14;
+      --bg-secondary: #0f1419;
+      --surface: #1a1f29;
+      --surface-elevated: #1f2430;
+      --border: #2a2f3a;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --accent-primary: #3fb950;
+      --accent-secondary: #58a6ff;
+      --danger: #f85149;
+      --warning: #d29922;
+      --radius-md: 10px;
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      color: var(--text-primary);
+      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    h1 {
+      font-size: 28px;
+      color: var(--accent-primary);
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--accent-primary);
+      color: #000;
+    }
+    
+    .btn-secondary {
+      background: var(--surface-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    
+    .btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    
+    .worksheet {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 24px;
+    }
+    
+    .vehicle-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      height: fit-content;
+      position: sticky;
+      top: 20px;
+    }
+    
+    .vehicle-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      background: var(--bg-secondary);
+    }
+    
+    .vehicle-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--accent-primary);
+    }
+    
+    .vehicle-detail {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    
+    .vehicle-detail:last-child {
+      border-bottom: none;
+    }
+    
+    .label {
+      color: var(--text-secondary);
+    }
+    
+    .value {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+    
+    .dealertrack-form {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+    }
+    
+    .section {
+      margin-bottom: 32px;
+    }
+    
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent-secondary);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border);
+    }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .form-value {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Courier New', monospace;
+    }
+    
+    .form-value.highlight {
+      background: linear-gradient(135deg, rgba(63, 185, 80, 0.1) 0%, rgba(88, 166, 255, 0.1) 100%);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+    
+    .form-value.currency::before {
+      content: '$';
+      margin-right: 4px;
+      color: var(--text-secondary);
+    }
+    
+    .copy-btn {
+      padding: 4px 8px;
+      font-size: 11px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .copy-btn:hover {
+      background: var(--accent-primary);
+      color: #000;
+      border-color: var(--accent-primary);
+    }
+    
+    .profit-summary {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      color: #000;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-top: 24px;
+    }
+    
+    .profit-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    
+    .profit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    
+    .profit-item {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 12px;
+      border-radius: 6px;
+    }
+    
+    .profit-label {
+      font-size: 11px;
+      opacity: 0.8;
+      margin-bottom: 4px;
+    }
+    
+    .profit-value {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+    }
+    
+    .toast.show {
+      display: block;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📋 Deal Worksheet</h1>
+      <div style="display: flex; gap: 12px;">
+        <button class="btn btn-secondary" onclick="window.location.href='/dashboard'">← Back to Dashboard</button>
+        <button class="btn btn-primary" id="copyAllBtn">📋 Copy All Values</button>
+      </div>
+    </div>
+    
+    <div class="worksheet">
+      <!-- Vehicle Card -->
+      <div class="vehicle-card">
+        <img id="vehicleImage" class="vehicle-image" src="" alt="Vehicle" />
+        <div class="vehicle-title" id="vehicleTitle">Loading...</div>
+        <div class="vehicle-detail">
+          <span class="label">VIN</span>
+          <span class="value" id="vehicleVin">-</span>
+        </div>
+        <div class="vehicle-detail">
+          <span class="label">Stock #</span>
+          <span class="value" id="vehicleStock">-</span>
+        </div>
+        <div class="vehicle-detail">
+          <span class="label">Mileage</span>
+          <span class="value" id="vehicleMileage">-</span>
+        </div>
+        <div class="vehicle-detail">
+          <span class="label">Condition</span>
+          <span class="value" id="vehicleCondition">Used</span>
+        </div>
+        <div class="vehicle-detail">
+          <span class="label">Body Style</span>
+          <span class="value" id="vehicleBody">-</span>
+        </div>
+        <div class="vehicle-detail">
+          <span class="label">Transmission</span>
+          <span class="value" id="vehicleTransmission">-</span>
+        </div>
+      </div>
+      
+      <!-- DealerTrack Form -->
+      <div class="dealertrack-form">
+        <!-- Vehicle Selection -->
+        <div class="section">
+          <div class="section-title">Vehicle Selection</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">VIN #</label>
+              <div class="form-value" id="dtVin" data-copy="vin">-</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Stock #</label>
+              <div class="form-value" id="dtStock" data-copy="stock">-</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Year</label>
+              <div class="form-value" id="dtYear" data-copy="year">-</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Make</label>
+              <div class="form-value" id="dtMake" data-copy="make">-</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Model</label>
+              <div class="form-value" id="dtModel" data-copy="model">-</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Series/Trim</label>
+              <div class="form-value" id="dtTrim" data-copy="trim">-</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Body Style</label>
+              <div class="form-value" id="dtBodyStyle" data-copy="bodyStyle">-</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Current KMs</label>
+              <div class="form-value" id="dtMileage" data-copy="mileage">-</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Program Selection -->
+        <div class="section">
+          <div class="section-title">Program Selection</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Lender</label>
+              <div class="form-value highlight" id="dtLender" data-copy="lender">-</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Program</label>
+              <div class="form-value highlight" id="dtProgram" data-copy="program">-</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Program Approval</label>
+              <div class="form-value" id="dtProgramApproval" data-copy="programApproval">5 Key</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Purchase Details -->
+        <div class="section">
+          <div class="section-title">Purchase Details</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Cash Price</label>
+              <div class="form-value currency highlight" id="dtCashPrice" data-copy="cashPrice">-</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Trade In -->
+        <div class="section">
+          <div class="section-title">Trade In</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Year</label>
+              <div class="form-value" id="dtTradeYear" data-copy="tradeYear">-</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Make</label>
+              <div class="form-value" id="dtTradeMake" data-copy="tradeMake">-</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Model</label>
+              <div class="form-value" id="dtTradeModel" data-copy="tradeModel">-</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">VIN</label>
+              <div class="form-value" id="dtTradeVin" data-copy="tradeVin">-</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Odometer</label>
+              <div class="form-value" id="dtTradeOdometer" data-copy="tradeOdometer">-</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Allowance</label>
+              <div class="form-value currency" id="dtTradeAllowance" data-copy="tradeAllowance">0.00</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Lien Amount</label>
+              <div class="form-value currency" id="dtTradeLien" data-copy="tradeLien">0.00</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Net Trade In Allowance</label>
+              <div class="form-value currency" id="dtNetTrade" data-copy="netTrade">0.00</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Taxes -->
+        <div class="section">
+          <div class="section-title">Taxes</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Province</label>
+              <div class="form-value" id="dtProvince" data-copy="province">Alberta</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">PST</label>
+              <div class="form-value" id="dtPst" data-copy="pst">0.00</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">GST/HST</label>
+              <div class="form-value currency" id="dtGst" data-copy="gst">0.00</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Federal Luxury Tax</label>
+              <div class="form-value currency" id="dtLuxuryTax" data-copy="luxuryTax">0.00</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Fees -->
+        <div class="section">
+          <div class="section-title">Fees</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Cash Down</label>
+              <div class="form-value currency highlight" id="dtCashDown" data-copy="cashDown">0.00</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">License Fee</label>
+              <div class="form-value currency" id="dtLicenseFee" data-copy="licenseFee">0.00</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Dealer Admin Fee</label>
+              <div class="form-value currency" id="dtAdminFee" data-copy="adminFee">0.00</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">PPSA</label>
+              <div class="form-value currency" id="dtPpsa" data-copy="ppsa">0.00</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Aftermarket Service -->
+        <div class="section">
+          <div class="section-title">Aftermarket Service</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Extended Service Contract</label>
+              <div class="form-value currency" id="dtServiceContract" data-copy="serviceContract">0.00</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Service Contract Type</label>
+              <div class="form-value" id="dtServiceType" data-copy="serviceType">Manufacturer</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">A+I Insurance</label>
+              <div class="form-value currency" id="dtInsurance" data-copy="insurance">0.00</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Replacement Warranty</label>
+              <div class="form-value currency" id="dtWarranty" data-copy="warranty">0.00</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Taxes on Insurance</label>
+              <div class="form-value currency" id="dtInsuranceTax" data-copy="insuranceTax">0.00</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Financing Terms -->
+        <div class="section">
+          <div class="section-title">Financing Terms</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Term (months)</label>
+              <div class="form-value highlight" id="dtTerm" data-copy="term">84</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Amount Financed</label>
+              <div class="form-value currency highlight" id="dtAmountFinanced" data-copy="amountFinanced">0.00</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Frequency</label>
+              <div class="form-value" id="dtPaymentFreq" data-copy="paymentFreq">Bi-Weekly</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Dealer Interest Rate</label>
+              <div class="form-value" id="dtDealerRate" data-copy="dealerRate">0.00</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Dealer Participation</label>
+              <div class="form-value" id="dtDealerParticipation" data-copy="dealerParticipation">0.00</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Actual Interest Rate</label>
+              <div class="form-value highlight" id="dtActualRate" data-copy="actualRate">0.00</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">APR</label>
+              <div class="form-value highlight" id="dtApr" data-copy="apr">0.00</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Total Monthly Payment</label>
+              <div class="form-value currency highlight" id="dtMonthlyPayment" data-copy="monthlyPayment">0.00</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Profit Summary -->
+        <div class="profit-summary">
+          <div class="profit-title">💰 Gross Profit Breakdown</div>
+          <div class="profit-grid">
+            <div class="profit-item">
+              <div class="profit-label">Front Gross</div>
+              <div class="profit-value" id="profitFront">$0</div>
+            </div>
+            <div class="profit-item">
+              <div class="profit-label">Back Gross</div>
+              <div class="profit-value" id="profitBack">$0</div>
+            </div>
+            <div class="profit-item">
+              <div class="profit-label">Product Margin</div>
+              <div class="profit-value" id="profitProduct">$0</div>
+            </div>
+            <div class="profit-item">
+              <div class="profit-label">Total Gross</div>
+              <div class="profit-value" id="profitTotal">$0</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="actions">
+          <button class="btn btn-primary" id="pushToGhlBtn">✓ Push to GHL</button>
+          <button class="btn btn-secondary" id="exportPdfBtn">📄 Export PDF</button>
+          <button class="btn btn-secondary" id="printBtn">🖨️ Print</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="toast" id="toast"></div>
+  
+  <script src="/deal-worksheet.js"></script>
+</body>
+</html>

@@ -77,6 +77,13 @@ app.get('/deal-calculator', (_req, res) => {
   res.sendFile(path.resolve(htmlPath));
 });
 
+app.get('/deal-worksheet', (_req, res) => {
+  const htmlPath = path.join(process.cwd(), 'src', 'views', 'deal-worksheet.html');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data: https:");
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.resolve(htmlPath));
+});
+
 app.get('/dashboard.js', (_req, res) => {
   const distPath = path.join(process.cwd(), 'dist', 'public', 'dashboard.js');
   const srcPath = path.join(process.cwd(), 'src', 'public', 'dashboard.js');
@@ -99,6 +106,19 @@ app.get('/deal-calculator.js', (_req, res) => {
   res.sendFile(path.resolve(p), { headers: { 'Content-Type': 'application/javascript; charset=utf-8' } }, (err) => {
     if (err) {
       res.status(500).send("console.error('Failed to load deal-calculator.js');");
+    }
+  });
+});
+
+app.get('/deal-worksheet.js', (_req, res) => {
+  const distPath = path.join(process.cwd(), 'dist', 'public', 'deal-worksheet.js');
+  const srcPath = path.join(process.cwd(), 'src', 'public', 'deal-worksheet.js');
+  const p = fs.existsSync(distPath) ? distPath : srcPath;
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.sendFile(path.resolve(p), { headers: { 'Content-Type': 'application/javascript; charset=utf-8' } }, (err) => {
+    if (err) {
+      res.status(500).send("console.error('Failed to load deal-worksheet.js');");
     }
   });
 });

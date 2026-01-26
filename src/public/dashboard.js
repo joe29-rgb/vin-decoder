@@ -252,8 +252,34 @@
       var actions = document.createElement('div');
       actions.className = 'vehicle-actions';
       
+      var worksheetBtn = document.createElement('button');
+      worksheetBtn.className = 'btn btn-primary btn-sm';
+      worksheetBtn.innerHTML = '<span>📋</span> View Deal Worksheet';
+      worksheetBtn.onclick = (function(r){ return function(){
+        var dealData = {
+          vehicle: currentInventory.find(function(v){ return v.vin === r.vin; }) || {},
+          approval: lastApproval ? lastApproval.approval : {},
+          trade: lastApproval ? lastApproval.trade : {},
+          contactId: lastApproval ? lastApproval.contactId : '',
+          locationId: lastApproval ? lastApproval.locationId : 'manual',
+          salePrice: r.salePrice,
+          monthlyPayment: r.monthlyPayment,
+          frontGross: r.frontGross,
+          backGross: r.backGross,
+          totalGross: r.totalGross,
+          lender: lastApproval && lastApproval.approval ? lastApproval.approval.bank : '',
+          tier: lastApproval && lastApproval.approval ? lastApproval.approval.program : '',
+          term: lastApproval && lastApproval.approval ? lastApproval.approval.termMonths : 84,
+          adminFee: 799,
+          ppsa: 38.73
+        };
+        sessionStorage.setItem('selectedDeal', JSON.stringify(dealData));
+        window.location.href = '/deal-worksheet?id=' + r.vehicleId;
+      };})(row);
+      actions.appendChild(worksheetBtn);
+      
       var pushBtn = document.createElement('button');
-      pushBtn.className = 'btn btn-primary btn-sm';
+      pushBtn.className = 'btn btn-sm';
       pushBtn.innerHTML = '<span>✓</span> Push to GHL';
       pushBtn.onclick = (function(r){ return async function(){
         var payload = { 
