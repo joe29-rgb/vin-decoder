@@ -561,33 +561,8 @@
     else { toast('Failed: ' + (jr.error||'unknown')); }
   };
 
-  document.getElementById('saveApproval').onclick = async function(){
-    var txt = (approvalText.value||'').trim();
-    if (!txt) { toast('Provide approval JSON'); return; }
-    var parsed;
-    try { parsed = JSON.parse(txt); } catch(e) { toast('Invalid JSON'); return; }
-    
-    var payload = {
-      contactId: parsed.contactId || parsed.customer?.applicationNumber || 'MANUAL-' + Date.now(),
-      locationId: parsed.locationId || 'DEFAULT-LOCATION',
-      approval: parsed.approval || {},
-      trade: parsed.trade || {}
-    };
-    
-    if (parsed.vehicle) payload.approval.vehicle = parsed.vehicle;
-    if (parsed.customer) payload.approval.customer = parsed.customer;
-    
-    var resp = await fetch('/api/approvals/ingest', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    var jr = await resp.json();
-    if (jr.success) { 
-      toast('Approval ingested'); 
-      closeApproval(); 
-      lastApproval = payload;
-      var scoreBtn = document.getElementById('score');
-      if (scoreBtn) scoreBtn.disabled = false;
-    }
-    else { toast('Failed: ' + (jr.error||'unknown')); }
-  };
+  // This handler is now integrated into the main saveApproval handler above (lines 448-521)
+  // Removed duplicate handler to fix "Invalid JSON" error
 
   if (parseApprovalPdf) parseApprovalPdf.onclick = async function(){
     if (!approvalPdf || !approvalPdf.files || !approvalPdf.files[0]) { toast('Select an approval PDF'); return; }
