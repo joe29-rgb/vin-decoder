@@ -556,29 +556,28 @@ router.get('/devon', async (req: Request, res: Response) => {
 
 router.get('/autotrader', async (req: Request, res: Response) => {
   try {
-    const { scrapeAutoTraderCA, convertToVehicle } = await import('../../modules/scrapers/autotrader-ca');
+    const { ApifyScraperService } = await import('../../modules/scrapers/apify-integration');
+    const scraper = new ApifyScraperService();
     
     const params = {
       make: req.query.make as string,
       model: req.query.model as string,
-      yearMin: req.query.yearMin ? Number(req.query.yearMin) : undefined,
-      yearMax: req.query.yearMax ? Number(req.query.yearMax) : undefined,
-      priceMin: req.query.priceMin ? Number(req.query.priceMin) : undefined,
-      priceMax: req.query.priceMax ? Number(req.query.priceMax) : undefined,
+      yearMin: Number(req.query.yearMin) || undefined,
+      yearMax: Number(req.query.yearMax) || undefined,
+      priceMin: Number(req.query.priceMin) || undefined,
+      priceMax: Number(req.query.priceMax) || undefined,
       location: (req.query.location as string) || 'Alberta',
-      radius: req.query.radius ? Number(req.query.radius) : 250,
+      radiusKm: Number(req.query.radius) || 100,
       limit: Math.min(Math.max(Number(req.query.limit) || 20, 1), 100),
     };
     
-    const listings = await scrapeAutoTraderCA(params);
-    const vehicles = listings.map(convertToVehicle);
+    const listings = await scraper.scrapeAutoTraderCA(params);
+    const vehicles = listings.map(l => scraper.convertAutoTraderToVehicle(l));
     
     res.json({ 
       success: true, 
-      total: listings.length, 
       vehicles,
-      listings,
-      params 
+      count: vehicles.length 
     });
   } catch (e: any) {
     res.status(500).json({ 
@@ -632,7 +631,8 @@ router.get('/autotrader/pricing', async (req: Request, res: Response) => {
 
 router.get('/cargurus', async (req: Request, res: Response) => {
   try {
-    const { scrapeCarGurusCA, convertToVehicle } = await import('../../modules/scrapers/cargurus-ca');
+    const { ApifyScraperService } = await import('../../modules/scrapers/apify-integration');
+    const scraper = new ApifyScraperService();
     
     const params = {
       make: req.query.make as string,
@@ -641,21 +641,19 @@ router.get('/cargurus', async (req: Request, res: Response) => {
       yearMax: req.query.yearMax ? Number(req.query.yearMax) : undefined,
       priceMin: req.query.priceMin ? Number(req.query.priceMin) : undefined,
       priceMax: req.query.priceMax ? Number(req.query.priceMax) : undefined,
-      mileageMax: req.query.mileageMax ? Number(req.query.mileageMax) : undefined,
-      postalCode: (req.query.postalCode as string) || 'T5J',
-      radius: req.query.radius ? Number(req.query.radius) : 250,
+      location: (req.query.postalCode as string) || 'T5J',
+      radiusKm: req.query.radius ? Number(req.query.radius) : 100,
       limit: Math.min(Math.max(Number(req.query.limit) || 20, 1), 100),
     };
     
-    const listings = await scrapeCarGurusCA(params);
-    const vehicles = listings.map(convertToVehicle);
+    const listings = await scraper.scrapeCarGurusCA(params);
+    const vehicles = listings.map(l => scraper.convertCarGurusToVehicle(l));
     
     res.json({ 
       success: true, 
       total: listings.length, 
       vehicles,
-      listings,
-      params 
+      count: vehicles.length 
     });
   } catch (e: any) {
     res.status(500).json({ 
