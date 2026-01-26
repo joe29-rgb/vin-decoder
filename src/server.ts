@@ -175,6 +175,21 @@ app.use(
 // Global error handler last
 app.use(errorHandler);
 
+// Initialize inventory from Supabase on startup
+(async () => {
+  try {
+    const { fetchInventoryFromSupabase } = await import('./modules/supabase');
+    const { state } = await import('./api/state');
+    const inventory = await fetchInventoryFromSupabase();
+    if (inventory && inventory.length > 0) {
+      state.inventory = inventory;
+      logger.info('Loaded inventory from Supabase', { count: inventory.length });
+    }
+  } catch (error) {
+    logger.warn('Failed to load inventory on startup', { error: (error as Error).message });
+  }
+})();
+
 app.listen(PORT, () => {
   logger.info(`server listening`, { port: PORT });
 });
