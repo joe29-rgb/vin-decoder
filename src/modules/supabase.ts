@@ -57,21 +57,36 @@ function fromRow(r: any): Vehicle {
   };
 }
 
-export async function saveInventoryToSupabase(vehicles: Vehicle[]): Promise<void> {
+export async function saveInventoryToSupabase(vehicles: Vehicle[], dealershipId?: string): Promise<void> {
   const sb = getSupabase();
   if (!sb) return;
-  if (!vehicles || vehicles.length === 0) return;
-  const rows = vehicles.map(toRow);
-  // upsert by id
-  const { error } = await sb.from('vehicles').upsert(rows, { onConflict: 'id' });
+  
+  // Add dealership_id to each vehicle if provided
+  const rows = vehicles.map(v => {
+    const row = toRow(v);
+    if (dealershipId) {
+      (row as any).dealership_id = dealershipId;
+    }
+    return row;
+  });
+  
+  const { error } = await sb.from('vehicles').upsert(rows, { onConflict: 'vin' });
   if (error) throw new Error('Supabase upsert failed: ' + error.message);
 }
 
-export async function fetchInventoryFromSupabase(): Promise<Vehicle[]> {
+export async function fetchInventoryFromSupabase(dealershipId?: string): Promise<Vehicle[]> {
   const sb = getSupabase();
   if (!sb) return [];
-  const { data, error } = await sb.from('vehicles').select('*').limit(1000);
-  if (error) throw new Error('Supabase select failed: ' + error.message);
+  
+  let query = sb.from('vehicles').select('*').limit(1000);
+  
+  // Filter by dealership if provided
+  if (dealershipId) {
+    query = query.eq('dealership_id', dealershipId);
+  }
+  
+  const { data, error } = await query;
+  if (error) throw new Error('Supabase fetch failed: ' + error.message);
   return (data || []).map(fromRow);
 }
 
