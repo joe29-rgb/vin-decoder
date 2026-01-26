@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Welcome | Finance-in-a-Box</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg-primary: #0a0e14;
+      --bg-secondary: #0f1419;
+      --surface: #1a1f29;
+      --surface-elevated: #1f2430;
+      --border: #2a2f3a;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --accent-primary: #3fb950;
+      --accent-secondary: #58a6ff;
+      --danger: #f85149;
+      --radius-md: 10px;
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      color: var(--text-primary);
+      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 700px;
+      width: 100%;
+    }
+    
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 40px;
+      box-shadow: var(--shadow-md);
+    }
+    
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    
+    .logo-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    
+    .logo-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+    
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    
+    .step-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: all 0.3s;
+    }
+    
+    .step-dot.active {
+      background: var(--accent-primary);
+      transform: scale(1.2);
+    }
+    
+    .step-dot.completed {
+      background: var(--accent-secondary);
+    }
+    
+    .step-content {
+      display: none;
+    }
+    
+    .step-content.active {
+      display: block;
+      animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    h1 {
+      font-size: 28px;
+      color: var(--accent-primary);
+      margin-bottom: 16px;
+    }
+    
+    .subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+    
+    .form-group {
+      margin-bottom: 24px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    
+    .form-input, .form-select {
+      width: 100%;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+    }
+    
+    .form-help {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+    }
+    
+    .btn {
+      flex: 1;
+      padding: 12px 24px;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--accent-primary);
+      color: #000;
+    }
+    
+    .btn-secondary {
+      background: var(--surface-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    
+    .btn:hover:not(:disabled) {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .feature-list {
+      list-style: none;
+      margin: 24px 0;
+    }
+    
+    .feature-list li {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .feature-list li:last-child {
+      border-bottom: none;
+    }
+    
+    .feature-icon {
+      font-size: 24px;
+    }
+    
+    .alert {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .alert.show {
+      display: block;
+    }
+    
+    .alert-success {
+      background: rgba(63, 185, 80, 0.1);
+      border: 1px solid var(--accent-primary);
+      color: var(--accent-primary);
+    }
+    
+    .alert-error {
+      background: rgba(248, 81, 73, 0.1);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="logo">
+        <div class="logo-icon">💰</div>
+        <div class="logo-text">Finance-in-a-Box</div>
+      </div>
+      
+      <div class="step-indicator">
+        <div class="step-dot active" data-step="0"></div>
+        <div class="step-dot" data-step="1"></div>
+        <div class="step-dot" data-step="2"></div>
+        <div class="step-dot" data-step="3"></div>
+      </div>
+      
+      <div id="alertBox" class="alert"></div>
+      
+      <!-- Step 0: Welcome -->
+      <div class="step-content active" data-step="0">
+        <h1>Welcome to Finance-in-a-Box! 🎉</h1>
+        <p class="subtitle">
+          Let's get your dealership set up in just a few minutes. This white-label solution is designed specifically for Canadian dealerships.
+        </p>
+        
+        <ul class="feature-list">
+          <li>
+            <span class="feature-icon">🚗</span>
+            <div>
+              <strong>Inventory Management</strong><br>
+              <span style="color: var(--text-secondary); font-size: 12px;">Scrape your website or upload CSV files</span>
+            </div>
+          </li>
+          <li>
+            <span class="feature-icon">✅</span>
+            <div>
+              <strong>Approval Processing</strong><br>
+              <span style="color: var(--text-secondary); font-size: 12px;">Manual entry or PDF parsing</span>
+            </div>
+          </li>
+          <li>
+            <span class="feature-icon">🎯</span>
+            <div>
+              <strong>Deal Scoring</strong><br>
+              <span style="color: var(--text-secondary); font-size: 12px;">Calculate best deals across all lenders</span>
+            </div>
+          </li>
+          <li>
+            <span class="feature-icon">📊</span>
+            <div>
+              <strong>DealerTrack Worksheet</strong><br>
+              <span style="color: var(--text-secondary); font-size: 12px;">Complete deal breakdown for entry</span>
+            </div>
+          </li>
+          <li>
+            <span class="feature-icon">🔗</span>
+            <div>
+              <strong>GHL Integration</strong><br>
+              <span style="color: var(--text-secondary); font-size: 12px;">Push deals directly to GoHighLevel</span>
+            </div>
+          </li>
+        </ul>
+        
+        <div class="actions">
+          <button class="btn btn-primary" onclick="nextStep()">Get Started →</button>
+        </div>
+      </div>
+      
+      <!-- Step 1: Dealership Info -->
+      <div class="step-content" data-step="1">
+        <h1>Dealership Information</h1>
+        <p class="subtitle">Tell us about your dealership</p>
+        
+        <div class="form-group">
+          <label class="form-label">Dealership Name *</label>
+          <input type="text" id="dealershipName" class="form-input" placeholder="e.g., ABC Motors" />
+          <div class="form-help">This will appear in reports and exports</div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Location *</label>
+          <input type="text" id="location" class="form-input" placeholder="e.g., Calgary, Alberta" />
+          <div class="form-help">City or province</div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Postal Code *</label>
+          <input type="text" id="postalCode" class="form-input" placeholder="e.g., T2P" />
+          <div class="form-help">Used for competitor radius search</div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Province *</label>
+          <select id="province" class="form-select">
+            <option value="AB">Alberta</option>
+            <option value="BC">British Columbia</option>
+            <option value="SK">Saskatchewan</option>
+            <option value="MB">Manitoba</option>
+            <option value="ON">Ontario</option>
+            <option value="QC">Quebec</option>
+            <option value="NS">Nova Scotia</option>
+            <option value="NB">New Brunswick</option>
+            <option value="PE">Prince Edward Island</option>
+            <option value="NL">Newfoundland</option>
+          </select>
+          <div class="form-help">Used for tax calculations</div>
+        </div>
+        
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+          <button class="btn btn-primary" onclick="nextStep()">Continue →</button>
+        </div>
+      </div>
+      
+      <!-- Step 2: Website & Fees -->
+      <div class="step-content" data-step="2">
+        <h1>Website & Fees</h1>
+        <p class="subtitle">Configure your website and dealership fees</p>
+        
+        <div class="form-group">
+          <label class="form-label">Dealership Website URL *</label>
+          <input type="url" id="websiteUrl" class="form-input" placeholder="https://www.yourdealership.com" />
+          <div class="form-help">Your main website (used for inventory scraping)</div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Documentation Fee ($) *</label>
+          <input type="number" id="docFee" class="form-input" placeholder="799" value="799" min="0" max="5000" step="0.01" />
+          <div class="form-help">Your standard documentation fee</div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">PPSA Fee ($)</label>
+          <input type="number" id="ppsaFee" class="form-input" placeholder="38.73" value="38.73" min="0" max="200" step="0.01" />
+          <div class="form-help">PPSA registration fee (default: $38.73)</div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Competitor Search Radius (km)</label>
+          <input type="number" id="competitorRadiusKm" class="form-input" placeholder="100" value="100" min="10" max="500" />
+          <div class="form-help">How far to search for competitor pricing</div>
+        </div>
+        
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="prevStep()">← Back</button>
+          <button class="btn btn-primary" onclick="nextStep()">Continue →</button>
+        </div>
+      </div>
+      
+      <!-- Step 3: Complete -->
+      <div class="step-content" data-step="3">
+        <h1>All Set! 🎉</h1>
+        <p class="subtitle">
+          Your dealership is configured and ready to go. You can always update these settings later.
+        </p>
+        
+        <ul class="feature-list">
+          <li>
+            <span class="feature-icon">✅</span>
+            <div>
+              <strong>Dealership Configured</strong><br>
+              <span style="color: var(--text-secondary); font-size: 12px;">Your information has been saved</span>
+            </div>
+          </li>
+          <li>
+            <span class="feature-icon">📋</span>
+            <div>
+              <strong>Next Steps</strong><br>
+              <span style="color: var(--text-secondary); font-size: 12px;">Upload inventory and create your first approval</span>
+            </div>
+          </li>
+          <li>
+            <span class="feature-icon">⚙️</span>
+            <div>
+              <strong>Settings Available</strong><br>
+              <span style="color: var(--text-secondary); font-size: 12px;">Access settings anytime from the dashboard</span>
+            </div>
+          </li>
+        </ul>
+        
+        <div class="actions">
+          <button class="btn btn-primary" onclick="completOnboarding()" style="width: 100%;">
+            Go to Dashboard →
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="/onboarding.js"></script>
+</body>
+</html>
