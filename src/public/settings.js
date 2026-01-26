@@ -27,6 +27,10 @@ async function loadSettings() {
       document.getElementById('postalCode').value = data.postalCode || 'T5J';
       document.getElementById('province').value = data.province || 'AB';
       document.getElementById('competitorRadiusKm').value = data.competitorRadiusKm || 100;
+      document.getElementById('docFee').value = data.docFee || 799;
+      document.getElementById('ppsaFee').value = data.ppsaFee || 38.73;
+      document.getElementById('cbbApiKey').value = data.cbbApiKey || '';
+      document.getElementById('cbbApiUrl').value = data.cbbApiUrl || 'https://api.canadianblackbook.com/v1';
       
       if (!data.websiteUrl) {
         showAlert('⚠️ Please configure your dealership website URL to enable inventory scraping', 'warning');
@@ -55,6 +59,10 @@ async function saveSettings() {
       postalCode: document.getElementById('postalCode').value.trim(),
       province: document.getElementById('province').value,
       competitorRadiusKm: parseInt(document.getElementById('competitorRadiusKm').value) || 100,
+      docFee: parseFloat(document.getElementById('docFee').value) || 799,
+      ppsaFee: parseFloat(document.getElementById('ppsaFee').value) || 38.73,
+      cbbApiKey: document.getElementById('cbbApiKey').value.trim(),
+      cbbApiUrl: document.getElementById('cbbApiUrl').value.trim(),
     };
     
     if (!config.dealershipName) {
@@ -97,6 +105,47 @@ async function saveSettings() {
   }
 }
 
+async function testBlackBook() {
+  const testBtn = document.getElementById('testBlackBookBtn');
+  
+  try {
+    testBtn.disabled = true;
+    testBtn.innerHTML = '<span class="spinner"></span>Testing...';
+    
+    const apiKey = document.getElementById('cbbApiKey').value.trim();
+    const apiUrl = document.getElementById('cbbApiUrl').value.trim();
+    
+    if (!apiKey) {
+      showAlert('Please enter your Black Book API key first', 'error');
+      return;
+    }
+    
+    showAlert('Testing Black Book API connection...', 'warning');
+    
+    const response = await fetch('/api/dealership/test-blackbook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey, apiUrl })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      showAlert('✓ Black Book API connection successful!', 'success');
+      console.log('Black Book test result:', result);
+    } else {
+      showAlert('Black Book API test failed: ' + (result.error || 'unknown'), 'error');
+      console.error('Black Book test error:', result);
+    }
+  } catch (error) {
+    console.error('Test error:', error);
+    showAlert('Test failed: ' + error.message, 'error');
+  } finally {
+    testBtn.disabled = false;
+    testBtn.innerHTML = '🧪 Test Black Book Connection';
+  }
+}
+
 async function testScraper() {
   const testBtn = document.getElementById('testScrapeBtn');
   
@@ -135,5 +184,6 @@ async function testScraper() {
 
 document.getElementById('saveBtn').addEventListener('click', saveSettings);
 document.getElementById('testScrapeBtn').addEventListener('click', testScraper);
+document.getElementById('testBlackBookBtn').addEventListener('click', testBlackBook);
 
 loadSettings();
