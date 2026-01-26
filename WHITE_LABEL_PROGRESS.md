@@ -1,19 +1,19 @@
 # White-Label GHL Marketplace Conversion Progress
 
-## ✅ COMPLETED (Session 1)
+## COMPLETED
 
-### 1. Manual Approval Form - FIXED
+### 1. Manual Approval Form - FIXED 
 **Problem:** "Invalid JSON" error when creating manual approvals  
 **Root Cause:** Duplicate event handlers on saveApproval button  
 **Solution:** Removed conflicting PDF mode handler  
-**Status:** ✅ Working - Manual Entry form now accepts pure form-based input  
+**Status:** Working - Manual Entry form now accepts pure form-based input  
 **Files Changed:**
 - `src/public/dashboard.js` (lines 564-589 removed)
 
-### 2. DealerTrack-Style Deal Worksheet - CREATED
+### 2. DealerTrack-Style Deal Worksheet - CREATED 
 **Problem:** No way to view complete deal details for DealerTrack entry  
 **Solution:** Created comprehensive deal worksheet page matching DealerTrack system  
-**Status:** ✅ Complete - All fields from screenshot implemented  
+**Status:** Complete - All fields from screenshot implemented  
 **Files Created:**
 - `src/views/deal-worksheet.html` (full DealerTrack layout)
 - `src/public/deal-worksheet.js` (data population logic)
@@ -33,10 +33,10 @@
 
 **Access:** Click "View Deal Worksheet" button on any scored vehicle in dashboard
 
-### 3. Apify API Integration - IMPLEMENTED
+### 3. Apify API Integration - IMPLEMENTED 
 **Problem:** AutoTrader/CarGurus scrapers broken (brittle HTML parsing)  
 **Solution:** Integrated Apify API for stable, anti-bot protected scraping  
-**Status:** ✅ Complete - Endpoints updated to use Apify  
+**Status:** Complete - Endpoints updated to use Apify  
 **Files Created:**
 - `src/modules/scrapers/apify-integration.ts` (full Apify service)
 
@@ -62,29 +62,30 @@ APIFY_CARGURUS_ACTOR_ID=apify/cargurus-scraper
 - `/api/scrape/autotrader?make=Honda&model=Civic&year=2020&location=Alberta&radius=100`
 - `/api/scrape/cargurus?make=Toyota&model=Camry&year=2021&postalCode=T5J&radius=100`
 
----
+### 4. Devon Chrysler Hardcoding Removed 
+**Problem:** Devon Chrysler URLs and references hardcoded throughout app  
+**Solution:** Created configurable dealership settings system  
+**Status:** Complete - All hardcoded references replaced with dynamic config  
 
-## 🚧 IN PROGRESS
+**Files Created:**
+- `src/api/routes/dealership.ts` (configuration API)
+- `src/views/settings.html` (settings page UI)
+- `src/public/settings.js` (settings page logic)
 
-### 4. Remove Devon Chrysler Hardcoding
-**Current State:** Multiple references to Devon Chrysler throughout codebase  
-**Required Changes:**
-- `src/public/dashboard.js` (lines 338-400) - Scrape button hardcoded URLs
-- `src/modules/background-jobs.ts` (lines 177, 303) - Cron job URLs
-- `src/api/routes/scrape.ts` (line 453, 480) - Health check and base URL
-- Button labels ("Scrape Devon Inventory")
+**Files Modified:**
+- `src/public/dashboard.js` (scraper now fetches config from API)
+- `src/views/dashboard.html` (button label changed to "Scrape Inventory")
+- `src/api/routes/scrape.ts` (new `/dealership` endpoint, `/devon` deprecated)
+- `src/server.ts` (added settings routes)
 
-**Solution Plan:**
-1. Create dealership settings table in Supabase
-2. Add dealership configuration to state management
-3. Replace hardcoded URLs with dynamic configuration
-4. Update UI to show "Scrape Inventory" (generic)
-5. Add settings page for dealership URL configuration
+**New API Endpoints:**
+- `GET /api/dealership/config` - Get current dealership configuration
+- `POST /api/dealership/config` - Update dealership configuration
+- `GET /api/scrape/dealership` - Scrape using configured dealership URL
+- `GET /settings` - Settings page UI
 
----
-
-## 📋 TODO (White-Label Requirements)
-
+**Configuration Options:**
+- Dealership Name
 ### 5. Dealership Settings Page
 **Requirements:**
 - Dealership name
