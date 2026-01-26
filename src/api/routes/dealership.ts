@@ -1,69 +1,50 @@
 import { Router, Request, Response } from 'express';
-import { state } from '../state';
+import { loadConfig, saveConfig, updateConfig } from '../../modules/dealership-config';
 
 const router = Router();
 
-interface DealershipConfig {
-  dealershipName: string;
-  websiteUrl: string;
-  usedInventoryPath: string;
-  newInventoryPath: string;
-  location: string;
-  postalCode: string;
-  province: string;
-  competitorRadiusKm: number;
-  docFee: number;
-  ppsaFee: number;
-  cbbApiKey?: string;
-  cbbApiUrl?: string;
-  logoUrl?: string;
-}
-
-// In-memory config for now (will move to Supabase in multi-tenant implementation)
-let dealershipConfig: DealershipConfig = {
-  dealershipName: 'My Dealership',
-  websiteUrl: '',
-  usedInventoryPath: '/search/used/',
-  newInventoryPath: '/search/new/',
-  location: 'Alberta',
-  postalCode: 'T5J',
-  province: 'AB',
-  competitorRadiusKm: 100,
-  docFee: 799,
-  ppsaFee: 38.73,
-  cbbApiKey: '',
-  cbbApiUrl: 'https://api.canadianblackbook.com/v1',
-};
-
 router.get('/config', (_req: Request, res: Response) => {
-  res.json({
-    success: true,
-    ...dealershipConfig
-  });
+  try {
+    const config = loadConfig();
+    res.json({
+      success: true,
+      ...config
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
 });
 
 router.post('/config', (req: Request, res: Response) => {
   try {
     const updates = req.body;
     
-    if (updates.dealershipName) dealershipConfig.dealershipName = updates.dealershipName;
-    if (updates.websiteUrl) dealershipConfig.websiteUrl = updates.websiteUrl;
-    if (updates.usedInventoryPath) dealershipConfig.usedInventoryPath = updates.usedInventoryPath;
-    if (updates.newInventoryPath) dealershipConfig.newInventoryPath = updates.newInventoryPath;
-    if (updates.location) dealershipConfig.location = updates.location;
-    if (updates.postalCode) dealershipConfig.postalCode = updates.postalCode;
-    if (updates.province) dealershipConfig.province = updates.province;
-    if (updates.competitorRadiusKm) dealershipConfig.competitorRadiusKm = Number(updates.competitorRadiusKm);
-    if (updates.docFee !== undefined) dealershipConfig.docFee = Number(updates.docFee);
-    if (updates.ppsaFee !== undefined) dealershipConfig.ppsaFee = Number(updates.ppsaFee);
-    if (updates.cbbApiKey !== undefined) dealershipConfig.cbbApiKey = updates.cbbApiKey;
-    if (updates.cbbApiUrl !== undefined) dealershipConfig.cbbApiUrl = updates.cbbApiUrl;
-    if (updates.logoUrl !== undefined) dealershipConfig.logoUrl = updates.logoUrl;
+    // Build updates object with proper type conversions
+    const configUpdates: any = {};
+    
+    if (updates.dealershipName) configUpdates.dealershipName = updates.dealershipName;
+    if (updates.websiteUrl) configUpdates.websiteUrl = updates.websiteUrl;
+    if (updates.usedInventoryPath) configUpdates.usedInventoryPath = updates.usedInventoryPath;
+    if (updates.newInventoryPath) configUpdates.newInventoryPath = updates.newInventoryPath;
+    if (updates.location) configUpdates.location = updates.location;
+    if (updates.postalCode) configUpdates.postalCode = updates.postalCode;
+    if (updates.province) configUpdates.province = updates.province;
+    if (updates.competitorRadiusKm !== undefined) configUpdates.competitorRadiusKm = Number(updates.competitorRadiusKm);
+    if (updates.docFee !== undefined) configUpdates.docFee = Number(updates.docFee);
+    if (updates.ppsaFee !== undefined) configUpdates.ppsaFee = Number(updates.ppsaFee);
+    if (updates.cbbApiKey !== undefined) configUpdates.cbbApiKey = updates.cbbApiKey;
+    if (updates.cbbApiUrl !== undefined) configUpdates.cbbApiUrl = updates.cbbApiUrl;
+    if (updates.logoUrl !== undefined) configUpdates.logoUrl = updates.logoUrl;
+    
+    const updatedConfig = updateConfig(configUpdates);
     
     res.json({
       success: true,
-      message: 'Dealership configuration updated',
-      config: dealershipConfig
+      message: 'Dealership configuration saved successfully',
+      config: updatedConfig
     });
   } catch (error: any) {
     res.status(500).json({

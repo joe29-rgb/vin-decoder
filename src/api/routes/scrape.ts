@@ -477,12 +477,11 @@ router.get('/health', async (_req: Request, res: Response) => {
 
 router.get('/dealership', async (req: Request, res: Response) => {
   try {
-    // Fetch dealership configuration
-    const configModule = await import('../routes/dealership');
-    const configResp = await fetch('http://localhost:' + (process.env.PORT || 10001) + '/api/dealership/config');
-    const config = await configResp.json();
+    // Load dealership configuration from persistent storage
+    const { loadConfig } = await import('../../modules/dealership-config');
+    const config = loadConfig();
     
-    if (!config.success || !config.websiteUrl) {
+    if (!config.websiteUrl) {
       return res.status(400).json({
         success: false,
         error: 'Dealership website not configured. Please update settings at /settings'
