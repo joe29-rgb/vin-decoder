@@ -190,4 +190,198 @@ router.post('/save-to-ghl', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/save', async (req: Request, res: Response) => {
+  try {
+    const dealershipId = req.dealershipId;
+    const dealData = req.body;
+
+    if (!dealershipId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Dealership context required',
+      });
+    }
+
+    const { saveDealToSupabase } = await import('../../modules/deals-storage');
+    const savedDeal = await saveDealToSupabase(dealershipId, dealData);
+
+    if (savedDeal) {
+      res.json({
+        success: true,
+        deal: savedDeal,
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to save deal',
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: (error as Error).message,
+    });
+  }
+});
+
+router.get('/list', async (req: Request, res: Response) => {
+  try {
+    const dealershipId = req.dealershipId;
+    const limit = req.query.limit ? Number(req.query.limit) : 100;
+    const status = req.query.status as string | undefined;
+
+    if (!dealershipId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Dealership context required',
+      });
+    }
+
+    const { getDealsFromSupabase } = await import('../../modules/deals-storage');
+    const deals = await getDealsFromSupabase(dealershipId, limit, status);
+
+    res.json({
+      success: true,
+      total: deals.length,
+      deals,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: (error as Error).message,
+    });
+  }
+});
+
+router.get('/stats', async (req: Request, res: Response) => {
+  try {
+    const dealershipId = req.dealershipId;
+    const startDate = req.query.startDate as string | undefined;
+    const endDate = req.query.endDate as string | undefined;
+
+    if (!dealershipId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Dealership context required',
+      });
+    }
+
+    const { getDealStatsFromSupabase } = await import('../../modules/deals-storage');
+    const stats = await getDealStatsFromSupabase(dealershipId, startDate, endDate);
+
+    res.json({
+      success: true,
+      stats,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: (error as Error).message,
+    });
+  }
+});
+
+router.get('/:dealId', async (req: Request, res: Response) => {
+  try {
+    const dealershipId = req.dealershipId;
+    const dealId = req.params.dealId;
+
+    if (!dealershipId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Dealership context required',
+      });
+    }
+
+    const { getDealByIdFromSupabase } = await import('../../modules/deals-storage');
+    const deal = await getDealByIdFromSupabase(dealId, dealershipId);
+
+    if (deal) {
+      res.json({
+        success: true,
+        deal,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Deal not found',
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: (error as Error).message,
+    });
+  }
+});
+
+router.put('/:dealId', async (req: Request, res: Response) => {
+  try {
+    const dealershipId = req.dealershipId;
+    const dealId = req.params.dealId;
+    const updates = req.body;
+
+    if (!dealershipId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Dealership context required',
+      });
+    }
+
+    const { updateDealInSupabase } = await import('../../modules/deals-storage');
+    const updatedDeal = await updateDealInSupabase(dealId, dealershipId, updates);
+
+    if (updatedDeal) {
+      res.json({
+        success: true,
+        deal: updatedDeal,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Deal not found or update failed',
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: (error as Error).message,
+    });
+  }
+});
+
+router.delete('/:dealId', async (req: Request, res: Response) => {
+  try {
+    const dealershipId = req.dealershipId;
+    const dealId = req.params.dealId;
+
+    if (!dealershipId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Dealership context required',
+      });
+    }
+
+    const { deleteDealFromSupabase } = await import('../../modules/deals-storage');
+    const deleted = await deleteDealFromSupabase(dealId, dealershipId);
+
+    if (deleted) {
+      res.json({
+        success: true,
+        message: 'Deal deleted successfully',
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Deal not found or delete failed',
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: (error as Error).message,
+    });
+  }
+});
+
 export default router;
