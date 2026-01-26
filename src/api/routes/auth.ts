@@ -86,7 +86,18 @@ router.get('/callback', async (req: Request, res: Response) => {
       companyId
     } = tokenResponse.data;
     
-    // Store tokens
+    // Get or create dealership in Supabase
+    const { getOrCreateDealership, storeDealershipTokens } = await import('../../modules/multi-tenant');
+    const dealership = await getOrCreateDealership(locationId, companyId);
+    
+    if (!dealership) {
+      return res.status(500).send('Failed to create dealership record');
+    }
+    
+    // Store OAuth tokens in dealership record
+    await storeDealershipTokens(dealership.id, access_token, refresh_token, expires_in);
+    
+    // Store tokens in memory for backward compatibility
     tokenStore[locationId] = {
       accessToken: access_token,
       refreshToken: refresh_token,
@@ -95,11 +106,24 @@ router.get('/callback', async (req: Request, res: Response) => {
       companyId
     };
     
-    // Redirect to onboarding or dashboard
-    // Check if dealership settings exist for this location
-    const hasSettings = false; // TODO: Check Supabase for existing settings
+    // Create JWT for dealership context
+    const { createDealershipToken } = await import('../middleware/dealership-context');
+    const token = createDealershipToken({
+      dealershipId: dealership.id,
+      locationId: dealership.ghl_location_id,
+      companyId: dealership.ghl_company_id,
+    });
     
-    if (hasSettings) {
+    // Set JWT as cookie
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      sameSite: 'lax',
+    });
+    
+    // Redirect based on onboarding status
+    if (dealership.onboarding_complete) {
       res.redirect('/dashboard?auth=success');
     } else {
       res.redirect('/onboarding?auth=success');

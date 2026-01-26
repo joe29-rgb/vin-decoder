@@ -18,6 +18,8 @@ router.post('/upload-file', upload.single('file'), async (req: Request, res: Res
     const file = (req as any).file as Express.Multer.File | undefined;
     if (!file) return res.status(400).json({ success: false, error: 'No file provided' });
     const source = (req as any).body?.source || 'manual';
+    const dealershipId = req.dealershipId;
+    
     const text = file.buffer.toString('utf8');
     let parsed = loadInventoryFromCSV(text);
     parsed = await enrichWithVinAuditValuations(parsed);
@@ -34,7 +36,7 @@ router.post('/upload-file', upload.single('file'), async (req: Request, res: Res
     });
     
     state.inventory = [...updatedVehicles, ...newVehicles];
-    try { await saveInventoryToSupabase(state.inventory); } catch(_e){}
+    try { await saveInventoryToSupabase(state.inventory, dealershipId); } catch(_e){}
     res.json({ success: true, message: `Loaded ${parsed.length} vehicles (${newVehicles.length} new, ${parsed.length - newVehicles.length} updated). Total: ${state.inventory.length}` });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
@@ -100,6 +102,8 @@ router.get('/image/:id', (req: Request, res: Response) => {
 router.post('/upload', async (req: Request, res: Response) => {
   try {
     const { csvContent, source } = req.body;
+    const dealershipId = req.dealershipId;
+    
     if (!csvContent) {
       return res.status(400).json({ success: false, error: 'CSV content required' });
     }
@@ -107,10 +111,9 @@ router.post('/upload', async (req: Request, res: Response) => {
     parsed = await enrichWithVinAuditValuations(parsed);
     
     // Tag vehicles with source
-    const vehicleSource = source || 'manual';
-    parsed = parsed.map((v: Vehicle) => ({ ...v, source: vehicleSource }));
+    parsed = parsed.map((v: Vehicle) => ({ ...v, source: source || 'manual' }));
     
-    // Merge with existing inventory - update existing VINs, add new ones
+    // Merge with existing inventory
     const existingVins = new Set(state.inventory.map((v: Vehicle) => v.vin).filter(Boolean));
     const newVehicles = parsed.filter((v: Vehicle) => !v.vin || !existingVins.has(v.vin));
     const updatedVehicles = state.inventory.map((existing: Vehicle) => {
@@ -119,17 +122,18 @@ router.post('/upload', async (req: Request, res: Response) => {
     });
     
     state.inventory = [...updatedVehicles, ...newVehicles];
-    try { await saveInventoryToSupabase(state.inventory); } catch(_e){}
+    try { await saveInventoryToSupabase(state.inventory, dealershipId); } catch(_e){}
     res.json({ success: true, message: `Loaded ${parsed.length} vehicles (${newVehicles.length} new, ${parsed.length - newVehicles.length} updated). Total: ${state.inventory.length}` });
   } catch (error) {
     res.status(400).json({ success: false, error: (error as Error).message });
   }
 });
 
-router.get('/', (_req: Request, res: Response) => {
+router.get('/', (req: Request, res: Response) => {
   (async () => {
     try {
-      const rows = await fetchInventoryFromSupabase();
+      const dealershipId = req.dealershipId;
+      const rows = await fetchInventoryFromSupabase(dealershipId);
       if (rows && rows.length > 0) {
         state.inventory = rows;
       }

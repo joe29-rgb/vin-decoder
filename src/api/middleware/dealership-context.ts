@@ -1,0 +1,117 @@
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+
+export interface DealershipContext {
+  dealershipId: string;
+  locationId: string;
+  companyId?: string;
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      dealershipId?: string;
+      dealershipContext?: DealershipContext;
+    }
+  }
+}
+
+/**
+ * Middleware to extract dealership context from JWT or headers
+ * This runs on every request to identify which dealership is making the request
+ */
+export function injectDealershipContext(req: Request, res: Response, next: NextFunction) {
+  try {
+    // Priority 1: JWT from cookie
+    const token = req.cookies?.auth_token;
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as DealershipContext;
+        req.dealershipId = decoded.dealershipId;
+        req.dealershipContext = decoded;
+        return next();
+      } catch (error) {
+        // Invalid token, continue to fallbacks
+      }
+    }
+
+    // Priority 2: JWT from Authorization header
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.substring(7);
+        const decoded = jwt.verify(token, JWT_SECRET) as DealershipContext;
+        req.dealershipId = decoded.dealershipId;
+        req.dealershipContext = decoded;
+        return next();
+      } catch (error) {
+        // Invalid token, continue to fallbacks
+      }
+    }
+
+    // Priority 3: Header (for testing/development)
+    const headerDealershipId = req.headers['x-dealership-id'] as string;
+    if (headerDealershipId) {
+      req.dealershipId = headerDealershipId;
+      req.dealershipContext = {
+        dealershipId: headerDealershipId,
+        locationId: 'test-location',
+      };
+      return next();
+    }
+
+    // Priority 4: Query param (for testing/development)
+    const queryDealershipId = req.query.dealershipId as string;
+    if (queryDealershipId) {
+      req.dealershipId = queryDealershipId;
+      req.dealershipContext = {
+        dealershipId: queryDealershipId,
+        locationId: 'test-location',
+      };
+      return next();
+    }
+
+    // No dealership context found - this is OK for public routes
+    next();
+  } catch (error) {
+    console.error('Error in injectDealershipContext:', error);
+    next();
+  }
+}
+
+/**
+ * Middleware to require dealership context
+ * Use this on routes that MUST have a dealership context
+ */
+export function requireDealership(req: Request, res: Response, next: NextFunction) {
+  if (!req.dealershipId) {
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required',
+      message: 'Dealership context not found. Please log in.',
+    });
+  }
+  next();
+}
+
+/**
+ * Create JWT token for dealership
+ */
+export function createDealershipToken(context: DealershipContext): string {
+  return jwt.sign(context, JWT_SECRET, {
+    expiresIn: '30d', // 30 days
+  });
+}
+
+/**
+ * Verify and decode JWT token
+ */
+export function verifyDealershipToken(token: string): DealershipContext | null {
+  try {
+    return jwt.verify(token, JWT_SECRET) as DealershipContext;
+  } catch (error) {
+    return null;
+  }
+}

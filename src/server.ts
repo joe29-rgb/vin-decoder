@@ -3,9 +3,11 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
+import cookieParser from 'cookie-parser';
 import config from './config/config';
 import logger from './utils/logger';
 import { requestLogger, errorHandler, healthCheck } from './api/middleware';
+import { injectDealershipContext } from './api/middleware/dealership-context';
 import dealsRouter from './api/routes/deals';
 import inventoryRouter from './api/routes/inventory';
 import webhooksRouter from './api/routes/webhooks';
@@ -30,9 +32,11 @@ const app = express();
 const PORT = Number(process.env.NEW_PORT || process.env.PORT || config.PORT || 10001);
 
 app.use(cors());
+app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(requestLogger);
+app.use(injectDealershipContext);
 
 // API routes
 app.use('/api/auth', authRouter);
