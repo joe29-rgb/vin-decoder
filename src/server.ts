@@ -21,6 +21,7 @@ import inventoryManagementRouter from './api/routes/inventory-management';
 import dealsManagementRouter from './api/routes/deals-management';
 import jobsRouter from './api/routes/jobs';
 import dealershipRouter from './api/routes/dealership';
+import authRouter from './api/routes/auth';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(requestLogger);
 
 // API routes
+app.use('/api/auth', authRouter);
 app.use('/api/deals', dealsRouter);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/webhooks', webhooksRouter);
