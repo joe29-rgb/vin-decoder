@@ -70,7 +70,7 @@ export async function saveInventoryToSupabase(vehicles: Vehicle[], dealershipId?
     return row;
   });
   
-  const { error } = await sb.from('vehicles').upsert(rows, { onConflict: 'vin' });
+  const { error } = await sb.from('vehicles').upsert(rows, { onConflict: 'dealership_id,vin' });
   if (error) throw new Error('Supabase upsert failed: ' + error.message);
 }
 

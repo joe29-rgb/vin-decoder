@@ -6,9 +6,27 @@ export interface ApprovalRecord {
   dealership_id: string;
   contact_id: string;
   location_id: string;
-  approval: ApprovalSpec;
-  trade: TradeInfo;
+  customer_name?: string;
+  province?: string;
+  is_native_status?: boolean;
+  bank: string;
+  program?: string;
+  apr?: number;
+  term_months?: number;
+  payment_min?: number;
+  payment_max?: number;
+  down_payment?: number;
+  trade_allowance?: number;
+  trade_acv?: number;
+  trade_lien?: number;
+  trade_year?: number;
+  trade_make?: string;
+  trade_model?: string;
+  trade_vin?: string;
+  front_cap_factor?: number;
+  status?: string;
   created_at: string;
+  updated_at?: string;
 }
 
 /**
@@ -31,8 +49,16 @@ export async function saveApprovalToSupabase(
         dealership_id: dealershipId,
         contact_id: contactId,
         location_id: locationId,
-        approval: approval,
-        trade: trade,
+        bank: approval.bank,
+        program: approval.program,
+        apr: approval.apr,
+        term_months: approval.termMonths,
+        payment_min: approval.paymentMin,
+        payment_max: approval.paymentMax,
+        down_payment: approval.downPayment,
+        trade_allowance: trade.allowance,
+        trade_acv: trade.acv,
+        trade_lien: trade.lienBalance,
       })
       .select()
       .single();
