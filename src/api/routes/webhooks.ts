@@ -335,6 +335,100 @@ router.post('/approvals/score', (req: Request, res: Response) => {
   }
 });
 
+// Rank approvals by profit potential
+router.post('/approvals/rank', (req: Request, res: Response) => {
+  try {
+    const { approvals, termMonths } = req.body;
+    if (!approvals || !Array.isArray(approvals) || approvals.length === 0) {
+      return res.status(400).json({ success: false, error: 'Missing approvals array' });
+    }
+    
+    const { rankApprovalsByProfit } = require('../../modules/profit-maximizer');
+    const ranked = rankApprovalsByProfit(approvals, termMonths || 84);
+    
+    res.json({ success: true, ranked });
+  } catch (e) {
+    res.status(400).json({ success: false, error: (e as Error).message });
+  }
+});
+
+// Calculate profit scenarios for a vehicle across multiple approvals
+router.post('/approvals/profit-scenarios', (req: Request, res: Response) => {
+  try {
+    const { vehicle, approvals, trade, province, docFee } = req.body;
+    
+    if (!vehicle) {
+      return res.status(400).json({ success: false, error: 'Missing vehicle' });
+    }
+    
+    if (!approvals || !Array.isArray(approvals) || approvals.length === 0) {
+      return res.status(400).json({ success: false, error: 'Missing approvals array' });
+    }
+    
+    const { calculateAllProfitScenarios } = require('../../modules/profit-maximizer');
+    const scenarios = calculateAllProfitScenarios(
+      vehicle,
+      approvals,
+      trade || { allowance: 0, acv: 0, lienBalance: 0 },
+      province || 'AB',
+      docFee || 799
+    );
+    
+    res.json({ success: true, scenarios });
+  } catch (e) {
+    res.status(400).json({ success: false, error: (e as Error).message });
+  }
+});
+
+// Score inventory with profit maximization across multiple approvals
+router.post('/approvals/score-multi', (req: Request, res: Response) => {
+  try {
+    const { approvals, trade, province, docFee } = req.body;
+    
+    if (!approvals || !Array.isArray(approvals) || approvals.length === 0) {
+      return res.status(400).json({ success: false, error: 'Missing approvals array' });
+    }
+    
+    const inventoryToScore = state.inventory.length > 0 ? state.inventory : state.mirroredInventory;
+    
+    if (inventoryToScore.length === 0) {
+      return res.status(400).json({ success: false, error: 'No inventory loaded. Please upload inventory first.' });
+    }
+    
+    const { calculateAllProfitScenarios } = require('../../modules/profit-maximizer');
+    
+    // Score each vehicle against all approvals
+    const scoredDeals = inventoryToScore.map(vehicle => {
+      const scenarios = calculateAllProfitScenarios(
+        vehicle,
+        approvals,
+        trade || { allowance: 0, acv: 0, lienBalance: 0 },
+        province || 'AB',
+        docFee || 799
+      );
+      
+      return {
+        vehicle: vehicle,
+        bestScenario: scenarios[0], // Highest profit
+        allScenarios: scenarios,
+        profitPotential: scenarios[0]?.totalGross || 0,
+      };
+    });
+    
+    // Sort by profit potential (highest first)
+    scoredDeals.sort((a, b) => b.profitPotential - a.profitPotential);
+    
+    res.json({ 
+      success: true, 
+      deals: scoredDeals,
+      inventoryCount: inventoryToScore.length,
+      approvalsCount: approvals.length,
+    });
+  } catch (e) {
+    res.status(400).json({ success: false, error: (e as Error).message });
+  }
+});
+
 // Generic webhook
 router.post('/ghl/push-selected', async (req: Request, res: Response) => {
   try {
