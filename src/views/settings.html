@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Settings | Finance-in-a-Box</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg-primary: #0a0e14;
+      --bg-secondary: #0f1419;
+      --surface: #1a1f29;
+      --surface-elevated: #1f2430;
+      --border: #2a2f3a;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --accent-primary: #3fb950;
+      --accent-secondary: #58a6ff;
+      --danger: #f85149;
+      --radius-md: 10px;
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      color: var(--text-primary);
+      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    h1 {
+      font-size: 28px;
+      color: var(--accent-primary);
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--accent-primary);
+      color: #000;
+    }
+    
+    .btn-secondary {
+      background: var(--surface-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    
+    .btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-md);
+    }
+    
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent-secondary);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    
+    .form-input, .form-select {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+    }
+    
+    .form-help {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    
+    .alert {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .alert.show {
+      display: block;
+    }
+    
+    .alert-success {
+      background: rgba(63, 185, 80, 0.1);
+      border: 1px solid var(--accent-primary);
+      color: var(--accent-primary);
+    }
+    
+    .alert-error {
+      background: rgba(248, 81, 73, 0.1);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+    }
+    
+    .alert-warning {
+      background: rgba(217, 153, 34, 0.1);
+      border: 1px solid #d99922;
+      color: #d99922;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .info-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    
+    .info-box-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--accent-secondary);
+    }
+    
+    .info-box-content {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⚙️ Dealership Settings</h1>
+      <button class="btn btn-secondary" onclick="window.location.href='/dashboard'">← Back to Dashboard</button>
+    </div>
+    
+    <div id="alertBox" class="alert"></div>
+    
+    <!-- Dealership Information -->
+    <div class="card">
+      <div class="card-title">Dealership Information</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Dealership Name *</label>
+          <input type="text" id="dealershipName" class="form-input" placeholder="e.g., ABC Motors" />
+          <div class="form-help">This will appear in reports and exports</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Location *</label>
+          <input type="text" id="location" class="form-input" placeholder="e.g., Alberta" />
+          <div class="form-help">City or province for competitor search</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Postal Code *</label>
+          <input type="text" id="postalCode" class="form-input" placeholder="e.g., T5J" />
+          <div class="form-help">Used for competitor radius search</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Province *</label>
+          <select id="province" class="form-select">
+            <option value="AB">Alberta</option>
+            <option value="BC">British Columbia</option>
+            <option value="SK">Saskatchewan</option>
+            <option value="MB">Manitoba</option>
+            <option value="ON">Ontario</option>
+            <option value="QC">Quebec</option>
+            <option value="NS">Nova Scotia</option>
+            <option value="NB">New Brunswick</option>
+            <option value="PE">Prince Edward Island</option>
+            <option value="NL">Newfoundland</option>
+          </select>
+          <div class="form-help">Used for tax calculations</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Website Configuration -->
+    <div class="card">
+      <div class="card-title">Website Configuration</div>
+      <div class="form-grid">
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label">Dealership Website URL *</label>
+          <input type="url" id="websiteUrl" class="form-input" placeholder="https://www.yourdealership.com" />
+          <div class="form-help">Your dealership's main website URL (used for inventory scraping)</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Used Inventory Path</label>
+          <input type="text" id="usedInventoryPath" class="form-input" placeholder="/search/used/" value="/search/used/" />
+          <div class="form-help">Path to used inventory page (relative to website URL)</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Inventory Path</label>
+          <input type="text" id="newInventoryPath" class="form-input" placeholder="/search/new/" value="/search/new/" />
+          <div class="form-help">Path to new inventory page (relative to website URL)</div>
+        </div>
+      </div>
+      
+      <div class="info-box">
+        <div class="info-box-title">💡 How Inventory Scraping Works</div>
+        <div class="info-box-content">
+          The system will combine your Website URL with the inventory paths to scrape your dealership's inventory.
+          For example: <code>https://www.yourdealership.com/search/used/</code>
+          <br><br>
+          Make sure these paths point to pages that list your vehicles with details like VIN, price, mileage, etc.
+        </div>
+      </div>
+    </div>
+    
+    <!-- Competitor Search Settings -->
+    <div class="card">
+      <div class="card-title">Competitor Search Settings</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Search Radius (km)</label>
+          <input type="number" id="competitorRadiusKm" class="form-input" placeholder="100" value="100" min="10" max="500" />
+          <div class="form-help">How far to search for competitor pricing (10-500 km)</div>
+        </div>
+      </div>
+      
+      <div class="info-box">
+        <div class="info-box-title">🔍 Competitor Pricing</div>
+        <div class="info-box-content">
+          The system uses Apify API to search AutoTrader and CarGurus within your specified radius.
+          This helps you price vehicles competitively based on local market data.
+          <br><br>
+          <strong>Note:</strong> Requires Apify API token to be configured in environment variables.
+        </div>
+      </div>
+    </div>
+    
+    <!-- API Configuration (Optional) -->
+    <div class="card">
+      <div class="card-title">API Configuration (Optional)</div>
+      <div class="form-grid">
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label">Canadian Black Book API Key</label>
+          <input type="password" id="cbbApiKey" class="form-input" placeholder="Enter your CBB API key" />
+          <div class="form-help">Optional: Automatically fetch Black Book values via API</div>
+        </div>
+      </div>
+      
+      <div class="info-box">
+        <div class="info-box-title">📚 Black Book Integration</div>
+        <div class="info-box-content">
+          If you have a Canadian Black Book API subscription, enter your API key here to automatically
+          fetch Black Book values for your inventory. Otherwise, you can manually enter values via the
+          "Set BB" button in the inventory table.
+          <br><br>
+          <strong>Default:</strong> When Black Book value is missing or zero, the system uses $10,000 as a default.
+        </div>
+      </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn btn-primary" id="saveBtn">
+        <span id="saveBtnText">💾 Save Settings</span>
+      </button>
+      <button class="btn btn-secondary" id="testScrapeBtn">
+        🧪 Test Scraper
+      </button>
+    </div>
+  </div>
+  
+  <script src="/settings.js"></script>
+</body>
+</html>
