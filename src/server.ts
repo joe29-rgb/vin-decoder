@@ -20,6 +20,7 @@ import smartsheetRouter from './api/routes/smartsheet';
 import inventoryManagementRouter from './api/routes/inventory-management';
 import dealsManagementRouter from './api/routes/deals-management';
 import jobsRouter from './api/routes/jobs';
+import dealershipRouter from './api/routes/dealership';
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ app.use('/api/location', geolocationRouter);
 app.use('/api/sync', inventorySyncRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/dealerships', dealershipsRouter);
+app.use('/api/dealership', dealershipRouter);
 app.use('/api/smartsheet', smartsheetRouter);
 app.use('/api/inventory-management', inventoryManagementRouter);
 app.use('/api/deals-management', dealsManagementRouter);

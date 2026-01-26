@@ -475,6 +475,97 @@ router.get('/health', async (_req: Request, res: Response) => {
   }
 });
 
+router.get('/dealership', async (req: Request, res: Response) => {
+  try {
+    // Fetch dealership configuration
+    const configModule = await import('../routes/dealership');
+    const configResp = await fetch('http://localhost:' + (process.env.PORT || 10001) + '/api/dealership/config');
+    const config = await configResp.json();
+    
+    if (!config.success || !config.websiteUrl) {
+      return res.status(400).json({
+        success: false,
+        error: 'Dealership website not configured. Please update settings at /settings'
+      });
+    }
+    
+    const base = config.websiteUrl;
+    const path = (req.query.path as string) || '/inventory/';
+    const limit = Math.min(Math.max(Number(req.query.limit) || 200, 1), 500);
+    const url = new URL(path, base).href;
+    const useCache = req.query.cache !== 'false';
+    
+    console.log('[SCRAPER] Dealership scrape started:', { url, limit, path, useCache });
+    
+    // Check cache first
+    if (useCache) {
+      const cached = await getCachedVehicles(url);
+      if (cached) {
+        console.log('[SCRAPER] Returning cached vehicles:', cached.length);
+        return res.json({ 
+          success: true, 
+          total: cached.length, 
+          vehicles: cached, 
+          cached: true,
+          debug: { url, limit } 
+        });
+      }
+    }
+    
+    // Use production scraper with all 7 fixes
+    const { ProductionDealershipScraper } = await import('../../modules/production-scraper');
+    const scraper = new ProductionDealershipScraper({
+      baseUrl: url,
+      maxPages: Math.ceil(limit / 20),
+      minScore: 50,
+      headless: true,
+      useCache: useCache,
+    });
+    
+    console.log('[SCRAPER] Using ProductionDealershipScraper with pagination support');
+    const vehicles = await scraper.scrapeInventory();
+    
+    // Normalize stock numbers
+    vehicles.forEach(v => {
+      if (v.id) {
+        v.id = normalizeStockNumber(v.id);
+      }
+    });
+    
+    console.log('[SCRAPER] Vehicles fetched:', vehicles.length);
+    
+    // Save to cache
+    if (useCache && vehicles.length > 0) {
+      await setCachedVehicles(url, vehicles);
+    }
+    
+    if (vehicles.length > 0) {
+      console.log('[SCRAPER] Sample vehicle:', JSON.stringify(vehicles[0], null, 2));
+    }
+    
+    res.json({ 
+      success: true, 
+      total: vehicles.length, 
+      vehicles: vehicles, 
+      cached: false,
+      debug: { url, limit, maxPages: Math.ceil(limit / 20) } 
+    });
+  } catch (e) {
+    const err: any = e;
+    const status = err?.response?.status;
+    const statusText = err?.response?.statusText;
+    console.error('[SCRAPER] Dealership scrape error:', err.message, err.stack);
+    res.status(500).json({ 
+      success: false, 
+      error: (err?.message || 'scrape failed'), 
+      status, 
+      statusText,
+      stack: err?.stack,
+      debug: { url: req.query.path, limit: req.query.limit }
+    });
+  }
+});
+
 router.get('/devon', async (req: Request, res: Response) => {
   try {
     const base = 'https://www.devonchrysler.com';
@@ -483,7 +574,7 @@ router.get('/devon', async (req: Request, res: Response) => {
     const url = new URL(path, base).href;
     const useCache = req.query.cache !== 'false';
     
-    console.log('[SCRAPER] Devon scrape started:', { url, limit, path, useCache });
+    console.log('[SCRAPER] Devon scrape started (DEPRECATED - use /dealership):', { url, limit, path, useCache });
     
     // Check cache first
     if (useCache) {

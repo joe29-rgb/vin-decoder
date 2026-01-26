@@ -369,20 +369,31 @@
         try { console.log('Scrape button clicked'); } catch(_e){}
         scrapeBtn.disabled = true;
         scrapeBtn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;"></span>Scraping...';
-        if (meta && meta.textContent !== undefined) meta.textContent = 'Scraping Devon Chrysler inventory (used + new)...';
+        if (meta && meta.textContent !== undefined) meta.textContent = 'Scraping dealership inventory...';
         toast('Starting scrape...');
         
-        var usedPath = 'https://www.devonchrysler.com/search/used-devon-ab/?cy=t9g_1b2&tp=used';
-        var newPath = 'https://www.devonchrysler.com/search/new-chrysler-dodge-jeep-ram-devon-ab/?cy=t9g_1b2&tp=new';
+        // Fetch dealership configuration
+        var configResp = await fetch('/api/dealership/config');
+        var config = await configResp.json();
+        
+        if (!config.success || !config.websiteUrl) {
+          toast('Dealership website not configured. Please update settings.');
+          scrapeBtn.disabled = false;
+          scrapeBtn.innerHTML = '🔄 Scrape Inventory';
+          return;
+        }
+        
+        var usedPath = config.usedInventoryPath || '/search/used/';
+        var newPath = config.newInventoryPath || '/search/new/';
         
         try { console.log('Fetching used vehicles...'); } catch(_e){}
-        var u = await fetch('/api/scrape/devon?limit=200&path=' + encodeURIComponent(usedPath));
+        var u = await fetch('/api/scrape/dealership?limit=200&path=' + encodeURIComponent(usedPath));
         var ju = await u.json();
         try { console.log('Used scrape result:', ju); } catch(_e){}
         if (!ju.success) { toast('Used scrape failed: ' + (ju.error||'unknown')); }
         
         try { console.log('Fetching new vehicles...'); } catch(_e){}
-        var n = await fetch('/api/scrape/devon?limit=200&path=' + encodeURIComponent(newPath));
+        var n = await fetch('/api/scrape/dealership?limit=200&path=' + encodeURIComponent(newPath));
         var jn = await n.json();
         try { console.log('New scrape result:', jn); } catch(_e){}
         if (!jn.success) { toast('New scrape failed: ' + (jn.error||'unknown')); }
@@ -423,7 +434,7 @@
       }
       finally { 
         scrapeBtn.disabled = false; 
-        scrapeBtn.innerHTML = '🔄 Scrape Devon Inventory';
+        scrapeBtn.innerHTML = '🔄 Scrape Inventory';
       }
     };
   } else {
