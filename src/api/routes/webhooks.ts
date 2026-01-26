@@ -4,7 +4,7 @@ import pdf from 'pdf-parse';
 import axios from 'axios';
 import { listRules, setRules, addRules } from '../../modules/rules-library';
 import { scoreInventory } from '../../modules/approvals-engine';
-import { ApprovalIngestPayload, LenderRuleSet, ScoreRequest, ScoreResponse } from '../../types/types';
+import { ApprovalIngestPayload, LenderRuleSet, ScoreRequest, ScoreResponse, ApprovalSpec, TradeInfo } from '../../types/types';
 import { state } from '../state';
 
 const router = Router();
@@ -263,41 +263,46 @@ router.post('/approvals/parse-pdf', upload.single('file'), async (req: Request, 
   }
 });
 
-router.post('/approvals/ingest', (req: Request, res: Response) => {
+router.post('/approvals/ingest', async (req: Request, res: Response) => {
   try {
     const payload: ApprovalIngestPayload = req.body;
+    const dealershipId = req.dealershipId;
+    
     if (!payload?.contactId || !payload?.locationId || !payload?.approval || !payload?.trade) {
-      return res.status(400).json({ success: false, error: 'Missing contactId, locationId, approval, or trade' });
+      return res.status(400).json({ success: false, error: 'Missing required fields: contactId, locationId, approval, trade' });
     }
     
-    // Apply defaults for optional approval fields
-    const approval = {
-      ...payload.approval,
+    const approval: ApprovalSpec = {
+      bank: payload.approval.bank || 'Unknown',
+      program: payload.approval.program || 'Standard',
+      apr: payload.approval.apr ?? 0,
+      termMonths: payload.approval.termMonths ?? 60,
+      paymentMin: payload.approval.paymentMin ?? 0,
+      paymentMax: payload.approval.paymentMax ?? 0,
       downPayment: payload.approval.downPayment ?? 0,
-      province: payload.approval.province || 'AB',
-      frontCapFactor: payload.approval.frontCapFactor ?? 1.4,
     };
     
-    // Apply defaults for trade fields
-    const trade = {
-      ...payload.trade,
+    const trade: TradeInfo = {
       allowance: payload.trade.allowance ?? 0,
       acv: payload.trade.acv ?? 0,
       lienBalance: payload.trade.lienBalance ?? 0,
     };
     
+    // Store in memory for backward compatibility
     state.lastApproval = {
       contactId: payload.contactId,
       locationId: payload.locationId,
       approval,
       trade,
     };
-    if (payload.blackBook?.overrideVehicleId && payload.blackBook?.overrideValue != null) {
-      const id = payload.blackBook.overrideVehicleId;
-      const vi = state.mirroredInventory.findIndex(v => v.id === id);
-      if (vi >= 0) state.mirroredInventory[vi] = { ...state.mirroredInventory[vi], blackBookValue: Number(payload.blackBook.overrideValue) };
+    
+    // Save to Supabase if dealership context available
+    if (dealershipId) {
+      const { saveApprovalToSupabase } = await import('../../modules/approvals-storage');
+      await saveApprovalToSupabase(dealershipId, payload.contactId, payload.locationId, approval, trade);
     }
-    res.json({ success: true });
+    
+    res.json({ success: true, message: 'Approval ingested successfully' });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
   }

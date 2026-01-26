@@ -123,9 +123,20 @@ async function saveConfiguration() {
 async function completeOnboarding() {
   // Mark onboarding as complete
   try {
-    // TODO: Update dealership record to set onboarding_complete = true
-    // For now, just redirect to dashboard
-    window.location.href = '/dashboard?onboarding=complete';
+    // Update dealership record to set onboarding_complete = true
+    const response = await fetch('/api/dealership/complete-onboarding', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      window.location.href = '/dashboard?onboarding=complete';
+    } else {
+      console.error('Failed to mark onboarding complete:', result.error);
+      window.location.href = '/dashboard';
+    }
   } catch (error) {
     console.error('Complete onboarding error:', error);
     window.location.href = '/dashboard';
