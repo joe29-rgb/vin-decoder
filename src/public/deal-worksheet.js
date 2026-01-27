@@ -42,78 +42,90 @@ function populateWorksheet(deal) {
   const approval = deal.approval || {};
   const trade = deal.trade || {};
   
-  document.getElementById('vehicleImage').src = vehicle.imageUrl || vehicle.imageUrls?.[0] || '';
-  document.getElementById('vehicleTitle').textContent = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
-  document.getElementById('vehicleVin').textContent = vehicle.vin || '-';
-  document.getElementById('vehicleStock').textContent = vehicle.id || '-';
-  document.getElementById('vehicleMileage').textContent = vehicle.mileage ? vehicle.mileage.toLocaleString() + ' km' : '-';
-  document.getElementById('vehicleCondition').textContent = vehicle.year >= new Date().getFullYear() - 1 ? 'New' : 'Used';
-  document.getElementById('vehicleBody').textContent = vehicle.bodyStyle || '4D Utility AWD';
-  document.getElementById('vehicleTransmission').textContent = vehicle.transmission || 'Automatic';
+  // Helper to safely set element content
+  const setElement = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (el.tagName === 'IMG') {
+        el.src = value || '';
+      } else {
+        el.textContent = value;
+      }
+    }
+  };
   
-  document.getElementById('dtVin').textContent = vehicle.vin || '-';
-  document.getElementById('dtStock').textContent = vehicle.id || '-';
-  document.getElementById('dtYear').textContent = vehicle.year || '-';
-  document.getElementById('dtMake').textContent = vehicle.make || '-';
-  document.getElementById('dtModel').textContent = vehicle.model || '-';
-  document.getElementById('dtTrim').textContent = vehicle.trim || 'SLE';
-  document.getElementById('dtBodyStyle').textContent = vehicle.bodyStyle || '4D Utility AWD';
-  document.getElementById('dtMileage').textContent = vehicle.mileage ? vehicle.mileage.toLocaleString() : '-';
+  setElement('vehicleImage', vehicle.imageUrl || vehicle.imageUrls?.[0] || '');
+  setElement('vehicleTitle', `${vehicle.year || ''} ${vehicle.make || ''} ${vehicle.model || ''}`);
+  setElement('vehicleVin', vehicle.vin || '-');
+  setElement('vehicleStock', vehicle.id || '-');
+  setElement('vehicleMileage', vehicle.mileage ? vehicle.mileage.toLocaleString() + ' km' : '-');
+  setElement('vehicleCondition', vehicle.year >= new Date().getFullYear() - 1 ? 'New' : 'Used');
+  setElement('vehicleBody', vehicle.bodyStyle || '4D Utility AWD');
+  setElement('vehicleTransmission', vehicle.transmission || 'Automatic');
   
-  document.getElementById('dtLender').textContent = approval.bank || deal.lender || '-';
-  document.getElementById('dtProgram').textContent = approval.program || deal.tier || '-';
-  document.getElementById('dtProgramApproval').textContent = approval.program || deal.tier || '5 Key';
+  setElement('dtVin', vehicle.vin || '-');
+  setElement('dtStock', vehicle.id || '-');
+  setElement('dtYear', vehicle.year || '-');
+  setElement('dtMake', vehicle.make || '-');
+  setElement('dtModel', vehicle.model || '-');
+  setElement('dtTrim', vehicle.trim || 'SLE');
+  setElement('dtBodyStyle', vehicle.bodyStyle || '4D Utility AWD');
+  setElement('dtMileage', vehicle.mileage ? vehicle.mileage.toLocaleString() : '-');
   
-  document.getElementById('dtCashPrice').textContent = formatCurrency(deal.salePrice || 0).replace('$', '');
+  setElement('dtLender', approval.bank || deal.lender || '-');
+  setElement('dtProgram', approval.program || deal.tier || '-');
+  setElement('dtProgramApproval', approval.program || deal.tier || '5 Key');
   
-  document.getElementById('dtTradeYear').textContent = trade.year || '-';
-  document.getElementById('dtTradeMake').textContent = trade.make || '-';
-  document.getElementById('dtTradeModel').textContent = trade.model || '-';
-  document.getElementById('dtTradeVin').textContent = trade.vin || '-';
-  document.getElementById('dtTradeOdometer').textContent = trade.mileage || '-';
-  document.getElementById('dtTradeAllowance').textContent = formatCurrency(trade.allowance || 0).replace('$', '');
-  document.getElementById('dtTradeLien').textContent = formatCurrency(trade.lienBalance || 0).replace('$', '');
+  setElement('dtCashPrice', formatCurrency(deal.salePrice || 0).replace('$', ''));
+  
+  setElement('dtTradeYear', trade.year || '-');
+  setElement('dtTradeMake', trade.make || '-');
+  setElement('dtTradeModel', trade.model || '-');
+  setElement('dtTradeVin', trade.vin || '-');
+  setElement('dtTradeOdometer', trade.mileage || '-');
+  setElement('dtTradeAllowance', formatCurrency(trade.allowance || 0).replace('$', ''));
+  setElement('dtTradeLien', formatCurrency(trade.lienBalance || 0).replace('$', ''));
   
   const netTrade = (trade.allowance || 0) - (trade.lienBalance || 0);
-  document.getElementById('dtNetTrade').textContent = formatCurrency(Math.max(0, netTrade)).replace('$', '');
+  setElement('dtNetTrade', formatCurrency(Math.max(0, netTrade)).replace('$', ''));
   
-  document.getElementById('dtProvince').textContent = approval.province || 'Alberta';
+  setElement('dtProvince', approval.province || 'Alberta');
   
   const taxRate = getTaxRate(approval.province || 'AB');
   const taxableAmount = (deal.salePrice || 0) - Math.max(0, netTrade);
   const gstAmount = taxableAmount * taxRate;
   
-  document.getElementById('dtPst').textContent = '0.00';
-  document.getElementById('dtGst').textContent = formatCurrency(gstAmount).replace('$', '');
-  document.getElementById('dtLuxuryTax').textContent = '0.00';
+  setElement('dtPst', '0.00');
+  setElement('dtGst', formatCurrency(gstAmount).replace('$', ''));
+  setElement('dtLuxuryTax', '0.00');
   
-  document.getElementById('dtCashDown').textContent = formatCurrency(approval.downPayment || 0).replace('$', '');
-  document.getElementById('dtLicenseFee').textContent = '0.00';
-  document.getElementById('dtAdminFee').textContent = formatCurrency(deal.adminFee || 799).replace('$', '');
-  document.getElementById('dtPpsa').textContent = formatCurrency(deal.ppsa || 38.73).replace('$', '');
+  setElement('dtCashDown', formatCurrency(approval.downPayment || 0).replace('$', ''));
+  setElement('dtLicenseFee', '0.00');
+  setElement('dtAdminFee', formatCurrency(deal.adminFee || 799).replace('$', ''));
+  setElement('dtPpsa', formatCurrency(deal.ppsa || 38.73).replace('$', ''));
   
-  document.getElementById('dtServiceContract').textContent = formatCurrency(deal.serviceContract || 0).replace('$', '');
-  document.getElementById('dtServiceType').textContent = 'Manufacturer';
-  document.getElementById('dtInsurance').textContent = formatCurrency(deal.insurance || 0).replace('$', '');
-  document.getElementById('dtWarranty').textContent = formatCurrency(deal.warranty || 0).replace('$', '');
-  document.getElementById('dtInsuranceTax').textContent = '0.00';
+  setElement('dtServiceContract', formatCurrency(deal.serviceContract || 0).replace('$', ''));
+  setElement('dtServiceType', 'Manufacturer');
+  setElement('dtInsurance', formatCurrency(deal.insurance || 0).replace('$', ''));
+  setElement('dtWarranty', formatCurrency(deal.warranty || 0).replace('$', ''));
+  setElement('dtInsuranceTax', '0.00');
   
-  document.getElementById('dtTerm').textContent = approval.termMonths || deal.term || '84';
+  setElement('dtTerm', approval.termMonths || deal.term || '84');
   
   const amountFinanced = (deal.salePrice || 0) + gstAmount + (deal.adminFee || 799) + (deal.ppsa || 38.73) - (approval.downPayment || 0) - Math.max(0, netTrade);
-  document.getElementById('dtAmountFinanced').textContent = formatCurrency(amountFinanced).replace('$', '');
+  setElement('dtAmountFinanced', formatCurrency(amountFinanced).replace('$', ''));
   
-  document.getElementById('dtPaymentFreq').textContent = 'Bi-Weekly';
-  document.getElementById('dtDealerRate').textContent = '0.00';
-  document.getElementById('dtDealerParticipation').textContent = '0.00';
-  document.getElementById('dtActualRate').textContent = (approval.apr || 11.99).toFixed(2);
-  document.getElementById('dtApr').textContent = (approval.apr || 11.99).toFixed(2);
-  document.getElementById('dtMonthlyPayment').textContent = formatCurrency(deal.monthlyPayment || 0).replace('$', '');
+  setElement('dtPaymentFreq', 'Bi-Weekly');
+  setElement('dtDealerRate', '0.00');
+  setElement('dtDealerParticipation', '0.00');
+  setElement('dtActualRate', (approval.apr || 11.99).toFixed(2));
+  setElement('dtApr', (approval.apr || 11.99).toFixed(2));
+  setElement('dtMonthlyPayment', formatCurrency(deal.monthlyPayment || 0).replace('$', ''));
   
-  document.getElementById('profitFront').textContent = formatCurrency(deal.frontGross || 0);
-  document.getElementById('profitBack').textContent = formatCurrency(deal.backGross || 0);
-  document.getElementById('profitProduct').textContent = formatCurrency(deal.productMargin || 0);
-  document.getElementById('profitTotal').textContent = formatCurrency(deal.totalGross || 0);
+  setElement('profitFront', formatCurrency(deal.frontGross || 0));
+  setElement('profitBack', formatCurrency(deal.backGross || 0));
+  setElement('profitProduct', formatCurrency(deal.productMargin || 0));
+  setElement('profitTotal', formatCurrency(deal.totalGross || 0));
 }
 
 function getTaxRate(province) {

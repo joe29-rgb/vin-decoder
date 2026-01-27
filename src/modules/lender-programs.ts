@@ -238,6 +238,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic - calculated via calculateTDReserve()
       fee: 799,
       negativeEquityLimit: 2000,
+      maxTerm: 84,
     },
     '3-Key': {
       lender: 'TD',
@@ -249,6 +250,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 799,
       negativeEquityLimit: 2000,
+      maxTerm: 84,
     },
     '4-Key': {
       lender: 'TD',
@@ -260,6 +262,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 799,
       negativeEquityLimit: 2000,
+      maxTerm: 84,
     },
     '5-Key': {
       lender: 'TD',
@@ -271,6 +274,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 799,
       negativeEquityLimit: 2000,
+      maxTerm: 84,
     },
     '6-Key': {
       lender: 'TD',
@@ -282,6 +286,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 799,
       negativeEquityLimit: 2000,
+      maxTerm: 84,
     },
 
     // ========================================

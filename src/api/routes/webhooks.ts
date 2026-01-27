@@ -6,6 +6,7 @@ import { listRules, setRules, addRules } from '../../modules/rules-library';
 import { scoreInventory } from '../../modules/approvals-engine';
 import { ApprovalIngestPayload, LenderRuleSet, ScoreRequest, ScoreResponse, ApprovalSpec, TradeInfo } from '../../types/types';
 import { state } from '../state';
+import { getLenderProgram } from '../../modules/lender-programs';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
@@ -272,11 +273,23 @@ router.post('/approvals/ingest', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: 'Missing required fields: contactId, locationId, approval, trade' });
     }
     
+    // Look up actual lender program data
+    const bank = payload.approval.bank || 'Unknown';
+    const program = payload.approval.program || 'Standard';
+    const lenderProgram = getLenderProgram(bank as any, program);
+    
+    // Use lender program rate if available, otherwise use provided rate
+    const actualRate = lenderProgram?.rate ?? payload.approval.apr ?? 0;
+    
+    // Use max term from lender program (84 months for most subprime lenders)
+    const maxTerm = lenderProgram?.maxTerm || 84;
+    const termMonths = payload.approval.termMonths ? Math.min(payload.approval.termMonths, maxTerm) : maxTerm;
+    
     const approval: ApprovalSpec = {
-      bank: payload.approval.bank || 'Unknown',
-      program: payload.approval.program || 'Standard',
-      apr: payload.approval.apr ?? 0,
-      termMonths: payload.approval.termMonths ?? 60,
+      bank: bank,
+      program: program,
+      apr: actualRate,
+      termMonths: termMonths,
       paymentMin: payload.approval.paymentMin ?? 0,
       paymentMax: payload.approval.paymentMax ?? 0,
       downPayment: payload.approval.downPayment ?? 0,
