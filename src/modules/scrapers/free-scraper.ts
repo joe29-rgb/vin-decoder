@@ -16,7 +16,7 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import * as cheerio from 'cheerio';
 import { Vehicle } from '../../types/types';
 import { AUTOTRADER_SELECTORS, CARGURUS_SELECTORS, buildAutoTraderURL, buildCarGurusURL } from '../../config/scraper-selectors';
-import logger from '../logger';
+import logger from '../../utils/logger';
 
 export interface ScrapeParams {
   make?: string;
@@ -169,7 +169,7 @@ export class FreeVehicleScraper {
   /**
    * Extract text from cheerio element with fallback
    */
-  private extractText($: cheerio.CheerioAPI, selectors: string | string[]): string {
+  private extractText($: cheerio.Root, selectors: string | string[]): string {
     const selectorArray = Array.isArray(selectors) ? selectors : [selectors];
     
     for (const selector of selectorArray) {
@@ -185,7 +185,7 @@ export class FreeVehicleScraper {
   /**
    * Extract URL from cheerio element
    */
-  private extractUrl($: cheerio.CheerioAPI, selector: string, baseUrl: string): string {
+  private extractUrl($: cheerio.Root, selector: string, baseUrl: string): string {
     let url = $(selector).first().attr('href') || '';
     
     if (url && !url.startsWith('http')) {
@@ -223,7 +223,7 @@ export class FreeVehicleScraper {
   /**
    * Extract phone number from href or text
    */
-  private extractPhone($: cheerio.CheerioAPI, selector: string): string {
+  private extractPhone($: cheerio.Root, selector: string): string {
     const href = $(selector).first().attr('href');
     if (href && href.startsWith('tel:')) {
       return href.replace('tel:', '').replace(/\D/g, '');
@@ -237,7 +237,7 @@ export class FreeVehicleScraper {
   /**
    * Extract features array
    */
-  private extractFeatures($: cheerio.CheerioAPI, selector: string): string[] {
+  private extractFeatures($: cheerio.Root, selector: string): string[] {
     const features: string[] = [];
     $(selector).each((_, el) => {
       const feature = $(el).text().trim();
@@ -251,7 +251,7 @@ export class FreeVehicleScraper {
   /**
    * Parse AutoTrader listing card
    */
-  private parseAutoTraderListing($: cheerio.CheerioAPI, html: string): ScrapedListing | null {
+  private parseAutoTraderListing(html: string): ScrapedListing | null {
     const $card = cheerio.load(html);
     
     const title = this.extractText($card, AUTOTRADER_SELECTORS.vehicleTitle);
@@ -291,7 +291,7 @@ export class FreeVehicleScraper {
   /**
    * Parse CarGurus listing card
    */
-  private parseCarGurusListing($: cheerio.CheerioAPI, html: string): ScrapedListing | null {
+  private parseCarGurusListing(html: string): ScrapedListing | null {
     const $card = cheerio.load(html);
     
     const title = this.extractText($card, CARGURUS_SELECTORS.vehicleTitle);
@@ -378,8 +378,7 @@ export class FreeVehicleScraper {
 
       // Parse each listing
       for (const html of listingHtmls) {
-        const $ = cheerio.load(html);
-        const listing = this.parseAutoTraderListing($, html);
+        const listing = this.parseAutoTraderListing(html);
         
         if (listing) {
           listings.push(listing);
@@ -449,8 +448,7 @@ export class FreeVehicleScraper {
       logger.info(`[FreeScraper] Found ${listingHtmls.length} CarGurus listings`);
 
       for (const html of listingHtmls) {
-        const $ = cheerio.load(html);
-        const listing = this.parseCarGurusListing($, html);
+        const listing = this.parseCarGurusListing(html);
         
         if (listing) {
           listings.push(listing);
@@ -496,19 +494,12 @@ export class FreeVehicleScraper {
       mileage,
       suggestedPrice: price,
       yourCost: price * 0.85, // Estimate
-      stockNumber: listing.stockNumber || '',
-      bodyType: listing.bodyType || '',
-      transmission: listing.transmission || '',
-      fuelType: listing.fuelType || '',
-      exteriorColor: '',
-      interiorColor: '',
-      features: listing.features.join(', '),
-      images: [],
-      source: listing.source,
-      sourceUrl: listing.url,
-      dealerName: listing.dealerName,
-      dealerPhone: listing.dealerPhone,
-      location: listing.location
+      engine: 'Unknown',
+      transmission: listing.transmission || 'Unknown',
+      blackBookValue: 0,
+      inStock: true,
+      imageUrl: '',
+      imageUrls: []
     };
   }
 }

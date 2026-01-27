@@ -179,8 +179,8 @@ class ProductionDealershipScraper {
       console.log(`[SCRAPER] Fetching page ${pageCount + 1}: ${currentUrl}`);
 
       try {
-        const html = await this.fetchHtmlFast(currentUrl);
-        const $ = cheerioLoad(html);
+        const html: string = await this.fetchHtmlFast(currentUrl);
+        const $: cheerio.Root = cheerioLoad(html);
 
         // Extract vehicles from current page
         const vehicles = await this.extractVehicles(html, currentUrl);
@@ -189,7 +189,7 @@ class ProductionDealershipScraper {
         this.allVehicles.push(...vehicles);
 
         // Find next page link
-        const nextLink = $('a[rel="next"], a.next, .pagination a:contains("Next")').first().attr('href');
+        const nextLink: string | undefined = $('a[rel="next"], a.next, .pagination a:contains("Next")').first().attr('href');
         currentUrl = nextLink ? new URL(nextLink, currentUrl).href : null;
 
         pageCount++;
