@@ -646,8 +646,8 @@ router.get('/devon', async (req: Request, res: Response) => {
 
 router.get('/autotrader', async (req: Request, res: Response) => {
   try {
-    const { ApifyScraperService } = await import('../../modules/scrapers/apify-integration');
-    const scraper = new ApifyScraperService();
+    const { FreeVehicleScraper } = await import('../../modules/scrapers/free-scraper');
+    const scraper = new FreeVehicleScraper();
     
     const params = {
       make: req.query.make as string,
@@ -661,13 +661,16 @@ router.get('/autotrader', async (req: Request, res: Response) => {
       limit: Math.min(Math.max(Number(req.query.limit) || 20, 1), 100),
     };
     
-    const listings = await scraper.scrapeAutoTraderCA(params);
-    const vehicles = listings.map(l => scraper.convertAutoTraderToVehicle(l));
+    const listings = await scraper.scrapeAutoTrader(params);
+    const vehicles = listings.map(l => scraper.convertToVehicle(l));
+    
+    await scraper.closeBrowser();
     
     res.json({ 
       success: true, 
       vehicles,
-      count: vehicles.length 
+      count: vehicles.length,
+      source: 'AutoTrader.ca (Free Scraper)'
     });
   } catch (e: any) {
     res.status(500).json({ 
@@ -721,8 +724,8 @@ router.get('/autotrader/pricing', async (req: Request, res: Response) => {
 
 router.get('/cargurus', async (req: Request, res: Response) => {
   try {
-    const { ApifyScraperService } = await import('../../modules/scrapers/apify-integration');
-    const scraper = new ApifyScraperService();
+    const { FreeVehicleScraper } = await import('../../modules/scrapers/free-scraper');
+    const scraper = new FreeVehicleScraper();
     
     const params = {
       make: req.query.make as string,
@@ -736,14 +739,17 @@ router.get('/cargurus', async (req: Request, res: Response) => {
       limit: Math.min(Math.max(Number(req.query.limit) || 20, 1), 100),
     };
     
-    const listings = await scraper.scrapeCarGurusCA(params);
-    const vehicles = listings.map(l => scraper.convertCarGurusToVehicle(l));
+    const listings = await scraper.scrapeCarGurus(params);
+    const vehicles = listings.map(l => scraper.convertToVehicle(l));
+    
+    await scraper.closeBrowser();
     
     res.json({ 
       success: true, 
       total: listings.length, 
       vehicles,
-      count: vehicles.length 
+      count: vehicles.length,
+      source: 'CarGurus.ca (Free Scraper)'
     });
   } catch (e: any) {
     res.status(500).json({ 

@@ -140,7 +140,6 @@ export interface LenderProgram {
   minCreditScore?: number;
   apr?: number;
   maxLTV?: number;
-  termByModelYear?: TermByModelYearRule[];
 }
 
 /**

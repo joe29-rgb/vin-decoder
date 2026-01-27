@@ -2,6 +2,7 @@ import { Vehicle, ApprovalSpec, TradeInfo, ScoredVehicleRow, Province, BackCapRu
 import { calculateTaxSavings } from './tax-calculator';
 import { getPaymentSummary } from './payment-calculator';
 import { findRule } from './rules-library';
+import { getMaxTermForVehicle } from './vehicle-booking-guide';
 
 const DEFAULT_FEE = 810;
 const DEFAULT_PROVINCE: Province = 'AB';
@@ -123,50 +124,26 @@ export function scoreInventory(
     // Load dynamic lender rule if available
     const rule = findRule(approval.bank, approval.program);
     
-    // Booking guide validation: Check vehicle year and mileage against lender rules
-    const currentYear = new Date().getFullYear();
-    const vehicleAge = currentYear - v.year;
+    // Get maximum term based on vehicle booking guide (year + mileage)
+    const maxTermForVehicle = getMaxTermForVehicle(
+      approval.bank,
+      approval.program,
+      v.year,
+      v.mileage
+    );
     
-    // Skip vehicles that are too old (most lenders: max 15 years)
-    if (vehicleAge > 15) {
-      flags.push('vehicle_too_old');
+    // If vehicle is ineligible (returns 0), skip it
+    if (maxTermForVehicle === 0) {
+      flags.push('vehicle_ineligible_year_mileage');
       continue;
     }
     
-    // Skip vehicles with excessive mileage (most lenders: max 200,000 km)
-    if (v.mileage > 200000) {
-      flags.push('excessive_mileage');
-      continue;
-    }
-    
-    // Validate against lender-specific term restrictions by model year
-    if (rule?.termByModelYear && Array.isArray(rule.termByModelYear)) {
-      let meetsYearRequirement = false;
-      for (const t of rule.termByModelYear) {
-        if (v.year >= t.yearFrom && v.year <= t.yearTo) {
-          meetsYearRequirement = true;
-          break;
-        }
-      }
-      if (!meetsYearRequirement) {
-        flags.push('year_outside_lender_range');
-        continue;
-      }
-    }
-
     // Effective caps & constraints
     const frontCapFactorEff = approval.frontCapFactor ?? rule?.frontCapFactor;
     const backCapEff: BackCapRule | undefined = approval.backCap ?? rule?.backCap;
 
-    // Term may be constrained by model year
-    let termMonthsEff = approval.termMonths;
-    if (rule?.termByModelYear && Array.isArray(rule.termByModelYear)) {
-      for (const t of rule.termByModelYear) {
-        if (v.year >= t.yearFrom && v.year <= t.yearTo) {
-          termMonthsEff = Math.min(termMonthsEff, t.maxTermMonths);
-        }
-      }
-    }
+    // Use the lesser of approval term or vehicle's max eligible term
+    const termMonthsEff = Math.min(approval.termMonths, maxTermForVehicle);
 
     // Payment call cap from lender rule (if lower than approval)
     const paymentMaxEff = Math.min(approval.paymentMax, rule?.maxPayCall ?? Number.POSITIVE_INFINITY);
