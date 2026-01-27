@@ -281,6 +281,124 @@
         opacity: 1;
       }
     }
+    
+    /* Profit Comparison Styles */
+    .comparison-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+    
+    .comparison-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--border-hover);
+    }
+    
+    .comparison-card.best {
+      border-color: var(--accent-primary);
+      background: rgba(63, 185, 80, 0.1);
+    }
+    
+    .comparison-card.warning {
+      border-color: var(--danger);
+      background: rgba(248, 81, 73, 0.05);
+    }
+    
+    .comparison-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .comparison-lender {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    
+    .comparison-badge {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .comparison-badge.best {
+      background: var(--accent-primary);
+      color: #000;
+    }
+    
+    .comparison-badge.subvented {
+      background: #ffd700;
+      color: #000;
+    }
+    
+    .comparison-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .comparison-stat {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .comparison-stat-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    
+    .comparison-stat-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    
+    .comparison-stat-value.profit {
+      color: var(--accent-primary);
+    }
+    
+    .profit-loss-warning {
+      background: rgba(248, 81, 73, 0.15);
+      border: 1px solid var(--danger);
+      border-radius: 6px;
+      padding: 12px;
+      color: var(--danger);
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .switch-program-btn {
+      margin-top: 12px;
+      width: 100%;
+      padding: 10px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .switch-program-btn:hover {
+      background: var(--accent-secondary);
+      color: #000;
+      border-color: var(--accent-secondary);
+    }
   </style>
 </head>
 <body>
@@ -378,10 +496,16 @@
               <div class="form-value highlight" id="dtProgram" data-copy="program">-</div>
             </div>
             <div class="form-group">
-              <label class="form-label">Program Approval</label>
-              <div class="form-value" id="dtProgramApproval" data-copy="programApproval">5 Key</div>
+              <label class="form-label">Interest Rate</label>
+              <div class="form-value highlight" id="dtInterestRate" data-copy="interestRate">-</div>
             </div>
           </div>
+        </div>
+        
+        <!-- Profit Comparison (if multiple programs available) -->
+        <div class="section" id="profitComparisonSection" style="display: none;">
+          <div class="section-title">💰 Profit Comparison</div>
+          <div id="profitComparisonContent"></div>
         </div>
         
         <!-- Purchase Details -->
