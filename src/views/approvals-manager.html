@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Approvals Manager | Finance-in-a-Box</title>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    /* ===== CSS VARIABLES ===== */
+    :root {
+      --bg-primary: #0a0e14;
+      --bg-secondary: #0f1419;
+      --bg-tertiary: #151a21;
+      --surface: #1a1f29;
+      --surface-elevated: #1f2430;
+      --border: #2a2f3a;
+      --border-hover: #3d4350;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent-primary: #3fb950;
+      --accent-secondary: #58a6ff;
+      --accent-tertiary: #a371f7;
+      --danger: #f85149;
+      --warning: #d29922;
+      --success: #3fb950;
+      --gold: #ffd700;
+      --silver: #c0c0c0;
+      --bronze: #cd7f32;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-primary);
+      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 16px;
+      margin-bottom: 32px;
+    }
+    
+    /* ===== APPROVAL CARDS ===== */
+    .approvals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    
+    .approval-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    
+    .approval-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .approval-card.rank-1 {
+      border-color: var(--gold);
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, var(--surface) 100%);
+    }
+    
+    .approval-card.rank-2 {
+      border-color: var(--silver);
+      background: linear-gradient(135deg, rgba(192, 192, 192, 0.05) 0%, var(--surface) 100%);
+    }
+    
+    .approval-card.rank-3 {
+      border-color: var(--bronze);
+      background: linear-gradient(135deg, rgba(205, 127, 50, 0.05) 0%, var(--surface) 100%);
+    }
+    
+    .approval-card.last-resort {
+      border-color: var(--danger);
+      opacity: 0.7;
+    }
+    
+    .rank-badge {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      box-shadow: var(--shadow-md);
+    }
+    
+    .rank-badge.rank-1 {
+      background: var(--gold);
+      color: #000;
+    }
+    
+    .rank-badge.rank-2 {
+      background: var(--silver);
+      color: #000;
+    }
+    
+    .rank-badge.rank-3 {
+      background: var(--bronze);
+      color: #fff;
+    }
+    
+    .rank-badge.rank-other {
+      background: var(--surface-elevated);
+      color: var(--text-secondary);
+      font-size: 18px;
+    }
+    
+    .approval-header {
+      margin-bottom: 16px;
+      padding-right: 60px;
+    }
+    
+    .approval-lender {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    
+    .approval-program {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .approval-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .stat {
+      background: var(--bg-tertiary);
+      padding: 12px;
+      border-radius: var(--radius-sm);
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    
+    .stat-value.rate {
+      color: var(--accent-secondary);
+    }
+    
+    .stat-value.advance {
+      color: var(--accent-primary);
+    }
+    
+    .recommendation {
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      margin-top: 16px;
+    }
+    
+    .recommendation.highest-profit {
+      background: rgba(63, 185, 80, 0.15);
+      color: var(--success);
+      border: 1px solid var(--success);
+    }
+    
+    .recommendation.good-alternative {
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--accent-secondary);
+      border: 1px solid var(--accent-secondary);
+    }
+    
+    .recommendation.last-resort {
+      background: rgba(248, 81, 73, 0.15);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
+    
+    /* ===== BUTTONS ===== */
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: var(--accent-primary);
+      color: #000;
+    }
+    
+    .btn-primary:hover {
+      background: #4aca5f;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .btn-secondary {
+      background: var(--surface-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-secondary:hover {
+      border-color: var(--border-hover);
+      background: var(--surface);
+    }
+    
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    
+    /* ===== INFO BOX ===== */
+    .info-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent-secondary);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 32px;
+    }
+    
+    .info-box-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent-secondary);
+      margin-bottom: 8px;
+    }
+    
+    .info-box-content {
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    
+    /* ===== LOADING ===== */
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+    
+    .spinner {
+      border: 3px solid var(--border);
+      border-top: 3px solid var(--accent-primary);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+    }
+    
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    
+    .empty-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    
+    .empty-text {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💰 Approvals Manager</h1>
+    <p class="subtitle">Ranked by profit potential - Lower rate = More advance = More profit</p>
+    
+    <div class="info-box">
+      <div class="info-box-title">💡 How Profit Maximization Works</div>
+      <div class="info-box-content">
+        Lower interest rates allow you to finance MORE at the same payment. This means higher selling prices OR more aftermarket products = MORE PROFIT.
+        <br><br>
+        <strong>Example:</strong> At $900/month for 84 months:<br>
+        • SDA 6 Star (13.49%) = $66,500 max advance = $22,850 profit<br>
+        • Santander Tier 4 (24.49%) = $45,500 max advance = $4,300 profit<br>
+        <strong>Using the wrong program costs you $18,550 in profit!</strong>
+      </div>
+    </div>
+    
+    <div id="approvalsContainer">
+      <div class="loading">
+        <div class="spinner"></div>
+        <div>Loading approvals...</div>
+      </div>
+    </div>
+    
+    <div class="actions">
+      <button class="btn btn-primary" onclick="scoreInventory()">
+        📊 Score All Inventory
+      </button>
+      <button class="btn btn-secondary" onclick="addApproval()">
+        ➕ Add Approval
+      </button>
+    </div>
+  </div>
+  
+  <script>
+    let approvals = [];
+    
+    // Load approvals from localStorage (temporary - will integrate with backend)
+    function loadApprovals() {
+      const stored = localStorage.getItem('activeApprovals');
+      if (stored) {
+        approvals = JSON.parse(stored);
+        rankAndDisplayApprovals();
+      } else {
+        showEmptyState();
+      }
+    }
+    
+    // Rank approvals by profit potential
+    async function rankAndDisplayApprovals() {
+      if (approvals.length === 0) {
+        showEmptyState();
+        return;
+      }
+      
+      try {
+        const response = await fetch('/approvals/rank', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            approvals: approvals,
+            termMonths: 84
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          displayApprovals(data.ranked);
+        } else {
+          console.error('Failed to rank approvals:', data.error);
+          displayApprovals(approvals);
+        }
+      } catch (error) {
+        console.error('Error ranking approvals:', error);
+        displayApprovals(approvals);
+      }
+    }
+    
+    function displayApprovals(rankedApprovals) {
+      const container = document.getElementById('approvalsContainer');
+      
+      const html = rankedApprovals.map(approval => {
+        const rankClass = approval.rank === 1 ? 'rank-1' : 
+                         approval.rank === 2 ? 'rank-2' : 
+                         approval.rank === 3 ? 'rank-3' : 
+                         approval.recommendation === 'LAST_RESORT' ? 'last-resort' : '';
+        
+        const rankBadgeClass = approval.rank <= 3 ? `rank-${approval.rank}` : 'rank-other';
+        const rankEmoji = approval.rank === 1 ? '🥇' : 
+                         approval.rank === 2 ? '🥈' : 
+                         approval.rank === 3 ? '🥉' : 
+                         `#${approval.rank}`;
+        
+        const recommendationClass = approval.recommendation === 'HIGHEST_PROFIT' ? 'highest-profit' :
+                                   approval.recommendation === 'GOOD_ALTERNATIVE' ? 'good-alternative' :
+                                   'last-resort';
+        
+        const recommendationText = approval.recommendation === 'HIGHEST_PROFIT' ? '⭐ HIGHEST PROFIT - Use this first!' :
+                                  approval.recommendation === 'GOOD_ALTERNATIVE' ? '✅ Good alternative' :
+                                  '⚠️ LAST RESORT - Only if others decline';
+        
+        const maxAdvance = approval.maxAdvance || 0;
+        const profitPotential = approval.profitPotential || 0;
+        
+        return `
+          <div class="approval-card ${rankClass}">
+            <div class="rank-badge ${rankBadgeClass}">${rankEmoji}</div>
+            
+            <div class="approval-header">
+              <div class="approval-lender">${approval.bank}</div>
+              <div class="approval-program">${approval.program || ''}</div>
+            </div>
+            
+            <div class="approval-stats">
+              <div class="stat">
+                <div class="stat-label">Interest Rate</div>
+                <div class="stat-value rate">${approval.apr.toFixed(2)}%</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Max Payment</div>
+                <div class="stat-value">$${approval.paymentMax.toFixed(0)}</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Max Advance</div>
+                <div class="stat-value advance">$${maxAdvance.toLocaleString()}</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Profit Potential</div>
+                <div class="stat-value advance">$${profitPotential.toLocaleString()}</div>
+              </div>
+            </div>
+            
+            <div class="recommendation ${recommendationClass}">
+              ${recommendationText}
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      container.innerHTML = html;
+    }
+    
+    function showEmptyState() {
+      const container = document.getElementById('approvalsContainer');
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <div class="empty-title">No Approvals Yet</div>
+          <div class="empty-text">Add your first approval to start scoring inventory and maximizing profit.</div>
+        </div>
+      `;
+    }
+    
+    function scoreInventory() {
+      if (approvals.length === 0) {
+        alert('Please add at least one approval first.');
+        return;
+      }
+      
+      // Store approvals and navigate to scoring page
+      localStorage.setItem('activeApprovals', JSON.stringify(approvals));
+      window.location.href = '/multi-approval-scoring.html';
+    }
+    
+    function addApproval() {
+      // Navigate to approval entry form
+      window.location.href = '/manual-approval.html';
+    }
+    
+    // Load on page load
+    loadApprovals();
+  </script>
+</body>
+</html>

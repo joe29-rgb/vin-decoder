@@ -23,7 +23,6 @@ router.get('/config', async (req: Request, res: Response) => {
           province: dealership.province,
           competitorRadiusKm: dealership.competitor_radius_km,
           docFee: dealership.doc_fee,
-          ppsaFee: dealership.ppsa_fee,
           cbbApiKey: dealership.cbb_api_key,
           cbbApiUrl: dealership.cbb_api_url,
           logoUrl: dealership.logo_url,
@@ -62,7 +61,6 @@ router.post('/config', async (req: Request, res: Response) => {
     if (updates.province) configUpdates.province = updates.province;
     if (updates.competitorRadiusKm !== undefined) configUpdates.competitor_radius_km = Number(updates.competitorRadiusKm);
     if (updates.docFee !== undefined) configUpdates.doc_fee = Number(updates.docFee);
-    if (updates.ppsaFee !== undefined) configUpdates.ppsa_fee = Number(updates.ppsaFee);
     if (updates.cbbApiKey !== undefined) configUpdates.cbb_api_key = updates.cbbApiKey;
     if (updates.cbbApiUrl !== undefined) configUpdates.cbb_api_url = updates.cbbApiUrl;
     if (updates.logoUrl !== undefined) configUpdates.logo_url = updates.logoUrl;
@@ -84,7 +82,6 @@ router.post('/config', async (req: Request, res: Response) => {
             province: updatedDealership.province,
             competitorRadiusKm: updatedDealership.competitor_radius_km,
             docFee: updatedDealership.doc_fee,
-            ppsaFee: updatedDealership.ppsa_fee,
             cbbApiKey: updatedDealership.cbb_api_key,
             cbbApiUrl: updatedDealership.cbb_api_url,
             logoUrl: updatedDealership.logo_url,
@@ -104,7 +101,6 @@ router.post('/config', async (req: Request, res: Response) => {
     if (updates.province) fileUpdates.province = updates.province;
     if (updates.competitorRadiusKm !== undefined) fileUpdates.competitorRadiusKm = Number(updates.competitorRadiusKm);
     if (updates.docFee !== undefined) fileUpdates.docFee = Number(updates.docFee);
-    if (updates.ppsaFee !== undefined) fileUpdates.ppsaFee = Number(updates.ppsaFee);
     if (updates.cbbApiKey !== undefined) fileUpdates.cbbApiKey = updates.cbbApiKey;
     if (updates.cbbApiUrl !== undefined) fileUpdates.cbbApiUrl = updates.cbbApiUrl;
     if (updates.logoUrl !== undefined) fileUpdates.logoUrl = updates.logoUrl;

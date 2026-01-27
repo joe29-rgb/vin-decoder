@@ -11,7 +11,6 @@ export interface DealershipConfig {
   province: string;
   competitorRadiusKm: number;
   docFee: number;
-  ppsaFee: number;
   cbbApiKey?: string;
   cbbApiUrl?: string;
   logoUrl?: string;
@@ -29,7 +28,6 @@ const DEFAULT_CONFIG: DealershipConfig = {
   province: 'AB',
   competitorRadiusKm: 100,
   docFee: 799,
-  ppsaFee: 38.73,
   cbbApiKey: '',
   cbbApiUrl: 'https://api.canadianblackbook.com/v1',
 };

@@ -14,7 +14,6 @@ export interface Dealership {
   new_inventory_path: string;
   competitor_radius_km: number;
   doc_fee: number;
-  ppsa_fee: number;
   cbb_api_key?: string;
   cbb_api_url?: string;
   access_token?: string;
@@ -62,7 +61,6 @@ export async function getOrCreateDealership(ghlLocationId: string, companyId?: s
       new_inventory_path: '/search/new/',
       competitor_radius_km: 100,
       doc_fee: 799.00,
-      ppsa_fee: 38.73,
       cbb_api_url: 'https://api.canadianblackbook.com/v1',
       onboarding_complete: false,
       onboarding_step: 0,
