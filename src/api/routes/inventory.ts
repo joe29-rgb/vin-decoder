@@ -36,8 +36,20 @@ router.post('/upload-file', upload.single('file'), async (req: Request, res: Res
     });
     
     state.inventory = [...updatedVehicles, ...newVehicles];
-    try { await saveInventoryToSupabase(state.inventory, dealershipId); } catch(_e){}
-    res.json({ success: true, message: `Loaded ${parsed.length} vehicles (${newVehicles.length} new, ${parsed.length - newVehicles.length} updated). Total: ${state.inventory.length}` });
+    
+    // Save to Supabase with dealership context
+    if (dealershipId) {
+      try { 
+        await saveInventoryToSupabase(state.inventory, dealershipId);
+        console.log(`[upload-file] Saved ${state.inventory.length} vehicles to Supabase for dealership ${dealershipId}`);
+      } catch(e) {
+        console.error('[upload-file] Failed to save inventory to Supabase:', e);
+      }
+    } else {
+      console.warn('[upload-file] No dealership context - inventory not persisted to Supabase');
+    }
+    
+    res.json({ success: true, message: `Loaded ${parsed.length} vehicles (${newVehicles.length} new, ${parsed.length - newVehicles.length} updated). Total: ${state.inventory.length}`, persisted: !!dealershipId });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
   }
@@ -122,8 +134,20 @@ router.post('/upload', async (req: Request, res: Response) => {
     });
     
     state.inventory = [...updatedVehicles, ...newVehicles];
-    try { await saveInventoryToSupabase(state.inventory, dealershipId); } catch(_e){}
-    res.json({ success: true, message: `Loaded ${parsed.length} vehicles (${newVehicles.length} new, ${parsed.length - newVehicles.length} updated). Total: ${state.inventory.length}` });
+    
+    // Save to Supabase with dealership context
+    if (dealershipId) {
+      try { 
+        await saveInventoryToSupabase(state.inventory, dealershipId);
+        console.log(`[upload] Saved ${state.inventory.length} vehicles to Supabase for dealership ${dealershipId}`);
+      } catch(e) {
+        console.error('[upload] Failed to save inventory to Supabase:', e);
+      }
+    } else {
+      console.warn('[upload] No dealership context - inventory not persisted to Supabase');
+    }
+    
+    res.json({ success: true, message: `Loaded ${parsed.length} vehicles (${newVehicles.length} new, ${parsed.length - newVehicles.length} updated). Total: ${state.inventory.length}`, persisted: !!dealershipId });
   } catch (error) {
     res.status(400).json({ success: false, error: (error as Error).message });
   }
@@ -184,7 +208,16 @@ router.post('/enrich', async (req: Request, res: Response) => {
       }
     }
     
-    try { await saveInventoryToSupabase(state.inventory); } catch(_e){}
+    // Save to Supabase with dealership context
+    const dealershipId = req.dealershipId;
+    if (dealershipId) {
+      try { 
+        await saveInventoryToSupabase(state.inventory, dealershipId);
+        console.log(`[enrich] Saved ${state.inventory.length} vehicles to Supabase for dealership ${dealershipId}`);
+      } catch(e) {
+        console.error('[enrich] Failed to save inventory to Supabase:', e);
+      }
+    }
     
     res.json({ 
       success: true, 

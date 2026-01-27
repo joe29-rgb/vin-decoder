@@ -24,6 +24,10 @@ import dealsManagementRouter from './api/routes/deals-management';
 import jobsRouter from './api/routes/jobs';
 import dealershipRouter from './api/routes/dealership';
 import authRouter from './api/routes/auth';
+import hotDealsRouter from './api/routes/hot-deals';
+import magicButtonRouter from './api/routes/magic-button';
+import leaderboardRouter from './api/routes/leaderboard';
+import predictiveScoringRouter from './api/routes/predictive-scoring';
 
 dotenv.config();
 
@@ -55,6 +59,10 @@ app.use('/api/smartsheet', smartsheetRouter);
 app.use('/api/inventory-management', inventoryManagementRouter);
 app.use('/api/deals-management', dealsManagementRouter);
 app.use('/api/jobs', jobsRouter);
+app.use('/api/hot-deals', hotDealsRouter);
+app.use('/api/magic-button', magicButtonRouter);
+app.use('/api/leaderboard', leaderboardRouter);
+app.use('/api/predictive-scoring', predictiveScoringRouter);
 // Backward-compatibility mounts for legacy paths
 app.use('/api', dealsRouter);      // provides /api/lenders, /api/deals/*
 app.use('/api', webhooksRouter);   // provides /api/rules/*, /api/approvals/*
@@ -101,6 +109,34 @@ app.get('/settings', (_req, res) => {
 
 app.get('/onboarding', (_req, res) => {
   const htmlPath = path.join(process.cwd(), 'src', 'views', 'onboarding.html');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data: https:");
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.resolve(htmlPath));
+});
+
+app.get('/hot-deals', (_req, res) => {
+  const htmlPath = path.join(process.cwd(), 'src', 'views', 'hot-deals-dashboard.html');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data: https:");
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.resolve(htmlPath));
+});
+
+app.get('/leaderboard', (_req, res) => {
+  const htmlPath = path.join(process.cwd(), 'src', 'views', 'leaderboard.html');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data: https:");
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.resolve(htmlPath));
+});
+
+app.get('/inventory-insights', (_req, res) => {
+  const htmlPath = path.join(process.cwd(), 'src', 'views', 'inventory-insights.html');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data: https:");
+  res.setHeader('Cache-Control', 'no-store');
+  res.sendFile(path.resolve(htmlPath));
+});
+
+app.get('/multi-approval', (_req, res) => {
+  const htmlPath = path.join(process.cwd(), 'src', 'views', 'multi-approval-scoring.html');
   res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self' data: https:");
   res.setHeader('Cache-Control', 'no-store');
   res.sendFile(path.resolve(htmlPath));
