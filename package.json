@@ -10,7 +10,9 @@
         "dev": "set NEW_PORT=10001&& ts-node src/server.ts",
         "test": "jest",
         "typecheck": "tsc --noEmit",
-        "test:watch": "jest --watch"
+        "test:watch": "jest --watch",
+        "test:scraper": "ts-node test-scraper-edmonton.ts",
+        "test:scraper-api": "ts-node test-scraper-api.ts"
     },
     "dependencies": {
         "@googlemaps/google-maps-services-js": "^3.4.2",
