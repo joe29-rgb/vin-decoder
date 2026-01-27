@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hot Deals Dashboard | Finance-in-a-Box</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg-primary: #0a0e14;
+      --bg-secondary: #0f1419;
+      --bg-tertiary: #151a21;
+      --surface: #1a1f29;
+      --surface-elevated: #1f2430;
+      --border: #2a2f3a;
+      --border-hover: #3d4350;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent-primary: #3fb950;
+      --accent-secondary: #58a6ff;
+      --accent-tertiary: #a371f7;
+      --danger: #f85149;
+      --warning: #d29922;
+      --success: #3fb950;
+      --gold: #ffd700;
+      --fire: #ff6b35;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      color: var(--text-primary);
+      background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    
+    .container { max-width: 1600px; margin: 0 auto; }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+    
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--fire) 0%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .fire-icon {
+      font-size: 42px;
+      animation: flicker 2s infinite;
+    }
+    
+    @keyframes flicker {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.1); }
+    }
+    
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 16px;
+      margin-top: 8px;
+    }
+    
+    /* Stats Bar */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    
+    .stat-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .stat-card.hot {
+      border-color: var(--fire);
+      background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, var(--surface) 100%);
+    }
+    
+    .stat-icon {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 32px;
+      opacity: 0.3;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    
+    .stat-value.profit { color: var(--accent-primary); }
+    .stat-value.hot { color: var(--fire); }
+    
+    .stat-change {
+      font-size: 13px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .stat-change.up { color: var(--success); }
+    .stat-change.down { color: var(--danger); }
+    
+    /* Hot Deals Grid */
+    .deals-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .deals-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    
+    .filters {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .filter-btn {
+      padding: 8px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--accent-primary);
+      color: #000;
+      border-color: var(--accent-primary);
+    }
+    
+    .deals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    
+    .deal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: var(--transition);
+      position: relative;
+    }
+    
+    .deal-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .deal-card.hot {
+      border-color: var(--fire);
+      box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+    }
+    
+    .hot-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--fire);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      z-index: 10;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .deal-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background: var(--bg-tertiary);
+    }
+    
+    .deal-content {
+      padding: 20px;
+    }
+    
+    .deal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    
+    .deal-meta {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    
+    .deal-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .deal-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .deal-stat {
+      background: var(--bg-tertiary);
+      padding: 12px;
+      border-radius: var(--radius-sm);
+    }
+    
+    .deal-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    
+    .deal-stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    
+    .deal-stat-value.profit { color: var(--accent-primary); }
+    
+    .deal-program {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(63, 185, 80, 0.15);
+      border: 1px solid var(--success);
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+    }
+    
+    .deal-program-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--success);
+    }
+    
+    .deal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    .btn-primary {
+      background: var(--accent-primary);
+      color: #000;
+    }
+    
+    .btn-primary:hover {
+      background: #4aca5f;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .btn-secondary {
+      background: var(--surface-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-secondary:hover {
+      border-color: var(--border-hover);
+      background: var(--bg-tertiary);
+    }
+    
+    .btn-magic {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, var(--accent-tertiary) 0%, var(--accent-secondary) 100%);
+      color: #fff;
+      font-size: 14px;
+      padding: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-magic::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.5s;
+    }
+    
+    .btn-magic:hover::before {
+      left: 100%;
+    }
+    
+    .btn-magic:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(163, 113, 247, 0.4);
+    }
+    
+    /* Notification Toast */
+    .notification {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--fire);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-lg);
+      z-index: 1000;
+      max-width: 400px;
+      display: none;
+      animation: slideInRight 0.3s ease-out;
+    }
+    
+    .notification.show {
+      display: block;
+    }
+    
+    @keyframes slideInRight {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    .notification-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .notification-icon {
+      font-size: 24px;
+    }
+    
+    .notification-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    
+    .notification-body {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .notification-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .notification-btn {
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .notification-btn.primary {
+      background: var(--fire);
+      color: #fff;
+      border: none;
+    }
+    
+    .notification-btn.secondary {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+    }
+    
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    
+    .empty-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    
+    .empty-text {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1><span class="fire-icon">🔥</span> Hot Deals Dashboard</h1>
+        <p class="subtitle">Real-time profit opportunities from active approvals</p>
+      </div>
+    </div>
+    
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat-card hot">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-label">Hot Deals</div>
+        <div class="stat-value hot" id="hotDealsCount">0</div>
+        <div class="stat-change up">↑ Updated just now</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-label">Total Profit Potential</div>
+        <div class="stat-value profit" id="totalProfit">$0</div>
+        <div class="stat-change up" id="profitChange">↑ $0 vs last week</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-label">Active Approvals</div>
+        <div class="stat-value" id="activeApprovals">0</div>
+        <div class="stat-change" id="approvalsChange">No change</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-label">Avg Profit Per Deal</div>
+        <div class="stat-value profit" id="avgProfit">$0</div>
+        <div class="stat-change up" id="avgChange">↑ $0 vs last week</div>
+      </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="deals-header">
+      <div class="deals-title">🔥 Hot Opportunities</div>
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">All Deals</button>
+        <button class="filter-btn" data-filter="hot">🔥 Hottest</button>
+        <button class="filter-btn" data-filter="new">New Vehicles</button>
+        <button class="filter-btn" data-filter="used">Used Vehicles</button>
+      </div>
+    </div>
+    
+    <!-- Deals Grid -->
+    <div class="deals-grid" id="dealsGrid">
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">Scanning for opportunities...</div>
+        <div class="empty-text">Add approvals to see hot deals</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Notification Toast -->
+  <div class="notification" id="notification">
+    <div class="notification-header">
+      <span class="notification-icon">🔥</span>
+      <span class="notification-title" id="notificationTitle">New Hot Deal!</span>
+    </div>
+    <div class="notification-body" id="notificationBody"></div>
+    <div class="notification-actions">
+      <button class="notification-btn primary" onclick="viewDeal()">View Deal</button>
+      <button class="notification-btn secondary" onclick="dismissNotification()">Dismiss</button>
+    </div>
+  </div>
+  
+  <script>
+    let hotDeals = [];
+    let currentFilter = 'all';
+    let notificationQueue = [];
+    
+    // Load and display hot deals
+    async function loadHotDeals() {
+      const approvals = JSON.parse(localStorage.getItem('activeApprovals') || '[]');
+      
+      if (approvals.length === 0) {
+        showEmptyState('No active approvals', 'Add approvals to see hot deals');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/approvals/score-multi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            approvals: approvals,
+            trade: { allowance: 0, acv: 0, lienBalance: 0 },
+            province: 'AB',
+            docFee: 799
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          hotDeals = data.deals
+            .filter(d => d.profitPotential >= 10000) // Only show deals with $10K+ profit
+            .sort((a, b) => b.profitPotential - a.profitPotential);
+          
+          updateStats(hotDeals, approvals.length);
+          displayDeals(hotDeals);
+          
+          // Check for new hot deals and notify
+          checkForNewDeals(hotDeals);
+        }
+      } catch (error) {
+        console.error('Error loading hot deals:', error);
+        showEmptyState('Error loading deals', error.message);
+      }
+    }
+    
+    function updateStats(deals, approvalsCount) {
+      document.getElementById('hotDealsCount').textContent = deals.length;
+      
+      const totalProfit = deals.reduce((sum, d) => sum + d.profitPotential, 0);
+      document.getElementById('totalProfit').textContent = `$${totalProfit.toLocaleString()}`;
+      
+      const avgProfit = deals.length > 0 ? totalProfit / deals.length : 0;
+      document.getElementById('avgProfit').textContent = `$${Math.round(avgProfit).toLocaleString()}`;
+      
+      document.getElementById('activeApprovals').textContent = approvalsCount;
+    }
+    
+    function displayDeals(deals) {
+      const grid = document.getElementById('dealsGrid');
+      
+      if (deals.length === 0) {
+        showEmptyState('No hot deals found', 'Try adding more approvals or adjusting filters');
+        return;
+      }
+      
+      const html = deals.map((deal, index) => {
+        const vehicle = deal.vehicle;
+        const best = deal.bestScenario;
+        const isHot = deal.profitPotential >= 20000;
+        
+        return `
+          <div class="deal-card ${isHot ? 'hot' : ''}" data-condition="${vehicle.condition || 'used'}">
+            ${isHot ? '<div class="hot-badge">🔥 HOT</div>' : ''}
+            
+            <img class="deal-image" src="${vehicle.image || '/placeholder-car.jpg'}" alt="${vehicle.year} ${vehicle.make} ${vehicle.model}" />
+            
+            <div class="deal-content">
+              <div class="deal-title">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
+              
+              <div class="deal-meta">
+                <div class="deal-meta-item">
+                  📦 Stock: ${vehicle.id || 'N/A'}
+                </div>
+                <div class="deal-meta-item">
+                  🚗 ${vehicle.condition || 'Used'}
+                </div>
+              </div>
+              
+              <div class="deal-stats">
+                <div class="deal-stat">
+                  <div class="deal-stat-label">Profit Potential</div>
+                  <div class="deal-stat-value profit">$${Math.round(deal.profitPotential).toLocaleString()}</div>
+                </div>
+                <div class="deal-stat">
+                  <div class="deal-stat-label">Max Advance</div>
+                  <div class="deal-stat-value">$${best.maxAdvance.toLocaleString()}</div>
+                </div>
+              </div>
+              
+              <div class="deal-program">
+                <span>⭐</span>
+                <span class="deal-program-text">${best.lender} ${best.program} - ${best.rate.toFixed(2)}%</span>
+              </div>
+              
+              <div class="deal-actions">
+                <button class="btn btn-secondary" onclick="viewDetails('${vehicle.id}')">
+                  📊 Details
+                </button>
+                <button class="btn btn-primary" onclick="buildDeal('${vehicle.id}')">
+                  🚀 Build Deal
+                </button>
+                <button class="btn btn-magic" onclick="magicButton('${vehicle.id}')">
+                  ✨ Magic Button - Auto Build
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      grid.innerHTML = html;
+    }
+    
+    function showEmptyState(title, message) {
+      const grid = document.getElementById('dealsGrid');
+      grid.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-title">${title}</div>
+          <div class="empty-text">${message}</div>
+        </div>
+      `;
+    }
+    
+    function checkForNewDeals(deals) {
+      const previousDeals = JSON.parse(localStorage.getItem('previousHotDeals') || '[]');
+      
+      deals.forEach(deal => {
+        const isNew = !previousDeals.find(pd => pd.vehicle.id === deal.vehicle.id);
+        if (isNew && deal.profitPotential >= 15000) {
+          showNotification(
+            '🔥 New Hot Deal Alert!',
+            `${deal.vehicle.year} ${deal.vehicle.make} ${deal.vehicle.model} - $${Math.round(deal.profitPotential).toLocaleString()} profit potential with ${deal.bestScenario.lender}!`
+          );
+        }
+      });
+      
+      localStorage.setItem('previousHotDeals', JSON.stringify(deals));
+    }
+    
+    function showNotification(title, body) {
+      const notification = document.getElementById('notification');
+      document.getElementById('notificationTitle').textContent = title;
+      document.getElementById('notificationBody').textContent = body;
+      
+      notification.classList.add('show');
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 8000);
+    }
+    
+    function dismissNotification() {
+      document.getElementById('notification').classList.remove('show');
+    }
+    
+    function viewDeal() {
+      dismissNotification();
+      // Navigate to first hot deal
+      if (hotDeals.length > 0) {
+        viewDetails(hotDeals[0].vehicle.id);
+      }
+    }
+    
+    function viewDetails(vehicleId) {
+      const deal = hotDeals.find(d => d.vehicle.id === vehicleId);
+      if (!deal) return;
+      
+      localStorage.setItem('selectedDeal', JSON.stringify({
+        vehicle: deal.vehicle,
+        bestScenario: deal.bestScenario,
+        allScenarios: deal.allScenarios
+      }));
+      
+      window.location.href = '/multi-approval-scoring.html';
+    }
+    
+    function buildDeal(vehicleId) {
+      const deal = hotDeals.find(d => d.vehicle.id === vehicleId);
+      if (!deal) return;
+      
+      localStorage.setItem('selectedDeal', JSON.stringify({
+        vehicle: deal.vehicle,
+        bestScenario: deal.bestScenario,
+        allScenarios: deal.allScenarios
+      }));
+      
+      window.location.href = '/deal-worksheet.html';
+    }
+    
+    async function magicButton(vehicleId) {
+      const deal = hotDeals.find(d => d.vehicle.id === vehicleId);
+      if (!deal) return;
+      
+      showNotification('✨ Magic Button Activated', 'Building optimal deal automatically...');
+      
+      // Simulate auto-build process
+      setTimeout(() => {
+        showNotification('✅ Deal Ready!', `${deal.vehicle.year} ${deal.vehicle.make} ${deal.vehicle.model} deal is ready to present. $${Math.round(deal.profitPotential).toLocaleString()} profit potential.`);
+        
+        // Store deal and navigate
+        localStorage.setItem('selectedDeal', JSON.stringify({
+          vehicle: deal.vehicle,
+          bestScenario: deal.bestScenario,
+          allScenarios: deal.allScenarios,
+          autoBuilt: true
+        }));
+        
+        setTimeout(() => {
+          window.location.href = '/deal-worksheet.html';
+        }, 2000);
+      }, 1500);
+    }
+    
+    // Filter functionality
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const filter = btn.dataset.filter;
+        currentFilter = filter;
+        
+        if (filter === 'all') {
+          displayDeals(hotDeals);
+        } else if (filter === 'hot') {
+          displayDeals(hotDeals.filter(d => d.profitPotential >= 20000));
+        } else if (filter === 'new') {
+          displayDeals(hotDeals.filter(d => d.vehicle.condition === 'new'));
+        } else if (filter === 'used') {
+          displayDeals(hotDeals.filter(d => d.vehicle.condition !== 'new'));
+        }
+      });
+    });
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadHotDeals, 30000);
+    
+    // Initial load
+    loadHotDeals();
+  </script>
+</body>
+</html>
