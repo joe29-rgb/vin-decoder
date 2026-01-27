@@ -19,18 +19,22 @@ async function loadSettings() {
     if (data.success) {
       currentConfig = data;
       
-      document.getElementById('dealershipName').value = data.dealershipName || '';
-      document.getElementById('websiteUrl').value = data.websiteUrl || '';
-      document.getElementById('usedInventoryPath').value = data.usedInventoryPath || '/search/used/';
-      document.getElementById('newInventoryPath').value = data.newInventoryPath || '/search/new/';
-      document.getElementById('location').value = data.location || 'Alberta';
-      document.getElementById('postalCode').value = data.postalCode || 'T5J';
-      document.getElementById('province').value = data.province || 'AB';
-      document.getElementById('competitorRadiusKm').value = data.competitorRadiusKm || 100;
-      document.getElementById('docFee').value = data.docFee || 799;
-      document.getElementById('ppsaFee').value = data.ppsaFee || 38.73;
-      document.getElementById('cbbApiKey').value = data.cbbApiKey || '';
-      document.getElementById('cbbApiUrl').value = data.cbbApiUrl || 'https://api.canadianblackbook.com/v1';
+      const setValueIfExists = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+      };
+      
+      setValueIfExists('dealershipName', data.dealershipName || '');
+      setValueIfExists('websiteUrl', data.websiteUrl || '');
+      setValueIfExists('usedInventoryPath', data.usedInventoryPath || '/search/used/');
+      setValueIfExists('newInventoryPath', data.newInventoryPath || '/search/new/');
+      setValueIfExists('location', data.location || 'Alberta');
+      setValueIfExists('postalCode', data.postalCode || 'T5J');
+      setValueIfExists('province', data.province || 'AB');
+      setValueIfExists('competitorRadiusKm', data.competitorRadiusKm || 100);
+      setValueIfExists('docFee', data.docFee || 799);
+      setValueIfExists('cbbApiKey', data.cbbApiKey || '');
+      setValueIfExists('cbbApiUrl', data.cbbApiUrl || 'https://api.canadianblackbook.com/v1');
       
       if (!data.websiteUrl) {
         showAlert('⚠️ Please configure your dealership website URL to enable inventory scraping', 'warning');
@@ -50,19 +54,23 @@ async function saveSettings() {
     saveBtn.disabled = true;
     saveBtnText.innerHTML = '<span class="spinner"></span>Saving...';
     
+    const getValueIfExists = (id, defaultValue = '') => {
+      const el = document.getElementById(id);
+      return el ? el.value.trim() : defaultValue;
+    };
+    
     const config = {
-      dealershipName: document.getElementById('dealershipName').value.trim(),
-      websiteUrl: document.getElementById('websiteUrl').value.trim(),
-      usedInventoryPath: document.getElementById('usedInventoryPath').value.trim(),
-      newInventoryPath: document.getElementById('newInventoryPath').value.trim(),
-      location: document.getElementById('location').value.trim(),
-      postalCode: document.getElementById('postalCode').value.trim(),
-      province: document.getElementById('province').value,
-      competitorRadiusKm: parseInt(document.getElementById('competitorRadiusKm').value) || 100,
-      docFee: parseFloat(document.getElementById('docFee').value) || 799,
-      ppsaFee: parseFloat(document.getElementById('ppsaFee').value) || 38.73,
-      cbbApiKey: document.getElementById('cbbApiKey').value.trim(),
-      cbbApiUrl: document.getElementById('cbbApiUrl').value.trim(),
+      dealershipName: getValueIfExists('dealershipName'),
+      websiteUrl: getValueIfExists('websiteUrl'),
+      usedInventoryPath: getValueIfExists('usedInventoryPath', '/search/used/'),
+      newInventoryPath: getValueIfExists('newInventoryPath', '/search/new/'),
+      location: getValueIfExists('location', 'Alberta'),
+      postalCode: getValueIfExists('postalCode', 'T5J'),
+      province: getValueIfExists('province', 'AB'),
+      competitorRadiusKm: parseInt(getValueIfExists('competitorRadiusKm', '100')) || 100,
+      docFee: parseFloat(getValueIfExists('docFee', '799')) || 799,
+      cbbApiKey: getValueIfExists('cbbApiKey'),
+      cbbApiUrl: getValueIfExists('cbbApiUrl', 'https://api.canadianblackbook.com/v1'),
     };
     
     if (!config.dealershipName) {

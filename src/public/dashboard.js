@@ -154,6 +154,8 @@
     // Add event listener for lender change to update programs
     var lenderSelect = card.querySelector('.lender-select');
     var programSelect = card.querySelector('.program-select');
+    var aprInput = card.querySelector('.apr-input');
+    
     lenderSelect.onchange = function() {
       var lender = this.value;
       programSelect.innerHTML = '<option value="">Not specified</option>';
@@ -164,6 +166,30 @@
           opt.textContent = prog;
           programSelect.appendChild(opt);
         });
+      }
+      aprInput.value = '';
+    };
+    
+    // Add event listener for program change to auto-fill interest rate
+    programSelect.onchange = async function() {
+      var lender = lenderSelect.value;
+      var program = this.value;
+      
+      if (lender && program) {
+        try {
+          var response = await fetch('/api/lender-programs/rate?lender=' + encodeURIComponent(lender) + '&tier=' + encodeURIComponent(program));
+          var data = await response.json();
+          
+          if (data.success && data.rate) {
+            aprInput.value = data.rate;
+            aprInput.style.borderColor = 'var(--accent-primary)';
+            setTimeout(function() {
+              aprInput.style.borderColor = '';
+            }, 1000);
+          }
+        } catch (error) {
+          console.error('Failed to fetch rate:', error);
+        }
       }
     };
   }

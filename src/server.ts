@@ -28,6 +28,7 @@ import hotDealsRouter from './api/routes/hot-deals';
 import magicButtonRouter from './api/routes/magic-button';
 import leaderboardRouter from './api/routes/leaderboard';
 import predictiveScoringRouter from './api/routes/predictive-scoring';
+import lenderProgramsRouter from './api/routes/lender-programs';
 
 dotenv.config();
 
@@ -63,6 +64,7 @@ app.use('/api/hot-deals', hotDealsRouter);
 app.use('/api/magic-button', magicButtonRouter);
 app.use('/api/leaderboard', leaderboardRouter);
 app.use('/api/predictive-scoring', predictiveScoringRouter);
+app.use('/api/lender-programs', lenderProgramsRouter);
 // Backward-compatibility mounts for legacy paths
 app.use('/api', dealsRouter);      // provides /api/lenders, /api/deals/*
 app.use('/api', webhooksRouter);   // provides /api/rules/*, /api/approvals/*
