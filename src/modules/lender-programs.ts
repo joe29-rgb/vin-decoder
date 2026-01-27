@@ -238,7 +238,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic - calculated via calculateTDReserve()
       fee: 799,
       negativeEquityLimit: 2000,
-      maxTerm: 84,
+      maxTerm: 96, // 96 months for new 2024-2026, 84 for used
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     '3-Key': {
       lender: 'TD',
@@ -250,7 +255,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 799,
       negativeEquityLimit: 2000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     '4-Key': {
       lender: 'TD',
@@ -262,7 +272,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 799,
       negativeEquityLimit: 2000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     '5-Key': {
       lender: 'TD',
@@ -274,7 +289,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 799,
       negativeEquityLimit: 2000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     '6-Key': {
       lender: 'TD',
@@ -286,7 +306,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 799,
       negativeEquityLimit: 2000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
 
     // ========================================
@@ -304,7 +329,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic percentage-based
       fee: 0, // No fee for Prime
       negativeEquityLimit: 0,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Prime-6.89': {
       lender: 'TD',
@@ -316,7 +346,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Prime-7.39': {
       lender: 'TD',
@@ -328,7 +363,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Prime-7.89': {
       lender: 'TD',
@@ -340,7 +380,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Prime-8.39': {
       lender: 'TD',
@@ -352,7 +397,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Prime-8.89': {
       lender: 'TD',
@@ -364,7 +414,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Prime-9.39': {
       lender: 'TD',
@@ -376,7 +431,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Prime-9.89': {
       lender: 'TD',
@@ -388,7 +448,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Prime-10.39': {
       lender: 'TD',
@@ -400,7 +465,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Prime-10.89': {
       lender: 'TD',
@@ -412,7 +482,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Prime-11.39': {
       lender: 'TD',
@@ -424,7 +499,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Prime-11.9': {
       lender: 'TD',
@@ -436,7 +516,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
   },
   Santander: {
@@ -450,7 +535,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 600,
       fee: 0,
       negativeEquityLimit: 5000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Tier7': {
       lender: 'Santander',
@@ -462,7 +552,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 600,
       fee: 0,
       negativeEquityLimit: 5000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Tier6': {
       lender: 'Santander',
@@ -474,7 +569,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 550,
       fee: 0,
       negativeEquityLimit: 4000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Tier5': {
       lender: 'Santander',
@@ -486,7 +586,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 550,
       fee: 0,
       negativeEquityLimit: 3500,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Tier4': {
       lender: 'Santander',
@@ -549,7 +654,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       fee: 399,
       negativeEquityLimit: 5000,
       rateUpsell: 2,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Star6': {
       lender: 'SDA',
@@ -562,7 +672,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       fee: 699,
       negativeEquityLimit: 5000,
       rateUpsell: 2,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Star5': {
       lender: 'SDA',
@@ -575,7 +690,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       fee: 699,
       negativeEquityLimit: 5000,
       rateUpsell: 2,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Star4': {
       lender: 'SDA',
@@ -588,7 +708,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       fee: 699,
       negativeEquityLimit: 4000,
       rateUpsell: 2,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Star3': {
       lender: 'SDA',
@@ -654,7 +779,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 500,
       fee: 799,
       negativeEquityLimit: 5000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Tier2': {
       lender: 'AutoCapital',
@@ -666,7 +796,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 500,
       fee: 799,
       negativeEquityLimit: 5000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Tier3': {
       lender: 'AutoCapital',
@@ -678,7 +813,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 500,
       fee: 799,
       negativeEquityLimit: 4000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     'Tier4': {
       lender: 'AutoCapital',
@@ -733,7 +873,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic - calculated via calculateEdenParkReserve()
       fee: 0,
       negativeEquityLimit: 5000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     '5Ride': {
       lender: 'EdenPark',
@@ -745,7 +890,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 0,
       negativeEquityLimit: 5000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     '4Ride': {
       lender: 'EdenPark',
@@ -757,7 +907,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 0,
       negativeEquityLimit: 4000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     '3Ride': {
       lender: 'EdenPark',
@@ -824,7 +979,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic - calculated via calculateIAReserve()
       fee: 699,
       negativeEquityLimit: 5000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     '5thGear': {
       lender: 'IAAutoFinance',
@@ -836,7 +996,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 699,
       negativeEquityLimit: 5000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     '4thGear': {
       lender: 'IAAutoFinance',
@@ -848,7 +1013,12 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 699,
       negativeEquityLimit: 4000,
-      maxTerm: 84,
+      maxTerm: 96,
+      termByModelYear: [
+        { yearFrom: 2024, yearTo: 2026, maxTermMonths: 96 },
+        { yearFrom: 2010, yearTo: 2023, maxTermMonths: 84 },
+        { yearFrom: 2000, yearTo: 2009, maxTermMonths: 72 },
+      ],
     },
     '3rdGear': {
       lender: 'IAAutoFinance',
