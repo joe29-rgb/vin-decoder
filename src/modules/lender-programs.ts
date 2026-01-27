@@ -304,6 +304,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic percentage-based
       fee: 0, // No fee for Prime
       negativeEquityLimit: 0,
+      maxTerm: 84,
     },
     'Prime-6.89': {
       lender: 'TD',
@@ -315,6 +316,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
+      maxTerm: 84,
     },
     'Prime-7.39': {
       lender: 'TD',
@@ -326,6 +328,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
+      maxTerm: 84,
     },
     'Prime-7.89': {
       lender: 'TD',
@@ -337,6 +340,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
+      maxTerm: 84,
     },
     'Prime-8.39': {
       lender: 'TD',
@@ -348,6 +352,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
+      maxTerm: 84,
     },
     'Prime-8.89': {
       lender: 'TD',
@@ -359,6 +364,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
+      maxTerm: 84,
     },
     'Prime-9.39': {
       lender: 'TD',
@@ -370,6 +376,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
+      maxTerm: 84,
     },
     'Prime-9.89': {
       lender: 'TD',
@@ -381,6 +388,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
+      maxTerm: 84,
     },
     'Prime-10.39': {
       lender: 'TD',
@@ -392,6 +400,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
+      maxTerm: 84,
     },
     'Prime-10.89': {
       lender: 'TD',
@@ -403,6 +412,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
+      maxTerm: 84,
     },
     'Prime-11.39': {
       lender: 'TD',
@@ -414,6 +424,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
+      maxTerm: 84,
     },
     'Prime-11.9': {
       lender: 'TD',
@@ -425,6 +436,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 0,
+      maxTerm: 84,
     },
   },
   Santander: {
@@ -438,6 +450,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 600,
       fee: 0,
       negativeEquityLimit: 5000,
+      maxTerm: 84,
     },
     'Tier7': {
       lender: 'Santander',
@@ -449,6 +462,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 600,
       fee: 0,
       negativeEquityLimit: 5000,
+      maxTerm: 84,
     },
     'Tier6': {
       lender: 'Santander',
@@ -460,6 +474,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 550,
       fee: 0,
       negativeEquityLimit: 4000,
+      maxTerm: 84,
     },
     'Tier5': {
       lender: 'Santander',
@@ -471,6 +486,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 550,
       fee: 0,
       negativeEquityLimit: 3500,
+      maxTerm: 84,
     },
     'Tier4': {
       lender: 'Santander',
@@ -482,6 +498,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 550,
       fee: 0,
       negativeEquityLimit: 3500,
+      maxTerm: 72,
     },
     'Tier3': {
       lender: 'Santander',
@@ -493,6 +510,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 525,
       fee: 0,
       negativeEquityLimit: 3000,
+      maxTerm: 72,
     },
     'Tier2': {
       lender: 'Santander',
@@ -504,6 +522,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 750,
       fee: 0,
       negativeEquityLimit: 3000,
+      maxTerm: 72,
     },
     'Tier1': {
       lender: 'Santander',
@@ -515,6 +534,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 500,
       fee: 0,
       negativeEquityLimit: 3000,
+      maxTerm: 60,
     },
   },
   SDA: {
@@ -529,6 +549,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       fee: 399,
       negativeEquityLimit: 5000,
       rateUpsell: 2,
+      maxTerm: 84,
     },
     'Star6': {
       lender: 'SDA',
@@ -541,6 +562,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       fee: 699,
       negativeEquityLimit: 5000,
       rateUpsell: 2,
+      maxTerm: 84,
     },
     'Star5': {
       lender: 'SDA',
@@ -553,6 +575,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       fee: 699,
       negativeEquityLimit: 5000,
       rateUpsell: 2,
+      maxTerm: 84,
     },
     'Star4': {
       lender: 'SDA',
@@ -565,6 +588,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       fee: 699,
       negativeEquityLimit: 4000,
       rateUpsell: 2,
+      maxTerm: 84,
     },
     'Star3': {
       lender: 'SDA',
@@ -577,6 +601,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       fee: 699,
       negativeEquityLimit: 4000,
       rateUpsell: 2,
+      maxTerm: 84,
     },
     'Star2': {
       lender: 'SDA',
@@ -589,6 +614,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       fee: 799,
       negativeEquityLimit: 3000,
       rateUpsell: 2,
+      maxTerm: 72,
     },
     'Star1': {
       lender: 'SDA',
@@ -601,6 +627,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       fee: 799,
       negativeEquityLimit: 3000,
       rateUpsell: 2,
+      maxTerm: 60,
     },
     'StartRight': {
       lender: 'SDA',
@@ -613,6 +640,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       fee: 599,
       negativeEquityLimit: 5000,
       rateUpsell: 2,
+      maxTerm: 84,
     },
   },
   AutoCapital: {
@@ -626,6 +654,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 500,
       fee: 799,
       negativeEquityLimit: 5000,
+      maxTerm: 84,
     },
     'Tier2': {
       lender: 'AutoCapital',
@@ -637,6 +666,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 500,
       fee: 799,
       negativeEquityLimit: 5000,
+      maxTerm: 84,
     },
     'Tier3': {
       lender: 'AutoCapital',
@@ -648,6 +678,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 500,
       fee: 799,
       negativeEquityLimit: 4000,
+      maxTerm: 84,
     },
     'Tier4': {
       lender: 'AutoCapital',
@@ -659,6 +690,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 500,
       fee: 799,
       negativeEquityLimit: 4000,
+      maxTerm: 84,
     },
     'Tier5': {
       lender: 'AutoCapital',
@@ -670,6 +702,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 500,
       fee: 799,
       negativeEquityLimit: 3000,
+      maxTerm: 72,
     },
     'Tier6': {
       lender: 'AutoCapital',
@@ -681,6 +714,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 500,
       fee: 799,
       negativeEquityLimit: 3000,
+      maxTerm: 72,
     },
   },
   EdenPark: {
@@ -699,6 +733,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic - calculated via calculateEdenParkReserve()
       fee: 0,
       negativeEquityLimit: 5000,
+      maxTerm: 84,
     },
     '5Ride': {
       lender: 'EdenPark',
@@ -710,6 +745,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 0,
       negativeEquityLimit: 5000,
+      maxTerm: 84,
     },
     '4Ride': {
       lender: 'EdenPark',
@@ -721,6 +757,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 0,
       negativeEquityLimit: 4000,
+      maxTerm: 84,
     },
     '3Ride': {
       lender: 'EdenPark',
@@ -732,6 +769,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 0,
       negativeEquityLimit: 4000,
+      maxTerm: 84,
     },
     '2Ride': {
       lender: 'EdenPark',
@@ -743,6 +781,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 0,
       negativeEquityLimit: 3000,
+      maxTerm: 72,
     },
     'EPRidePlus': {
       lender: 'EdenPark',
@@ -754,6 +793,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 0,
       negativeEquityLimit: 5000,
+      maxTerm: 84,
     },
     'EPNoHit': {
       lender: 'EdenPark',
@@ -765,6 +805,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 0,
       negativeEquityLimit: 3000,
+      maxTerm: 72,
     },
   },
   IAAutoFinance: {
@@ -783,6 +824,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic - calculated via calculateIAReserve()
       fee: 699,
       negativeEquityLimit: 5000,
+      maxTerm: 84,
     },
     '5thGear': {
       lender: 'IAAutoFinance',
@@ -794,6 +836,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 699,
       negativeEquityLimit: 5000,
+      maxTerm: 84,
     },
     '4thGear': {
       lender: 'IAAutoFinance',
@@ -805,6 +848,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 699,
       negativeEquityLimit: 4000,
+      maxTerm: 84,
     },
     '3rdGear': {
       lender: 'IAAutoFinance',
@@ -816,6 +860,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 699,
       negativeEquityLimit: 3000,
+      maxTerm: 72,
     },
     '2ndGear': {
       lender: 'IAAutoFinance',
@@ -827,6 +872,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 699,
       negativeEquityLimit: 3000,
+      maxTerm: 72,
     },
     '1stGear': {
       lender: 'IAAutoFinance',
@@ -838,6 +884,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 699,
       negativeEquityLimit: 2000,
+      maxTerm: 60,
     },
   },
   LendCare: {
@@ -855,6 +902,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 799,
       fee: 799, // Lender fee
       negativeEquityLimit: 5000,
+      maxTerm: 84,
     },
     'Tier2': {
       lender: 'LendCare',
@@ -866,6 +914,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 599,
       fee: 799, // + $599 GPS if selling price > $15,000
       negativeEquityLimit: 3000,
+      maxTerm: 72,
     },
     'Tier3': {
       lender: 'LendCare',
@@ -877,6 +926,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 299, // $199-$399
       fee: 699, // $599-$799 + GPS
       negativeEquityLimit: 2000,
+      maxTerm: 60,
     },
   },
   Northlake: {
@@ -890,6 +940,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 600,
       fee: 0,
       negativeEquityLimit: 5000,
+      maxTerm: 84,
     },
     'Platinum': {
       lender: 'Northlake',
@@ -901,6 +952,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 600,
       fee: 0,
       negativeEquityLimit: 5000,
+      maxTerm: 84,
     },
     'Gold': {
       lender: 'Northlake',
@@ -912,6 +964,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 450,
       fee: 0,
       negativeEquityLimit: 4000,
+      maxTerm: 84,
     },
     'Standard': {
       lender: 'Northlake',
@@ -923,6 +976,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 300,
       fee: 0,
       negativeEquityLimit: 3000,
+      maxTerm: 84,
     },
     'UDrive': {
       lender: 'Northlake',
@@ -934,6 +988,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0,
       fee: 0,
       negativeEquityLimit: 2000,
+      maxTerm: 72,
     },
   },
   Prefera: {
@@ -951,6 +1006,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic - calculated via calculatePreferaReserve()
       fee: 895, // Fixed admin fee
       negativeEquityLimit: 12000, // Max add-on
+      maxTerm: 84,
     },
     'P2': {
       lender: 'Prefera',
@@ -962,6 +1018,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 895,
       negativeEquityLimit: 10000, // Max add-on
+      maxTerm: 84,
     },
     'P3': {
       lender: 'Prefera',
@@ -973,6 +1030,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 895,
       negativeEquityLimit: 8000, // Max add-on
+      maxTerm: 84,
     },
     'P4': {
       lender: 'Prefera',
@@ -984,6 +1042,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 0, // Dynamic
       fee: 895,
       negativeEquityLimit: 2500, // Max add-on
+      maxTerm: 72,
     },
   },
   RIFCO: {
@@ -1002,6 +1061,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 250, // Flat $250
       fee: 990, // $395 loan fee + $595 device fee
       negativeEquityLimit: 3000,
+      maxTerm: 60,
     },
     
     // ========================================
@@ -1018,6 +1078,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 600, // Base $600, +$300 for 1% upsell, +$600 for 2% upsell
       fee: 990, // $395 + $595
       negativeEquityLimit: 5000,
+      maxTerm: 84,
     },
     'PreferredTier2': {
       lender: 'RIFCO',
@@ -1029,6 +1090,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 500, // Base $500, +$300 for 1% upsell, +$600 for 2% upsell
       fee: 990,
       negativeEquityLimit: 5000,
+      maxTerm: 84,
     },
     'PreferredTier3': {
       lender: 'RIFCO',
@@ -1040,6 +1102,7 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       reserve: 400, // Base $400, +$300 for 1% upsell
       fee: 990,
       negativeEquityLimit: 4000,
+      maxTerm: 84,
     },
   },
 };
