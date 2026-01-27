@@ -227,3 +227,107 @@ export function requireDealership(req: any, res: any, next: any) {
   req.dealershipId = dealershipId;
   next();
 }
+
+/**
+ * Initialize sample dealerships for development/testing
+ */
+export async function initializeSampleDealerships(): Promise<void> {
+  const sb = getSupabase();
+  if (!sb) {
+    console.log('[DEALERSHIPS] Supabase not configured, skipping sample dealerships');
+    return;
+  }
+
+  const sampleDealerships = [
+    {
+      id: 'deal-001',
+      ghl_location_id: 'loc-001',
+      name: 'Calgary Auto Centre',
+      website_url: 'https://www.calgaryautocentre.com',
+      location: 'Calgary',
+      postal_code: 'T2P',
+      province: 'AB',
+      used_inventory_path: '/search/used/',
+      new_inventory_path: '/search/new/',
+      competitor_radius_km: 100,
+      doc_fee: 799.00,
+      cbb_api_url: 'https://api.canadianblackbook.com/v1',
+      onboarding_complete: true,
+      onboarding_step: 5,
+      is_active: true,
+      subscription_status: 'active',
+    },
+    {
+      id: 'deal-002',
+      ghl_location_id: 'loc-002',
+      name: 'Edmonton Motors',
+      website_url: 'https://www.edmontonmotors.com',
+      location: 'Edmonton',
+      postal_code: 'T5J',
+      province: 'AB',
+      used_inventory_path: '/inventory/used/',
+      new_inventory_path: '/inventory/new/',
+      competitor_radius_km: 150,
+      doc_fee: 899.00,
+      cbb_api_url: 'https://api.canadianblackbook.com/v1',
+      onboarding_complete: true,
+      onboarding_step: 5,
+      is_active: true,
+      subscription_status: 'active',
+    },
+    {
+      id: 'deal-003',
+      ghl_location_id: 'loc-003',
+      name: 'Red Deer Auto Sales',
+      website_url: 'https://www.reddeerauto.com',
+      location: 'Red Deer',
+      postal_code: 'T4N',
+      province: 'AB',
+      used_inventory_path: '/search/used/',
+      new_inventory_path: '/search/new/',
+      competitor_radius_km: 100,
+      doc_fee: 799.00,
+      cbb_api_url: 'https://api.canadianblackbook.com/v1',
+      onboarding_complete: false,
+      onboarding_step: 2,
+      is_active: true,
+      subscription_status: 'trial',
+    },
+    {
+      id: 'deal-004',
+      ghl_location_id: 'loc-004',
+      name: 'Lethbridge Car Depot',
+      website_url: 'https://www.lethbridgecars.com',
+      location: 'Lethbridge',
+      postal_code: 'T1J',
+      province: 'AB',
+      used_inventory_path: '/vehicles/used/',
+      new_inventory_path: '/vehicles/new/',
+      competitor_radius_km: 100,
+      doc_fee: 749.00,
+      cbb_api_url: 'https://api.canadianblackbook.com/v1',
+      onboarding_complete: true,
+      onboarding_step: 5,
+      is_active: true,
+      subscription_status: 'active',
+    },
+  ];
+
+  try {
+    for (const dealership of sampleDealerships) {
+      const { error } = await sb
+        .from('dealerships')
+        .upsert(dealership, { onConflict: 'id' });
+
+      if (error) {
+        console.error(`[DEALERSHIPS] Failed to upsert ${dealership.name}:`, error);
+      } else {
+        console.log(`[DEALERSHIPS] Dealership added/updated: ${dealership.id} - ${dealership.name}`);
+      }
+    }
+    
+    console.log(`[DEALERSHIPS] Sample dealerships initialized (${sampleDealerships.length} total)`);
+  } catch (error) {
+    console.error('[DEALERSHIPS] Error initializing sample dealerships:', error);
+  }
+}

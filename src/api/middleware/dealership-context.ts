@@ -73,6 +73,17 @@ export function injectDealershipContext(req: Request, res: Response, next: NextF
       return next();
     }
 
+    // Priority 5: Default dealership for development (prevents data loss)
+    // In production, this should be removed and auth should be required
+    if (process.env.NODE_ENV !== 'production') {
+      req.dealershipId = 'deal-001'; // Default to first sample dealership
+      req.dealershipContext = {
+        dealershipId: 'deal-001',
+        locationId: 'default-location',
+      };
+      return next();
+    }
+
     // No dealership context found - this is OK for public routes
     next();
   } catch (error) {

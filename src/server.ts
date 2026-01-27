@@ -237,9 +237,14 @@ app.use(
 // Global error handler last
 app.use(errorHandler);
 
-// Initialize inventory from Supabase on startup
+// Initialize sample dealerships and inventory from Supabase on startup
 (async () => {
   try {
+    // Initialize sample dealerships
+    const { initializeSampleDealerships } = await import('./modules/multi-tenant');
+    await initializeSampleDealerships();
+    
+    // Load inventory from Supabase
     const { fetchInventoryFromSupabase } = await import('./modules/supabase');
     const { state } = await import('./api/state');
     const inventory = await fetchInventoryFromSupabase();
