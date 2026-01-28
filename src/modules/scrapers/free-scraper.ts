@@ -53,9 +53,11 @@ export interface ScrapedListing {
 
 export class FreeVehicleScraper {
   private browser: Browser | null = null;
-  private delay = 2000; // 2 second delay between requests
+  private delay = 3000; // 3 second delay between requests (increased for reliability)
   private maxRetries = 3;
   private blockedCount = 0;
+  private pageTimeout = 60000; // 60 second page load timeout
+  private selectorTimeout = 30000; // 30 second selector wait timeout
 
   /**
    * Initialize browser instance
@@ -351,16 +353,19 @@ export class FreeVehicleScraper {
         radius: params.radiusKm
       });
 
-      logger.info(`[FreeScraper] Navigating to: ${searchUrl}`);
-      await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+      logger.info(`[FreeScraper] 🌐 Navigating to: ${searchUrl}`);
+      await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: this.pageTimeout });
+      logger.info('[FreeScraper] ✅ Page loaded successfully');
 
       // Wait for listings to load
-      await page.waitForSelector(AUTOTRADER_SELECTORS.vehicleCard, { timeout: 10000 });
+      logger.info(`[FreeScraper] ⏳ Waiting for vehicle cards (timeout: ${this.selectorTimeout}ms)...`);
+      await page.waitForSelector(AUTOTRADER_SELECTORS.vehicleCard, { timeout: this.selectorTimeout });
+      logger.info('[FreeScraper] ✅ Vehicle cards found');
 
       // Check if blocked
       const content = await page.content();
       if (this.isBlocked(content)) {
-        logger.warn('[FreeScraper] AutoTrader detected blocking');
+        logger.warn('[FreeScraper] ⚠️ AutoTrader detected blocking');
         this.blockedCount++;
         return listings;
       }
@@ -374,7 +379,12 @@ export class FreeVehicleScraper {
         return items;
       }, AUTOTRADER_SELECTORS.vehicleCard);
 
-      logger.info(`[FreeScraper] Found ${listingHtmls.length} AutoTrader listings`);
+      logger.info(`[FreeScraper] 📋 Found ${listingHtmls.length} AutoTrader listings on page`);
+
+      if (listingHtmls.length === 0) {
+        logger.warn('[FreeScraper] ⚠️ No listings found - page structure may have changed');
+        logger.warn('[FreeScraper] 🔍 Selector used:', AUTOTRADER_SELECTORS.vehicleCard);
+      }
 
       // Parse each listing
       for (const html of listingHtmls) {
@@ -382,7 +392,9 @@ export class FreeVehicleScraper {
         
         if (listing) {
           listings.push(listing);
-          logger.info(`[FreeScraper] ✓ ${listing.title} - ${listing.price}`);
+          logger.info(`[FreeScraper] ✅ Parsed: ${listing.title} - ${listing.price}`);
+        } else {
+          logger.warn('[FreeScraper] ⚠️ Failed to parse listing - skipping');
         }
 
         // Stop if we've hit the limit
@@ -394,7 +406,22 @@ export class FreeVehicleScraper {
       return listings;
 
     } catch (error: any) {
-      logger.error('[FreeScraper] AutoTrader scrape error:', error.message);
+      logger.error('[FreeScraper] ❌ AutoTrader scrape error:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        timeout: error.name === 'TimeoutError' ? 'Page or selector timeout exceeded' : undefined
+      });
+      
+      if (error.name === 'TimeoutError') {
+        logger.error('[FreeScraper] 🕐 TIMEOUT DETAILS:', {
+          pageTimeout: this.pageTimeout,
+          selectorTimeout: this.selectorTimeout,
+          selector: AUTOTRADER_SELECTORS.vehicleCard,
+          suggestion: 'AutoTrader.ca may have changed their HTML structure. Selectors need updating.'
+        });
+      }
+      
       throw error;
     } finally {
       await page.close();
@@ -425,14 +452,17 @@ export class FreeVehicleScraper {
         radius: params.radiusKm
       });
 
-      logger.info(`[FreeScraper] Navigating to: ${searchUrl}`);
-      await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+      logger.info(`[FreeScraper] 🌐 Navigating to: ${searchUrl}`);
+      await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: this.pageTimeout });
+      logger.info('[FreeScraper] ✅ Page loaded successfully');
 
-      await page.waitForSelector(CARGURUS_SELECTORS.vehicleCard, { timeout: 10000 });
+      logger.info(`[FreeScraper] ⏳ Waiting for vehicle cards (timeout: ${this.selectorTimeout}ms)...`);
+      await page.waitForSelector(CARGURUS_SELECTORS.vehicleCard, { timeout: this.selectorTimeout });
+      logger.info('[FreeScraper] ✅ Vehicle cards found');
 
       const content = await page.content();
       if (this.isBlocked(content)) {
-        logger.warn('[FreeScraper] CarGurus detected blocking');
+        logger.warn('[FreeScraper] ⚠️ CarGurus detected blocking');
         this.blockedCount++;
         return listings;
       }
@@ -445,14 +475,21 @@ export class FreeVehicleScraper {
         return items;
       }, CARGURUS_SELECTORS.vehicleCard);
 
-      logger.info(`[FreeScraper] Found ${listingHtmls.length} CarGurus listings`);
+      logger.info(`[FreeScraper] 📋 Found ${listingHtmls.length} CarGurus listings on page`);
+
+      if (listingHtmls.length === 0) {
+        logger.warn('[FreeScraper] ⚠️ No listings found - page structure may have changed');
+        logger.warn('[FreeScraper] 🔍 Selector used:', CARGURUS_SELECTORS.vehicleCard);
+      }
 
       for (const html of listingHtmls) {
         const listing = this.parseCarGurusListing(html);
         
         if (listing) {
           listings.push(listing);
-          logger.info(`[FreeScraper] ✓ ${listing.title} - ${listing.price}`);
+          logger.info(`[FreeScraper] ✅ Parsed: ${listing.title} - ${listing.price}`);
+        } else {
+          logger.warn('[FreeScraper] ⚠️ Failed to parse listing - skipping');
         }
 
         if (params.limit && listings.length >= params.limit) {
@@ -463,7 +500,22 @@ export class FreeVehicleScraper {
       return listings;
 
     } catch (error: any) {
-      logger.error('[FreeScraper] CarGurus scrape error:', error.message);
+      logger.error('[FreeScraper] ❌ CarGurus scrape error:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        timeout: error.name === 'TimeoutError' ? 'Page or selector timeout exceeded' : undefined
+      });
+      
+      if (error.name === 'TimeoutError') {
+        logger.error('[FreeScraper] 🕐 TIMEOUT DETAILS:', {
+          pageTimeout: this.pageTimeout,
+          selectorTimeout: this.selectorTimeout,
+          selector: CARGURUS_SELECTORS.vehicleCard,
+          suggestion: 'CarGurus.ca may have changed their HTML structure. Selectors need updating.'
+        });
+      }
+      
       throw error;
     } finally {
       await page.close();

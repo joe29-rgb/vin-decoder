@@ -76,9 +76,9 @@ export function injectDealershipContext(req: Request, res: Response, next: NextF
     // Priority 5: Default dealership for development (prevents data loss)
     // In production, this should be removed and auth should be required
     if (process.env.NODE_ENV !== 'production') {
-      req.dealershipId = 'deal-001'; // Default to first sample dealership
+      req.dealershipId = '00000000-0000-0000-0000-000000000001'; // Default to Calgary Auto Centre
       req.dealershipContext = {
-        dealershipId: 'deal-001',
+        dealershipId: '00000000-0000-0000-0000-000000000001',
         locationId: 'default-location',
       };
       return next();

@@ -240,7 +240,7 @@ export async function initializeSampleDealerships(): Promise<void> {
 
   const sampleDealerships = [
     {
-      id: 'deal-001',
+      id: '00000000-0000-0000-0000-000000000001',
       ghl_location_id: 'loc-001',
       name: 'Calgary Auto Centre',
       website_url: 'https://www.calgaryautocentre.com',
@@ -258,7 +258,7 @@ export async function initializeSampleDealerships(): Promise<void> {
       subscription_status: 'active',
     },
     {
-      id: 'deal-002',
+      id: '00000000-0000-0000-0000-000000000002',
       ghl_location_id: 'loc-002',
       name: 'Edmonton Motors',
       website_url: 'https://www.edmontonmotors.com',
@@ -276,7 +276,7 @@ export async function initializeSampleDealerships(): Promise<void> {
       subscription_status: 'active',
     },
     {
-      id: 'deal-003',
+      id: '00000000-0000-0000-0000-000000000003',
       ghl_location_id: 'loc-003',
       name: 'Red Deer Auto Sales',
       website_url: 'https://www.reddeerauto.com',
@@ -294,7 +294,7 @@ export async function initializeSampleDealerships(): Promise<void> {
       subscription_status: 'trial',
     },
     {
-      id: 'deal-004',
+      id: '00000000-0000-0000-0000-000000000004',
       ghl_location_id: 'loc-004',
       name: 'Lethbridge Car Depot',
       website_url: 'https://www.lethbridgecars.com',
@@ -320,9 +320,15 @@ export async function initializeSampleDealerships(): Promise<void> {
         .upsert(dealership, { onConflict: 'id' });
 
       if (error) {
-        console.error(`[DEALERSHIPS] Failed to upsert ${dealership.name}:`, error);
+        console.error(`[DEALERSHIPS] ❌ Failed to upsert ${dealership.name}:`, {
+          error: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          dealershipId: dealership.id
+        });
       } else {
-        console.log(`[DEALERSHIPS] Dealership added/updated: ${dealership.id} - ${dealership.name}`);
+        console.log(`[DEALERSHIPS] ✅ Dealership added/updated: ${dealership.id} - ${dealership.name}`);
       }
     }
     
