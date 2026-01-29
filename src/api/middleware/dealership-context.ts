@@ -81,23 +81,19 @@ export function injectDealershipContext(req: Request, res: Response, next: NextF
       return next();
     }
 
-    // Priority 5: Default dealership for development (prevents data loss)
-    // In production, this should be removed and auth should be required
+    // Priority 5: Default dealership (prevents data loss until auth is implemented)
+    // TODO: Remove this once GHL OAuth is implemented and require auth on all routes
     const nodeEnv = process.env.NODE_ENV;
     console.log(`[DEALERSHIP-CONTEXT] NODE_ENV: ${nodeEnv || 'undefined'}`);
     
-    if (nodeEnv !== 'production') {
-      req.dealershipId = '00000000-0000-0000-0000-000000000001'; // Default to Calgary Auto Centre
-      req.dealershipContext = {
-        dealershipId: '00000000-0000-0000-0000-000000000001',
-        locationId: 'default-location',
-      };
-      console.log(`[DEALERSHIP-CONTEXT] ✅ Set default for development: ${req.dealershipId}`);
-      return next();
-    }
-
-    // No dealership context found - this is OK for public routes
-    console.log('[DEALERSHIP-CONTEXT] ⚠️ No dealership context set (production mode or public route)');
+    // TEMPORARY: Allow default dealership in production for testing
+    // This will be removed once proper authentication is implemented
+    req.dealershipId = '00000000-0000-0000-0000-000000000001'; // Default to Calgary Auto Centre
+    req.dealershipContext = {
+      dealershipId: '00000000-0000-0000-0000-000000000001',
+      locationId: 'default-location',
+    };
+    console.log(`[DEALERSHIP-CONTEXT] ✅ Set default dealership (TEMPORARY - auth not yet implemented): ${req.dealershipId}`);
     next();
   } catch (error) {
     console.error('Error in injectDealershipContext:', error);
