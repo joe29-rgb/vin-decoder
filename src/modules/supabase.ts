@@ -105,11 +105,14 @@ export async function saveScraperCacheToSupabase(cacheEntry: {
   const { error } = await sb.from('scraper_cache').upsert({
     url: cacheEntry.url,
     vehicles: JSON.stringify(cacheEntry.vehicles),
-    timestamp: new Date(cacheEntry.timestamp).toISOString(),
+    created_at: new Date(cacheEntry.timestamp).toISOString(),
     expires_at: new Date(cacheEntry.expiresAt).toISOString()
   }, { onConflict: 'url' });
   
-  if (error) throw new Error('Supabase cache save failed: ' + error.message);
+  if (error) {
+    console.error('[SUPABASE] Cache save error:', error);
+    throw new Error('Supabase cache save failed: ' + error.message);
+  }
 }
 
 export async function fetchScraperCacheFromSupabase(url: string): Promise<{

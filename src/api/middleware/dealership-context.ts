@@ -24,6 +24,8 @@ declare global {
  */
 export function injectDealershipContext(req: Request, res: Response, next: NextFunction) {
   try {
+    console.log(`[DEALERSHIP-CONTEXT] Processing request: ${req.method} ${req.path}`);
+    
     // Priority 1: JWT from cookie
     const token = req.cookies?.auth_token;
     if (token) {
@@ -31,9 +33,11 @@ export function injectDealershipContext(req: Request, res: Response, next: NextF
         const decoded = jwt.verify(token, JWT_SECRET) as DealershipContext;
         req.dealershipId = decoded.dealershipId;
         req.dealershipContext = decoded;
+        console.log(`[DEALERSHIP-CONTEXT] ✅ Set from JWT cookie: ${req.dealershipId}`);
         return next();
       } catch (error) {
         // Invalid token, continue to fallbacks
+        console.log('[DEALERSHIP-CONTEXT] JWT cookie invalid, trying fallbacks...');
       }
     }
 
@@ -45,9 +49,11 @@ export function injectDealershipContext(req: Request, res: Response, next: NextF
         const decoded = jwt.verify(token, JWT_SECRET) as DealershipContext;
         req.dealershipId = decoded.dealershipId;
         req.dealershipContext = decoded;
+        console.log(`[DEALERSHIP-CONTEXT] ✅ Set from Authorization header: ${req.dealershipId}`);
         return next();
       } catch (error) {
         // Invalid token, continue to fallbacks
+        console.log('[DEALERSHIP-CONTEXT] Authorization header invalid, trying fallbacks...');
       }
     }
 
@@ -59,6 +65,7 @@ export function injectDealershipContext(req: Request, res: Response, next: NextF
         dealershipId: headerDealershipId,
         locationId: 'test-location',
       };
+      console.log(`[DEALERSHIP-CONTEXT] ✅ Set from x-dealership-id header: ${req.dealershipId}`);
       return next();
     }
 
@@ -70,21 +77,27 @@ export function injectDealershipContext(req: Request, res: Response, next: NextF
         dealershipId: queryDealershipId,
         locationId: 'test-location',
       };
+      console.log(`[DEALERSHIP-CONTEXT] ✅ Set from query param: ${req.dealershipId}`);
       return next();
     }
 
     // Priority 5: Default dealership for development (prevents data loss)
     // In production, this should be removed and auth should be required
-    if (process.env.NODE_ENV !== 'production') {
+    const nodeEnv = process.env.NODE_ENV;
+    console.log(`[DEALERSHIP-CONTEXT] NODE_ENV: ${nodeEnv || 'undefined'}`);
+    
+    if (nodeEnv !== 'production') {
       req.dealershipId = '00000000-0000-0000-0000-000000000001'; // Default to Calgary Auto Centre
       req.dealershipContext = {
         dealershipId: '00000000-0000-0000-0000-000000000001',
         locationId: 'default-location',
       };
+      console.log(`[DEALERSHIP-CONTEXT] ✅ Set default for development: ${req.dealershipId}`);
       return next();
     }
 
     // No dealership context found - this is OK for public routes
+    console.log('[DEALERSHIP-CONTEXT] ⚠️ No dealership context set (production mode or public route)');
     next();
   } catch (error) {
     console.error('Error in injectDealershipContext:', error);
