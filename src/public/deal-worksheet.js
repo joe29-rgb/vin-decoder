@@ -38,9 +38,15 @@ function loadDealData() {
 }
 
 function populateWorksheet(deal) {
+  console.log('Populating worksheet with deal data:', deal);
+  
   const vehicle = deal.vehicle || {};
   const approval = deal.approval || {};
   const trade = deal.trade || {};
+  
+  console.log('Vehicle:', vehicle);
+  console.log('Approval:', approval);
+  console.log('Trade:', trade);
   
   // Helper to safely set element content
   const setElement = (id, value) => {
@@ -49,8 +55,10 @@ function populateWorksheet(deal) {
       if (el.tagName === 'IMG') {
         el.src = value || '';
       } else {
-        el.textContent = value;
+        el.textContent = value || '-';
       }
+    } else {
+      console.warn(`Element not found: ${id}`);
     }
   };
   

@@ -107,17 +107,19 @@ export function scoreInventory(
     try {
       const flags: string[] = [];
       
-      // Use blackBookValue, default to 10000 if missing or zero
+      // Set CBB (Canadian Black Book / Black Book) to $40,000 for all vehicles
+      // This is used for front cap calculations in payment matrix
       let bb = v.blackBookValue || 0;
       if (bb <= 0 || isNaN(bb)) {
-        bb = 10000; // Default to $10,000 when missing
+        bb = 40000; // Default CBB to $40,000
         flags.push('estimated_black_book');
       }
       
-      // Allow estimated cost if missing
+      // Set default cost to $10,000 if missing
+      // Cost is used for gross profit calculations
       let cost = v.yourCost;
       if (cost == null || isNaN(cost) || cost <= 0) {
-        cost = v.suggestedPrice * 0.85; // Estimate as 85% of suggested price
+        cost = 10000; // Default cost to $10,000
         flags.push('estimated_cost');
       }
 

@@ -315,7 +315,30 @@ router.post('/approvals/ingest', async (req: Request, res: Response) => {
       await saveApprovalToSupabase(dealershipId, payload.contactId, payload.locationId, approval, trade);
     }
     
-    res.json({ success: true, message: 'Approval ingested successfully' });
+    // AUTOMATIC SCORING: Score inventory immediately after approval ingestion
+    const inventoryToScore = state.inventory.length > 0 ? state.inventory : state.mirroredInventory;
+    let scoredRows: any[] = [];
+    
+    if (inventoryToScore.length > 0) {
+      try {
+        scoredRows = scoreInventory(inventoryToScore, approval, trade);
+        console.log(`[APPROVAL] Auto-scored ${scoredRows.length} vehicles for ${bank} ${program}`);
+      } catch (error) {
+        console.error('[APPROVAL] Auto-scoring failed:', error);
+      }
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Approval ingested and inventory scored automatically',
+      scoredCount: scoredRows.length,
+      topDeals: scoredRows.slice(0, 5).map(r => ({
+        title: r.title,
+        salePrice: r.salePrice,
+        monthlyPayment: r.monthlyPayment,
+        totalGross: r.totalGross
+      }))
+    });
   } catch (e) {
     res.status(400).json({ success: false, error: (e as Error).message });
   }

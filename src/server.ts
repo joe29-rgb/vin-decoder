@@ -244,13 +244,16 @@ app.use(errorHandler);
     const { initializeSampleDealerships } = await import('./modules/multi-tenant');
     await initializeSampleDealerships();
     
-    // Load inventory from Supabase
+    // Load inventory from Supabase for default dealership
     const { fetchInventoryFromSupabase } = await import('./modules/supabase');
     const { state } = await import('./api/state');
-    const inventory = await fetchInventoryFromSupabase();
+    const defaultDealershipId = '00000000-0000-0000-0000-000000000001';
+    const inventory = await fetchInventoryFromSupabase(defaultDealershipId);
     if (inventory && inventory.length > 0) {
       state.inventory = inventory;
-      logger.info('Loaded inventory from Supabase', { count: inventory.length });
+      logger.info('Loaded inventory from Supabase', { dealershipId: defaultDealershipId, count: inventory.length });
+    } else {
+      logger.info('No inventory found in Supabase for default dealership');
     }
   } catch (error) {
     logger.warn('Failed to load inventory on startup', { error: (error as Error).message });

@@ -204,6 +204,9 @@ router.post('/enrich', async (req: Request, res: Response) => {
         };
         enriched++;
       } else {
+        // Add new vehicle to inventory if not found
+        state.inventory.push(scraped);
+        enriched++;
         notFound++;
       }
     }

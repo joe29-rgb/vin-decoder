@@ -18,8 +18,18 @@ export function getSupabase(): SupabaseClient | null {
 }
 
 function toRow(v: Vehicle) {
+  // Generate UUID v4 if id is not a valid UUID
+  let id = v.id;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!id || !uuidRegex.test(id)) {
+    // Generate deterministic UUID from VIN or stock number
+    const crypto = require('crypto');
+    const hash = crypto.createHash('md5').update(v.vin || v.id || Math.random().toString()).digest('hex');
+    id = `${hash.substr(0,8)}-${hash.substr(8,4)}-4${hash.substr(12,3)}-${hash.substr(16,4)}-${hash.substr(20,12)}`;
+  }
+  
   return {
-    id: v.id,
+    id: id,
     vin: v.vin,
     year: v.year,
     make: v.make,

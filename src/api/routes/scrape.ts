@@ -477,18 +477,33 @@ router.get('/health', async (_req: Request, res: Response) => {
 
 router.get('/dealership', async (req: Request, res: Response) => {
   try {
-    // Load dealership configuration from persistent storage
-    const { loadConfig } = await import('../../modules/dealership-config');
-    const config = loadConfig();
+    const dealershipId = req.dealershipId;
+    let websiteUrl: string | undefined;
     
-    if (!config.websiteUrl) {
+    // Load dealership configuration from Supabase first
+    if (dealershipId) {
+      const { getDealershipById } = await import('../../modules/multi-tenant');
+      const dealership = await getDealershipById(dealershipId);
+      if (dealership) {
+        websiteUrl = dealership.website_url;
+      }
+    }
+    
+    // Fallback to file-based config if Supabase not available
+    if (!websiteUrl) {
+      const { loadConfig } = await import('../../modules/dealership-config');
+      const config = loadConfig();
+      websiteUrl = config.websiteUrl;
+    }
+    
+    if (!websiteUrl) {
       return res.status(400).json({
         success: false,
         error: 'Dealership website not configured. Please update settings at /settings'
       });
     }
     
-    const base = config.websiteUrl;
+    const base = websiteUrl;
     const path = (req.query.path as string) || '/inventory/';
     const limit = Math.min(Math.max(Number(req.query.limit) || 200, 1), 500);
     const url = new URL(path, base).href;

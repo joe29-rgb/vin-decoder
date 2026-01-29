@@ -50,7 +50,7 @@ class ProductionDealershipScraper {
 
   constructor(config: ScraperConfig) {
     this.config = {
-      maxPages: 10,
+      maxPages: 20, // Increased to handle 162 vehicles (74 used + 88 new)
       minScore: 50,
       headless: true,
       useCache: true,
@@ -131,10 +131,32 @@ class ProductionDealershipScraper {
    * FIX #1: Fetch all pages based on detected pagination pattern
    */
   private async fetchAllPages(pagination: PaginationPattern): Promise<void> {
+    // Force pagination attempts even if not detected - many sites have hidden pagination
     if (pagination.type === 'none') {
-      const html = await this.fetchHtmlFast(this.config.baseUrl);
-      const vehicles = await this.extractVehicles(html, this.config.baseUrl);
-      this.allVehicles.push(...vehicles);
+      // Try multiple pages with offset parameter (common pattern)
+      for (let page = 0; page < (this.config.maxPages || 10); page++) {
+        const url = new URL(this.config.baseUrl);
+        if (page > 0) {
+          url.searchParams.set('offset', (page * 24).toString());
+        }
+        console.log(`[SCRAPER] Fetching page ${page + 1}: ${url.toString()}`);
+        
+        try {
+          const html = await this.fetchHtmlFast(url.toString());
+          const vehicles = await this.extractVehicles(html, url.toString());
+          
+          if (vehicles.length === 0 && page > 0) {
+            console.log(`[SCRAPER] No vehicles on page ${page + 1}, stopping pagination`);
+            break;
+          }
+          
+          this.allVehicles.push(...vehicles);
+          await this.delay(500 + Math.random() * 500);
+        } catch (error) {
+          console.error(`[SCRAPER] Error on page ${page + 1}:`, error);
+          break;
+        }
+      }
       return;
     }
 
