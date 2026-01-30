@@ -214,6 +214,8 @@ export function scoreInventory(
       frontGross: Math.round(front),
       backGross: Math.round(back),
       totalGross,
+      term: termMonthsEff,
+      apr: approval.apr,
       flags,
     });
     } catch (e) {

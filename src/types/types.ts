@@ -274,6 +274,8 @@ export interface ScoredVehicleRow {
   frontGross: number;
   backGross: number;
   totalGross: number;
+  term: number;
+  apr: number;
   flags: string[];
 }
 
