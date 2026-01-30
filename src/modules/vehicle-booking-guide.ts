@@ -36,14 +36,21 @@ export function getMaxTermForVehicle(
   const guide = LENDER_BOOKING_GUIDES[lender];
   if (!guide) {
     console.warn(`[BOOKING] No booking guide for lender: ${lender}`);
-    return 60; // Conservative default
+    return 84; // Default to 84 months for unknown lenders
   }
 
-  // Find year booking
-  const yearBooking = guide.bookings.find(b => b.year === year);
+  // Find year booking - check current year and future years
+  let yearBooking = guide.bookings.find(b => b.year === year);
+  
+  // If no exact year match, use the most recent year's booking for newer vehicles
+  if (!yearBooking && year >= 2024) {
+    const sortedBookings = guide.bookings.sort((a, b) => b.year - a.year);
+    yearBooking = sortedBookings[0]; // Use most recent year's booking
+  }
+  
   if (!yearBooking) {
     // Use default or conservative fallback
-    return guide.defaultMaxTerm || 60;
+    return guide.defaultMaxTerm || 84;
   }
 
   // Find mileage range
@@ -51,6 +58,11 @@ export function getMaxTermForVehicle(
     if (mileage >= range.minKm && mileage <= range.maxKm) {
       return range.maxTermMonths;
     }
+  }
+
+  // If mileage is below the minimum range (new vehicles), use the first range
+  if (mileage < yearBooking.ranges[0].minKm) {
+    return yearBooking.ranges[0].maxTermMonths;
   }
 
   // If mileage exceeds all ranges, vehicle likely ineligible

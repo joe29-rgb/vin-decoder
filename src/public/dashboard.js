@@ -150,8 +150,8 @@
     'SDA': ['Star 1', 'Star 2', 'Star 3', 'Star 4', 'Star 5', 'Star 6', 'Star 7', 'StartRight'],
     'Santander': ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4', 'Tier 5', 'Tier 6', 'Tier 7', 'Tier 8'],
     'RIFCO': ['Standard', 'Preferred Tier 1', 'Preferred Tier 2', 'Preferred Tier 3'],
-    'IAAutoFinance': ['1st Gear', '2nd Gear', '3rd Gear', '4th Gear', '5th Gear', '6th Gear'],
-    'EdenPark': ['2 Ride', '3 Ride', '4 Ride', '5 Ride', '6 Ride', 'EP Ride+', 'EP No Hit'],
+    'IA Auto': ['1st Gear', '2nd Gear', '3rd Gear', '4th Gear', '5th Gear', '6th Gear'],
+    'Eden Park': ['2 Ride', '3 Ride', '4 Ride', '5 Ride', '6 Ride', 'EP Ride+', 'EP No Hit'],
     'AutoCapital': ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4', 'Tier 5', 'Tier 6'],
     'LendCare': ['Tier 1', 'Tier 2', 'Tier 3'],
     'Northlake': ['Titanium', 'Platinum', 'Gold', 'Standard', 'U-Drive'],
@@ -197,8 +197,8 @@
             <option value="SDA">Scotia Dealer Advantage</option>
             <option value="Santander">Santander</option>
             <option value="RIFCO">RIFCO</option>
-            <option value="IAAutoFinance">iA Auto Finance</option>
-            <option value="EdenPark">Eden Park</option>
+            <option value="IA Auto">iA Auto Finance</option>
+            <option value="Eden Park">Eden Park</option>
             <option value="AutoCapital">AutoCapital</option>
             <option value="LendCare">LendCare</option>
             <option value="Northlake">Northlake</option>
@@ -217,11 +217,13 @@
         </div>
         <div class="form-group">
           <label class="form-label">Interest Rate (APR %) <span style="color: var(--danger);">*</span></label>
-          <input type="number" class="form-input apr-input" data-id="${id}" placeholder="8.99" step="0.01" />
+          <input type="number" class="form-input apr-input" data-id="${id}" placeholder="8.99" step="0.01" readonly style="background: var(--bg-tertiary);" />
+          <small style="color: var(--text-muted); font-size: 11px;">Auto-filled from program</small>
         </div>
         <div class="form-group">
-          <label class="form-label">Term (Months)</label>
-          <input type="number" class="form-input term-input" data-id="${id}" placeholder="72" value="72" />
+          <label class="form-label">Max Term (Months)</label>
+          <input type="number" class="form-input term-input" data-id="${id}" placeholder="84" value="84" />
+          <small style="color: var(--text-muted); font-size: 11px;">Actual term set by vehicle age/km</small>
         </div>
       </div>
     `;
@@ -501,7 +503,19 @@
         try { console.log('New scrape result:', jn); } catch(_e){}
         if (!jn.success) { toast('New scrape failed: ' + (jn.error||'unknown')); }
         
-        var all = ([]).concat((ju.vehicles||[]),(jn.vehicles||[]));
+        try { console.log('Fetching AutoTrader vehicles...'); } catch(_e){}
+        var at = await fetch('/api/scrape/autotrader?limit=100&location=Edmonton,AB&radius=100');
+        var jat = await at.json();
+        try { console.log('AutoTrader scrape result:', jat); } catch(_e){}
+        if (!jat.success) { toast('AutoTrader scrape failed: ' + (jat.error||'unknown')); }
+        
+        try { console.log('Fetching CarGurus vehicles...'); } catch(_e){}
+        var cg = await fetch('/api/scrape/cargurus?limit=100&location=Edmonton,AB&radius=100');
+        var jcg = await cg.json();
+        try { console.log('CarGurus scrape result:', jcg); } catch(_e){}
+        if (!jcg.success) { toast('CarGurus scrape failed: ' + (jcg.error||'unknown')); }
+        
+        var all = ([]).concat((ju.vehicles||[]),(jn.vehicles||[]),(jat.vehicles||[]),(jcg.vehicles||[]));
         try { console.log('Total vehicles scraped:', all.length); } catch(_e){}
         
         var seen = {};
@@ -716,6 +730,11 @@
       if (jr.success) { 
         toast('✓ PDF approval imported: ' + extractedData.bank);
         closeApproval();
+        
+        // Auto-score inventory after PDF upload
+        await refreshMeta();
+        renderInventoryTable();
+        
         document.getElementById('score').disabled = false;
       } else { 
         toast('Failed: ' + (jr.error||'unknown')); 

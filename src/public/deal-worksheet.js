@@ -83,6 +83,7 @@ function populateWorksheet(deal) {
   setElement('dtLender', approval.bank || deal.lender || '-');
   setElement('dtProgram', approval.program || deal.tier || '-');
   setElement('dtProgramApproval', approval.program || deal.tier || '5 Key');
+  setElement('dtInterestRate', (approval.apr || deal.apr || 0).toFixed(2) + '%');
   
   setElement('dtCashPrice', formatCurrency(deal.salePrice || 0).replace('$', ''));
   
