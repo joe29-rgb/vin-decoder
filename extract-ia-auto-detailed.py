@@ -1,0 +1,38 @@
+import pdfplumber
+import os
+
+def extract_ia_auto_parameters():
+    """Extract detailed iA Auto Finance parameters from PDF"""
+    print("="*80)
+    print("iA AUTO FINANCE - DETAILED EXTRACTION")
+    print("="*80)
+    
+    pdf_path = os.path.join('lender-pdfs', 'ia gear program.pdf')
+    
+    with pdfplumber.open(pdf_path) as pdf:
+        for page_num, page in enumerate(pdf.pages, 1):
+            print(f"\n{'='*80}")
+            print(f"PAGE {page_num}")
+            print("="*80)
+            
+            tables = page.extract_tables()
+            if tables:
+                for table_num, table in enumerate(tables, 1):
+                    print(f"\nTable {table_num}:")
+                    for row in table:
+                        print(f"  {row}")
+            
+            # Extract text for additional details
+            text = page.extract_text()
+            if text:
+                print("\n--- KEY TEXT SNIPPETS ---")
+                lines = text.split('\n')
+                for line in lines:
+                    if any(word in line.lower() for word in ['gear', 'rate', 'ltv', 'advance', 'reserve', 'dsr', 'income', 'term', 'fee']):
+                        print(f"  {line[:120]}")
+
+extract_ia_auto_parameters()
+
+print("\n" + "="*80)
+print("EXTRACTION COMPLETE")
+print("="*80)
