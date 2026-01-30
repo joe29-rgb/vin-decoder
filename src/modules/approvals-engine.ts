@@ -164,7 +164,8 @@ export function scoreInventory(
       approval.program,
       v.year,
       v.make,
-      estimatedFinanced
+      estimatedFinanced,
+      v.model
     );
     
     // Create modified approval with effective APR (subvented or standard)

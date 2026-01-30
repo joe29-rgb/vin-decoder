@@ -113,7 +113,8 @@ export function getSubventedRate(
   program: string,
   vehicleYear: number,
   vehicleMake: string,
-  amountFinanced: number
+  amountFinanced: number,
+  vehicleModel?: string
 ): number | null {
   // Only for new 2024-2026 vehicles
   if (vehicleYear < 2024 || vehicleYear > 2026) return null;
@@ -138,25 +139,30 @@ export function getSubventedRate(
   // Only tiers 3-6 have subvented rates
   if (tier < 3 || tier > 6) return null;
   
-  // Subvented rate grid from FCA Canada documentation
-  // Rates are the same across all amount financed brackets for simplicity
+  // Check vehicle model for special rates
+  const modelNorm = (vehicleModel || '').toLowerCase().trim();
+  
+  // Ram 1500 and Durango get lower rates (Group 1)
+  const isLowerRateVehicle = modelNorm.includes('1500') || modelNorm.includes('durango');
+  
   const isTD = lenderNorm.includes('td');
   const isSDA = lenderNorm.includes('sda') || lenderNorm.includes('scotia');
   
-  if (isTD) {
-    // TD KEY programs - subvented rates for new 2024-2026 FCA vehicles
-    if (tier === 6) return 8.99;  // KEY 6: 8.99% (96 months available)
-    if (tier === 5) return 11.99; // KEY 5: 11.99%
-    if (tier === 4) return 16.99; // KEY 4: 16.99%
-    if (tier === 3) return 20.09; // KEY 3: 20.09%
-  }
-  
-  if (isSDA) {
-    // SDA STAR programs - subvented rates for new 2024-2026 FCA vehicles
-    if (tier === 6) return 8.99;  // STAR 6: 8.99% (96 months available)
-    if (tier === 5) return 11.99; // STAR 5: 11.99%
-    if (tier === 4) return 16.99; // STAR 4: 16.99%
-    if (tier === 3) return 20.09; // STAR 3: 20.09%
+  if (isTD || isSDA) {
+    // Subvented rates for new 2024-2026 FCA vehicles
+    if (isLowerRateVehicle) {
+      // Ram 1500 and Durango - Lower rates
+      if (tier === 6) return 6.99;  // KEY/STAR 6: 6.99%
+      if (tier === 5) return 7.99;  // KEY/STAR 5: 7.99%
+      if (tier === 4) return 16.99; // KEY/STAR 4: 16.99%
+      if (tier === 3) return 20.09; // KEY/STAR 3: 20.09%
+    } else {
+      // All other FCA vehicles - Standard rates
+      if (tier === 6) return 8.99;  // KEY/STAR 6: 8.99% (96 months available)
+      if (tier === 5) return 11.99; // KEY/STAR 5: 11.99%
+      if (tier === 4) return 16.99; // KEY/STAR 4: 16.99%
+      if (tier === 3) return 20.09; // KEY/STAR 3: 20.09%
+    }
   }
   
   return null;

@@ -118,7 +118,8 @@ export function calculateProfitScenario(
         approval.program || '',
         vehicle.year,
         vehicle.make || '',
-        0 // We'll calculate this properly below
+        0, // We'll calculate this properly below
+        vehicle.model
       );
       
       if (subventedRate !== null) {
