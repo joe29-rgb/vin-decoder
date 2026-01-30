@@ -1122,3 +1122,29 @@ export function getAllLenderPrograms(): Record<string, Record<string, LenderProg
 export function getBaseReserve(program: LenderProgram): number {
   return program.reserve;
 }
+
+/**
+ * Get effective LTV for a lender program based on vehicle year
+ * TD programs: 125% for new 2024-2026, 140% for used
+ * All other lenders: Use static LTV from program
+ */
+export function getEffectiveLTV(
+  lender: string,
+  tier: string,
+  vehicleYear: number
+): number {
+  const program = getLenderProgram(lender as LenderType, tier);
+  if (!program) return 140; // Default fallback
+  
+  // TD programs have special logic for new vehicles
+  const isTD = lender.toUpperCase() === 'TD';
+  const isNewVehicle = vehicleYear >= 2024 && vehicleYear <= 2026;
+  
+  if (isTD && isNewVehicle) {
+    // All TD Key programs get 125% advance on new 2024-2026 vehicles
+    return 125;
+  }
+  
+  // All other cases use the program's static LTV
+  return program.ltv;
+}

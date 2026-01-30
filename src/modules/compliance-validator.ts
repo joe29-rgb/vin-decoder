@@ -4,7 +4,7 @@
  */
 
 import { ComplianceResult, LenderType } from '../types/types';
-import { getLenderProgram } from './lender-programs';
+import { getLenderProgram, getEffectiveLTV } from './lender-programs';
 
 export function validateCompliance(
   monthlyPayment: number,
@@ -12,7 +12,8 @@ export function validateCompliance(
   financeAmount: number,
   cbbWholesaleValue: number,
   lender: LenderType,
-  tier: string
+  tier: string,
+  vehicleYear?: number
 ): ComplianceResult {
   const program = getLenderProgram(lender, tier);
   if (!program) {
@@ -22,8 +23,10 @@ export function validateCompliance(
   const dsr = monthlyIncome > 0 ? (monthlyPayment / monthlyIncome) * 100 : 0;
   const dsrPass = dsr <= program.maxDsr;
 
+  // Use dynamic LTV based on vehicle year (TD: 125% for new 2024-2026, 140% for used)
+  const effectiveLTV = vehicleYear ? getEffectiveLTV(lender, tier, vehicleYear) : program.ltv;
   const ltv = cbbWholesaleValue > 0 ? (financeAmount / cbbWholesaleValue) * 100 : 0;
-  const ltvPass = ltv <= program.ltv;
+  const ltvPass = ltv <= effectiveLTV;
 
   const warnings: string[] = [];
 
@@ -33,7 +36,7 @@ export function validateCompliance(
   if (ltv > 130) {
     warnings.push(`HIGH LTV: ${ltv.toFixed(1)}% - minimal equity cushion`);
   }
-  if (dsr > program.maxDsr && ltv > program.ltv) {
+  if (dsr > program.maxDsr && ltv > effectiveLTV) {
     warnings.push('MARGINAL DEAL: Both DSR and LTV are high');
   }
 

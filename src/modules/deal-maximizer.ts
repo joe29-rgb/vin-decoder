@@ -84,7 +84,8 @@ function processVehicle(
       financeAmount,
       vehicle.blackBookValue,
       request.lender,
-      request.tier
+      request.tier,
+      vehicle.year
     );
 
     const vehicleGross = vehicle.suggestedPrice - vehicle.yourCost;
