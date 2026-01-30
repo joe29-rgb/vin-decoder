@@ -144,17 +144,17 @@ export function getSubventedRate(
   const isSDA = lenderNorm.includes('sda') || lenderNorm.includes('scotia');
   
   if (isTD) {
-    // TD KEY programs
-    if (tier === 6) return 8.99;  // KEY 6: 8.99% or 11.99%
-    if (tier === 5) return 7.99;  // KEY 5: 7.99%, 11.99%, or 16.99%
+    // TD KEY programs - subvented rates for new 2024-2026 FCA vehicles
+    if (tier === 6) return 8.99;  // KEY 6: 8.99% (96 months available)
+    if (tier === 5) return 11.99; // KEY 5: 11.99%
     if (tier === 4) return 16.99; // KEY 4: 16.99%
     if (tier === 3) return 20.09; // KEY 3: 20.09%
   }
   
   if (isSDA) {
-    // SDA STAR programs
-    if (tier === 6) return 8.99;  // STAR 6: 8.99%, 11.99%, or 16.99%
-    if (tier === 5) return 7.99;  // STAR 5: 7.99%, 11.99%, or 16.99%
+    // SDA STAR programs - subvented rates for new 2024-2026 FCA vehicles
+    if (tier === 6) return 8.99;  // STAR 6: 8.99% (96 months available)
+    if (tier === 5) return 11.99; // STAR 5: 11.99%
     if (tier === 4) return 16.99; // STAR 4: 16.99%
     if (tier === 3) return 20.09; // STAR 3: 20.09%
   }
