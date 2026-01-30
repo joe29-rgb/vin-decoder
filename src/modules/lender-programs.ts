@@ -1125,7 +1125,7 @@ export function getBaseReserve(program: LenderProgram): number {
 
 /**
  * Get effective LTV for a lender program based on vehicle year
- * TD programs: 125% for new 2024-2026, 140% for used
+ * TD and SDA programs: 125% for new 2024-2026, static LTV for used
  * All other lenders: Use static LTV from program
  */
 export function getEffectiveLTV(
@@ -1136,12 +1136,13 @@ export function getEffectiveLTV(
   const program = getLenderProgram(lender as LenderType, tier);
   if (!program) return 140; // Default fallback
   
-  // TD programs have special logic for new vehicles
-  const isTD = lender.toUpperCase() === 'TD';
+  // TD and SDA programs have special logic for new vehicles
+  const lenderNorm = lender.toUpperCase();
+  const isTDorSDA = lenderNorm === 'TD' || lenderNorm === 'SDA';
   const isNewVehicle = vehicleYear >= 2024 && vehicleYear <= 2026;
   
-  if (isTD && isNewVehicle) {
-    // All TD Key programs get 125% advance on new 2024-2026 vehicles
+  if (isTDorSDA && isNewVehicle) {
+    // TD and SDA programs get 125% advance on new 2024-2026 vehicles
     return 125;
   }
   
