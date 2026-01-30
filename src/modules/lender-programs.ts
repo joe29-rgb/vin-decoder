@@ -1043,24 +1043,26 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
     // ========================================
     // RIFCO STANDARD PROGRAM
     // Single rate: 29.95%
-    // Front-End LTV: 155%, All-In LTV: 130%
+    // Front-End LTV: 130%, All-In LTV: 155%
+    // Max Amount: $35,000
     // ========================================
     'Standard': {
       lender: 'RIFCO',
       tier: 'Standard',
       rate: 29.95,
-      ltv: 155, // Front-End: 155%, All-In: 130%
+      ltv: 130, // Front-End: 130%, All-In: 155%
       maxDsr: 50,
-      minIncome: 950,
-      reserve: 250, // Flat $250
-      fee: 990, // $395 loan fee + $595 device fee
+      minIncome: 3000,
+      reserve: 0, // No dealer reserve
+      fee: 990, // $395 loan fee + $595 starter interrupter device
       negativeEquityLimit: 3000,
-      maxTerm: 60,
+      maxTerm: 84,
     },
     
     // ========================================
     // RIFCO PREFERRED/ALL-ACCESS PROGRAM
-    // 3 Tiers with rate upsell options
+    // 7 Tiers with rate upsell options
+    // Max payment calls up to $950 for qualifying customers
     // ========================================
     'PreferredTier1': {
       lender: 'RIFCO',
@@ -1069,8 +1071,8 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       ltv: 140, // Front-End: 140%, All-In: 170%
       maxDsr: 50,
       minIncome: 3000,
-      reserve: 600, // Base $600, +$300 for 1% upsell, +$600 for 2% upsell
-      fee: 990, // $395 + $595
+      reserve: 600, // Base $600, 1% Up: $910, 2% Up: $1,220
+      fee: 990, // $395 + $595 GPS
       negativeEquityLimit: 5000,
       maxTerm: 84,
     },
@@ -1078,10 +1080,10 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       lender: 'RIFCO',
       tier: 'PreferredTier2',
       rate: 14.95,
-      ltv: 140, // Front-End: 140%, All-In: 165%
+      ltv: 140, // Front-End: 140%, All-In: 170%
       maxDsr: 50,
       minIncome: 3000,
-      reserve: 500, // Base $500, +$300 for 1% upsell, +$600 for 2% upsell
+      reserve: 500, // Base $500, 1% Up: $810, 2% Up: $1,120
       fee: 990,
       negativeEquityLimit: 5000,
       maxTerm: 84,
@@ -1090,12 +1092,60 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       lender: 'RIFCO',
       tier: 'PreferredTier3',
       rate: 19.95,
-      ltv: 135, // Front-End: 135%, All-In: 160%
+      ltv: 135, // Front-End: 135%, All-In: 165%
       maxDsr: 50,
       minIncome: 3000,
-      reserve: 400, // Base $400, +$300 for 1% upsell
+      reserve: 400, // Base $400, 1% Up: $710, 2% Up: $1,020
       fee: 990,
       negativeEquityLimit: 4000,
+      maxTerm: 84,
+    },
+    'PreferredTier4': {
+      lender: 'RIFCO',
+      tier: 'PreferredTier4',
+      rate: 24.95,
+      ltv: 130, // Front-End: 130%, All-In: 160%
+      maxDsr: 50,
+      minIncome: 3000,
+      reserve: 300, // Base $300, 1% Up: $610, 2% Up: $920
+      fee: 990,
+      negativeEquityLimit: 3500,
+      maxTerm: 84,
+    },
+    'PreferredTier5': {
+      lender: 'RIFCO',
+      tier: 'PreferredTier5',
+      rate: 29.95,
+      ltv: 125, // Front-End: 125%, All-In: 155%
+      maxDsr: 50,
+      minIncome: 3000,
+      reserve: 250, // Base $250
+      fee: 990,
+      negativeEquityLimit: 3000,
+      maxTerm: 84,
+    },
+    'PreferredTier6': {
+      lender: 'RIFCO',
+      tier: 'PreferredTier6',
+      rate: 29.95,
+      ltv: 130, // Front-End: 130%, All-In: 155%
+      maxDsr: 50,
+      minIncome: 3000,
+      reserve: 0, // No dealer reserve
+      fee: 990, // $395 + $595 starter interrupter device
+      negativeEquityLimit: 3000,
+      maxTerm: 84,
+    },
+    'PreferredTier7': {
+      lender: 'RIFCO',
+      tier: 'PreferredTier7',
+      rate: 19.95,
+      ltv: 125, // Front-End: 125%, All-In: 155%
+      maxDsr: 50,
+      minIncome: 3000,
+      reserve: 300, // Base $300, 1% Up: $610, 2% Up: $920
+      fee: 990, // $395 + $595 GPS
+      negativeEquityLimit: 3500,
       maxTerm: 84,
     },
   },
