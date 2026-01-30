@@ -74,7 +74,12 @@ class ProductionDealershipScraper {
       await this.fetchAllPages(paginationPattern);
       console.log(`[SCRAPER] Fetched ${this.allVehicles.length} total vehicles`);
 
-      // STEP 3: Filter by quality score (adjusted thresholds)
+      // STEP 3: Deduplicate vehicles by VIN or stock number
+      const deduplicated = this.deduplicateVehicles();
+      console.log(`[SCRAPER] Deduplicated to ${deduplicated.length} unique vehicles`);
+
+      // STEP 4: Filter by quality score (adjusted thresholds)
+      this.allVehicles = deduplicated;
       const filtered = this.filterByQuality();
       console.log(`[SCRAPER] Filtered to ${filtered.length} quality vehicles`);
 
@@ -131,32 +136,13 @@ class ProductionDealershipScraper {
    * FIX #1: Fetch all pages based on detected pagination pattern
    */
   private async fetchAllPages(pagination: PaginationPattern): Promise<void> {
-    // Force pagination attempts even if not detected - many sites have hidden pagination
+    // If no pagination detected, just fetch the single page
     if (pagination.type === 'none') {
-      // Try multiple pages with offset parameter (common pattern)
-      for (let page = 0; page < (this.config.maxPages || 10); page++) {
-        const url = new URL(this.config.baseUrl);
-        if (page > 0) {
-          url.searchParams.set('offset', (page * 24).toString());
-        }
-        console.log(`[SCRAPER] Fetching page ${page + 1}: ${url.toString()}`);
-        
-        try {
-          const html = await this.fetchHtmlFast(url.toString());
-          const vehicles = await this.extractVehicles(html, url.toString());
-          
-          if (vehicles.length === 0 && page > 0) {
-            console.log(`[SCRAPER] No vehicles on page ${page + 1}, stopping pagination`);
-            break;
-          }
-          
-          this.allVehicles.push(...vehicles);
-          await this.delay(500 + Math.random() * 500);
-        } catch (error) {
-          console.error(`[SCRAPER] Error on page ${page + 1}:`, error);
-          break;
-        }
-      }
+      console.log('[SCRAPER] No pagination detected - fetching single page');
+      const html = await this.fetchHtmlFast(this.config.baseUrl);
+      const vehicles = await this.extractVehicles(html, this.config.baseUrl);
+      this.allVehicles.push(...vehicles);
+      console.log(`[SCRAPER] Extracted ${vehicles.length} vehicles from single page`);
       return;
     }
 
@@ -905,6 +891,28 @@ class ProductionDealershipScraper {
    */
   private randomUserAgent(): string {
     return this.userAgents[Math.floor(Math.random() * this.userAgents.length)];
+  }
+
+  /**
+   * Deduplicate vehicles by VIN or stock number
+   */
+  private deduplicateVehicles(): Vehicle[] {
+    const seen = new Set<string>();
+    const unique: Vehicle[] = [];
+
+    for (const vehicle of this.allVehicles) {
+      // Create unique key from VIN (preferred) or stock number
+      const key = vehicle.vin && vehicle.vin.length > 5 
+        ? vehicle.vin.toUpperCase().trim()
+        : vehicle.id.toUpperCase().trim();
+
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(vehicle);
+      }
+    }
+
+    return unique;
   }
 
   /**
