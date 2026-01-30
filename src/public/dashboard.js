@@ -48,6 +48,83 @@
   var sourceFilter = document.getElementById('sourceFilter');
 
   var lastApproval = null;
+
+  // Extract approval data from PDF text
+  function extractApprovalFromPDF(text) {
+    var data = {
+      bank: null,
+      program: null,
+      apr: null,
+      term: null,
+      paymentMax: null,
+      downPayment: null,
+      customerName: null,
+      tradeAllowance: null,
+      tradeACV: null,
+      tradeLien: null
+    };
+    
+    // Detect lender/bank
+    var lenders = ['TD', 'Santander', 'SDA', 'AutoCapital', 'Eden Park', 'EdenPark', 'IA Auto', 'IAAutoFinance', 'LendCare', 'RIFCO', 'Northlake', 'Prefera'];
+    for (var i = 0; i < lenders.length; i++) {
+      if (text.toUpperCase().includes(lenders[i].toUpperCase())) {
+        data.bank = lenders[i];
+        if (data.bank === 'EdenPark') data.bank = 'Eden Park';
+        if (data.bank === 'IAAutoFinance') data.bank = 'IA Auto';
+        break;
+      }
+    }
+    
+    // Extract APR (look for patterns like "11.99%", "APR: 11.99", "Rate: 11.99")
+    var aprMatch = text.match(/(?:APR|Rate|Interest)[:\s]*(\d+\.?\d*)\s*%?/i);
+    if (aprMatch) {
+      data.apr = parseFloat(aprMatch[1]);
+    }
+    
+    // Extract term (look for patterns like "84 months", "Term: 84", "84 mo")
+    var termMatch = text.match(/(?:Term|Months)[:\s]*(\d+)\s*(?:months?|mo)?/i);
+    if (termMatch) {
+      data.term = parseInt(termMatch[1]);
+    }
+    
+    // Extract payment max (look for patterns like "$1000", "Payment: $1000", "Max Payment: 1000")
+    var paymentMatch = text.match(/(?:Payment|Max Payment|Maximum)[:\s]*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
+    if (paymentMatch) {
+      data.paymentMax = parseFloat(paymentMatch[1].replace(/,/g, ''));
+    }
+    
+    // Extract down payment
+    var downMatch = text.match(/(?:Down Payment|Down)[:\s]*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
+    if (downMatch) {
+      data.downPayment = parseFloat(downMatch[1].replace(/,/g, ''));
+    }
+    
+    // Extract customer name
+    var nameMatch = text.match(/(?:Customer|Name|Applicant)[:\s]*([A-Z][a-z]+\s+[A-Z][a-z]+)/i);
+    if (nameMatch) {
+      data.customerName = nameMatch[1];
+    }
+    
+    // Extract trade allowance
+    var tradeAllowMatch = text.match(/(?:Trade Allowance|Allowance)[:\s]*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
+    if (tradeAllowMatch) {
+      data.tradeAllowance = parseFloat(tradeAllowMatch[1].replace(/,/g, ''));
+    }
+    
+    // Extract trade ACV
+    var acvMatch = text.match(/(?:ACV|Actual Cash Value)[:\s]*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
+    if (acvMatch) {
+      data.tradeACV = parseFloat(acvMatch[1].replace(/,/g, ''));
+    }
+    
+    // Extract trade lien
+    var lienMatch = text.match(/(?:Lien|Payoff)[:\s]*\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
+    if (lienMatch) {
+      data.tradeLien = parseFloat(lienMatch[1].replace(/,/g, ''));
+    }
+    
+    return data;
+  }
   var currentRows = [];
   var currentInventory = [];
   var fileTextCache = '';
@@ -583,8 +660,66 @@
         toast('Failed: ' + (jr.error||'unknown')); 
       }
     } else {
-      // PDF mode - no JSON parsing needed, just upload
-      toast('PDF parsing not yet implemented - use Manual Entry');
+      // PDF mode - parse PDF and extract approval data
+      if (!approvalPdf || !approvalPdf.files || !approvalPdf.files[0]) {
+        toast('Select a PDF file');
+        return;
+      }
+      
+      var fd = new FormData();
+      fd.append('file', approvalPdf.files[0]);
+      
+      var parseResp = await fetch('/api/inventory/parse-pdf', { method:'POST', body: fd });
+      var parseResult = await parseResp.json();
+      
+      if (!parseResult.success) {
+        toast('Failed to parse PDF: ' + (parseResult.error || 'unknown'));
+        return;
+      }
+      
+      var pdfText = parseResult.text || '';
+      
+      // Extract approval data from PDF text
+      var extractedData = extractApprovalFromPDF(pdfText);
+      
+      if (!extractedData.bank) {
+        toast('Could not extract lender from PDF - please check format');
+        return;
+      }
+      
+      // Build payload from extracted data
+      var payload = {
+        contactId: 'pdf-' + Date.now(),
+        locationId: 'pdf',
+        approval: {
+          bank: extractedData.bank,
+          program: extractedData.program || 'Standard',
+          apr: extractedData.apr || 0,
+          termMonths: extractedData.term || 84,
+          paymentMin: 0,
+          paymentMax: extractedData.paymentMax || 1000,
+          downPayment: extractedData.downPayment || 0,
+          province: province,
+          isNativeStatus: isNativeStatus,
+          customerName: extractedData.customerName || customerName
+        },
+        trade: {
+          allowance: extractedData.tradeAllowance || tradeAllowance,
+          acv: extractedData.tradeACV || tradeACV,
+          lienBalance: extractedData.tradeLien || tradeLien
+        }
+      };
+      
+      var resp = await fetch('/api/approvals/ingest', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      var jr = await resp.json();
+      
+      if (jr.success) { 
+        toast('✓ PDF approval imported: ' + extractedData.bank);
+        closeApproval();
+        document.getElementById('score').disabled = false;
+      } else { 
+        toast('Failed: ' + (jr.error||'unknown')); 
+      }
     }
   };
 

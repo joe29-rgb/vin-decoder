@@ -2,7 +2,6 @@ import { Vehicle, ApprovalSpec, TradeInfo, ScoredVehicleRow, Province, BackCapRu
 import { calculateTaxSavings } from './tax-calculator';
 import { getPaymentSummary } from './payment-calculator';
 import { findRule } from './rules-library';
-import { getMaxTermForVehicle } from './vehicle-booking-guide';
 
 const DEFAULT_FEE = 810;
 const DEFAULT_PROVINCE: Province = 'AB';
@@ -126,26 +125,12 @@ export function scoreInventory(
     // Load dynamic lender rule if available
     const rule = findRule(approval.bank, approval.program);
     
-    // Get maximum term based on vehicle booking guide (year + mileage)
-    const maxTermForVehicle = getMaxTermForVehicle(
-      approval.bank,
-      approval.program,
-      v.year,
-      v.mileage
-    );
-    
-    // If vehicle is ineligible (returns 0), skip it
-    if (maxTermForVehicle === 0) {
-      flags.push('vehicle_ineligible_year_mileage');
-      continue;
-    }
-    
     // Effective caps & constraints
     const frontCapFactorEff = approval.frontCapFactor ?? rule?.frontCapFactor;
     const backCapEff: BackCapRule | undefined = approval.backCap ?? rule?.backCap;
 
-    // Use the lesser of approval term or vehicle's max eligible term
-    const termMonthsEff = Math.min(approval.termMonths, maxTermForVehicle);
+    // Use lender program term directly - NO vehicle year/km restrictions
+    const termMonthsEff = approval.termMonths;
 
     // Payment call cap from lender rule (if lower than approval)
     const paymentMaxEff = Math.min(approval.paymentMax, rule?.maxPayCall ?? Number.POSITIVE_INFINITY);
