@@ -2,6 +2,8 @@ import { Vehicle, ApprovalSpec, TradeInfo, ScoredVehicleRow, Province, BackCapRu
 import { calculateTaxSavings } from './tax-calculator';
 import { getPaymentSummary } from './payment-calculator';
 import { findRule } from './rules-library';
+import { getMaxTermForVehicle } from './vehicle-booking-guide';
+import { getSubventedRate } from './lender-programs';
 
 const DEFAULT_FEE = 810;
 const DEFAULT_PROVINCE: Province = 'AB';
@@ -125,12 +127,26 @@ export function scoreInventory(
     // Load dynamic lender rule if available
     const rule = findRule(approval.bank, approval.program);
     
+    // Get maximum term based on vehicle booking guide (year + mileage)
+    const maxTermForVehicle = getMaxTermForVehicle(
+      approval.bank,
+      approval.program,
+      v.year,
+      v.mileage
+    );
+    
+    // If vehicle is ineligible (returns 0), skip it
+    if (maxTermForVehicle === 0) {
+      flags.push('vehicle_ineligible_year_mileage');
+      continue;
+    }
+    
     // Effective caps & constraints
     const frontCapFactorEff = approval.frontCapFactor ?? rule?.frontCapFactor;
     const backCapEff: BackCapRule | undefined = approval.backCap ?? rule?.backCap;
 
-    // Use lender program term directly - NO vehicle year/km restrictions
-    const termMonthsEff = approval.termMonths;
+    // Use the lesser of approval term or vehicle's max eligible term
+    const termMonthsEff = Math.min(approval.termMonths, maxTermForVehicle);
 
     // Payment call cap from lender rule (if lower than approval)
     const paymentMaxEff = Math.min(approval.paymentMax, rule?.maxPayCall ?? Number.POSITIVE_INFINITY);
@@ -139,11 +155,32 @@ export function scoreInventory(
     const minPrice = Math.max(cost, 0);
     const maxPrice = Math.max(minPrice, Math.min(frontCap, minPrice + 100000));
 
+    // Check for subvented rate (new vehicles only)
+    // Estimate amount financed for subvented rate check
+    const downPayment = approval.downPayment || 0;
+    const estimatedFinanced = bb - downPayment;
+    const subventedRate = getSubventedRate(
+      approval.bank,
+      approval.program,
+      v.year,
+      v.make,
+      estimatedFinanced
+    );
+    
+    // Create modified approval with effective APR (subvented or standard)
+    const effectiveApproval = subventedRate !== null 
+      ? { ...approval, apr: subventedRate }
+      : approval;
+    
+    if (subventedRate !== null) {
+      flags.push('subvented_rate');
+    }
+
     const best = findMaxPriceWithinPayment(
       minPrice,
       maxPrice,
       v,
-      approval,
+      effectiveApproval,
       trade,
       approval.paymentMin,
       paymentMaxEff,
