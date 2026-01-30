@@ -644,11 +644,11 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       rate: 13.49,
       ltv: 140,
       maxDsr: 55,
-      minIncome: 1800,
-      reserve: 500,
+      minIncome: 2000,
+      reserve: 500, // $300 (up to $15k) or $500 ($15k+)
       fee: 799,
       negativeEquityLimit: 5000,
-      maxTerm: 96,
+      maxTerm: 84,
     },
     'Tier2': {
       lender: 'AutoCapital',
@@ -656,11 +656,11 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       rate: 14.49,
       ltv: 140,
       maxDsr: 55,
-      minIncome: 1800,
-      reserve: 500,
+      minIncome: 2000,
+      reserve: 500, // $300 (up to $15k) or $500 ($15k+)
       fee: 799,
       negativeEquityLimit: 5000,
-      maxTerm: 96,
+      maxTerm: 84,
     },
     'Tier3': {
       lender: 'AutoCapital',
@@ -668,11 +668,11 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       rate: 15.99,
       ltv: 140,
       maxDsr: 50,
-      minIncome: 1800,
-      reserve: 500,
+      minIncome: 2000,
+      reserve: 500, // $300 (up to $15k) or $500 ($15k+)
       fee: 799,
       negativeEquityLimit: 4000,
-      maxTerm: 96,
+      maxTerm: 84,
     },
     'Tier4': {
       lender: 'AutoCapital',
@@ -680,8 +680,8 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       rate: 17.99,
       ltv: 135,
       maxDsr: 47,
-      minIncome: 1800,
-      reserve: 500,
+      minIncome: 2000,
+      reserve: 500, // $300 (up to $15k) or $500 ($15k+)
       fee: 799,
       negativeEquityLimit: 4000,
       maxTerm: 84,
@@ -692,11 +692,11 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       rate: 21.49,
       ltv: 135,
       maxDsr: 43,
-      minIncome: 1800,
-      reserve: 500,
+      minIncome: 2000,
+      reserve: 500, // $300 (up to $15k) or $500 ($15k+)
       fee: 799,
       negativeEquityLimit: 3000,
-      maxTerm: 72,
+      maxTerm: 78,
     },
     'Tier6': {
       lender: 'AutoCapital',
@@ -704,8 +704,8 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       rate: 23.49,
       ltv: 130,
       maxDsr: 43,
-      minIncome: 1800,
-      reserve: 500,
+      minIncome: 2000,
+      reserve: 500, // $300 (up to $15k) or $500 ($15k+)
       fee: 799,
       negativeEquityLimit: 3000,
       maxTerm: 72,
@@ -917,8 +917,8 @@ const LENDER_PROGRAMS: Record<string, Record<string, LenderProgram>> = {
       ltv: 110,
       maxDsr: 16,
       minIncome: 1800,
-      reserve: 299, // $199-$399
-      fee: 699, // $599-$799 + GPS
+      reserve: 299, // Range: $199-$399 (midpoint)
+      fee: 699, // Range: $599-$799 + GPS (midpoint)
       negativeEquityLimit: 2000,
       maxTerm: 60,
     },
