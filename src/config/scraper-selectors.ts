@@ -8,10 +8,10 @@
 
 export const AUTOTRADER_SELECTORS = {
   // Main listing container
-  listingContainer: 'div[class*="SearchResultsSection"], div[data-test="search-results"]',
+  listingContainer: 'div.listings-wrapper, div[id*="listings"]',
   
-  // Individual vehicle cards
-  vehicleCard: 'div[class*="VehicleCard"], div[data-test="vehicle-card"], article[class*="listing"]',
+  // Individual vehicle cards - WORKING SELECTOR
+  vehicleCard: '.result-item, div.result-item',
   
   // Vehicle details within each card
   vehicleTitle: 'h2[class*="VehicleTitle"], a[class*="vehicleLink"] h2, h3[data-test="vehicle-title"]',

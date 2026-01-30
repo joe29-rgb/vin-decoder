@@ -661,8 +661,7 @@ router.get('/devon', async (req: Request, res: Response) => {
 
 router.get('/autotrader', async (req: Request, res: Response) => {
   try {
-    const { FreeVehicleScraper } = await import('../../modules/scrapers/free-scraper');
-    const scraper = new FreeVehicleScraper();
+    const { scrapeAutoTraderHTTP } = await import('../../modules/scrapers/autotrader-http');
     
     const params = {
       make: req.query.make as string,
@@ -672,20 +671,18 @@ router.get('/autotrader', async (req: Request, res: Response) => {
       priceMin: Number(req.query.priceMin) || undefined,
       priceMax: Number(req.query.priceMax) || undefined,
       location: (req.query.location as string) || 'Alberta',
-      radiusKm: Number(req.query.radius) || 100,
+      radius: Number(req.query.radius) || 100,
       limit: Math.min(Math.max(Number(req.query.limit) || 20, 1), 100),
     };
     
-    const listings = await scraper.scrapeAutoTrader(params);
-    const vehicles = listings.map(l => scraper.convertToVehicle(l));
-    
-    await scraper.closeBrowser();
+    const vehicles = await scrapeAutoTraderHTTP(params);
     
     res.json({ 
       success: true, 
       vehicles,
       count: vehicles.length,
-      source: 'AutoTrader.ca (Free Scraper)'
+      source: 'AutoTrader.ca (HTTP Scraper)',
+      total: vehicles.length
     });
   } catch (e: any) {
     res.status(500).json({ 
@@ -739,32 +736,28 @@ router.get('/autotrader/pricing', async (req: Request, res: Response) => {
 
 router.get('/cargurus', async (req: Request, res: Response) => {
   try {
-    const { FreeVehicleScraper } = await import('../../modules/scrapers/free-scraper');
-    const scraper = new FreeVehicleScraper();
+    const { scrapeCarGurusHTTP } = await import('../../modules/scrapers/cargurus-http');
     
     const params = {
       make: req.query.make as string,
       model: req.query.model as string,
-      yearMin: req.query.yearMin ? Number(req.query.yearMin) : undefined,
-      yearMax: req.query.yearMax ? Number(req.query.yearMax) : undefined,
-      priceMin: req.query.priceMin ? Number(req.query.priceMin) : undefined,
-      priceMax: req.query.priceMax ? Number(req.query.priceMax) : undefined,
-      location: (req.query.postalCode as string) || 'T5J',
-      radiusKm: req.query.radius ? Number(req.query.radius) : 100,
+      yearMin: Number(req.query.yearMin) || undefined,
+      yearMax: Number(req.query.yearMax) || undefined,
+      priceMin: Number(req.query.priceMin) || undefined,
+      priceMax: Number(req.query.priceMax) || undefined,
+      postalCode: (req.query.location as string) || 'T5J',
+      radius: Number(req.query.radius) || 100,
       limit: Math.min(Math.max(Number(req.query.limit) || 20, 1), 100),
     };
     
-    const listings = await scraper.scrapeCarGurus(params);
-    const vehicles = listings.map(l => scraper.convertToVehicle(l));
-    
-    await scraper.closeBrowser();
+    const vehicles = await scrapeCarGurusHTTP(params);
     
     res.json({ 
       success: true, 
-      total: listings.length, 
       vehicles,
       count: vehicles.length,
-      source: 'CarGurus.ca (Free Scraper)'
+      source: 'CarGurus.ca (HTTP Scraper)',
+      total: vehicles.length
     });
   } catch (e: any) {
     res.status(500).json({ 
